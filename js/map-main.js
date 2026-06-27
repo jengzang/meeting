@@ -292,7 +292,7 @@ function initMap() {
 
   map.on("load", () => {
     initTimeline();
-    renderMarkers();
+    renderMarkers({ fit: true });
   });
 
   map.on("error", (e) => {
@@ -335,12 +335,11 @@ function clearMarkers() {
   markers = [];
 }
 
-function renderMarkers() {
+function renderMarkers({ fit = false } = {}) {
   if (!map) return;
 
   baseRecords = getDefaultRecords();
   applyTimelineFilter();
-  console.log("[map] records:", currentRecords.length, "/", baseRecords.length);
 
   clearMarkers();
   hideDetail();
@@ -432,7 +431,7 @@ function renderMarkers() {
       coords.push([lng, lat]);
     }
 
-    if (coords.length > 0) {
+    if (fit && coords.length > 0) {
       const { center, zoom } = calculateDenseMapCenterAndZoom(coords);
       map.flyTo({ center, zoom });
     }
