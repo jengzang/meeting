@@ -9,11 +9,11 @@ const LS_STYLE_KEY = "map-style";
 
 const LS_LABEL_KEY = "map-label-mode";
 const LS_COLOR_KEY = "map-colors";
-const LS_UNIFORM_KEY = "map-uniform-size";
+const LS_SIZE_KEY = "map-size-mode";
 
 let currentStyle = localStorage.getItem(LS_STYLE_KEY) || "tianditu";
 let labelMode = localStorage.getItem(LS_LABEL_KEY) || "activity";
-let uniformSize = localStorage.getItem(LS_UNIFORM_KEY) === "true";
+let sizeMode = localStorage.getItem(LS_SIZE_KEY) || "count";  // "count" | "duration" | ""
 let map = null;
 let baseRecords = [];
 let currentRecords = [];
@@ -66,7 +66,7 @@ const dateFromEl = document.getElementById("dateFrom");
 const dateToEl = document.getElementById("dateTo");
 const labelModeBtns = document.querySelectorAll(".label-mode-btn");
 const colorConfigBtn = document.getElementById("colorConfigBtn");
-const uniformSizeCb = document.getElementById("uniformSizeCb");
+const sizeModeBtns = document.querySelectorAll(".size-mode-btn");
 const showTrafficCb = document.getElementById("showTrafficCb");
 
 // ── detail popup ───────────────────────────────────────────────
@@ -349,31 +349,54 @@ function renderMarkers() {
     groups.get(key).push(r);
   }
 
+  const groupList = [...groups.values()];
   const typeColorMap = getColorMap();
   const coords = [];
 
+  // pre-compute size scaling
+  let countSizes, durationSizes;
+  if (sizeMode === "count") {
+    countSizes = new Map();
+    for (let i = 0; i < groupList.length; i++) {
+      const n = groupList[i].length;
+      countSizes.set(i, n > 1 ? Math.min(n - 1, 8) : 0);
+    }
+  } else if (sizeMode === "duration") {
+    const base = labelMode === "dot" ? 0 : 0;
+    const maxExtra = labelMode === "dot" ? 8 : 5;
+    durationSizes = scaleByDuration(groupList, base, maxExtra);
+  }
+
   requestAnimationFrame(() => {
-    for (const [key, recs] of groups) {
+    for (let gi = 0; gi < groupList.length; gi++) {
+      const recs = groupList[gi];
       const count = recs.length;
       const r = recs[0];
       const color = typeColorMap[r.activity] || "#a9a9a9";
       const el = document.createElement("div");
 
+      // compute scale factor (0 = uniform)
+      let scale = 0;
+      if (sizeMode === "count") {
+        scale = countSizes.get(gi);
+      } else if (sizeMode === "duration") {
+        scale = durationSizes.get(gi);
+      }
+
       if (labelMode === "dot") {
-        const scaled = !uniformSize && count > 1;
-        const size = scaled ? 12 + Math.min(count - 1, 8) * 3 : 12;
-        el.className = scaled ? "marker-dot marker-dot-numbered" : "marker-dot";
+        const size = 12 + scale * 3;
+        const showNum = sizeMode === "count" && count > 1;
+        el.className = showNum ? "marker-dot marker-dot-numbered" : "marker-dot";
         el.style.width = size + "px";
         el.style.height = size + "px";
         el.style.backgroundColor = color;
-        if (scaled) {
+        if (showNum) {
           el.textContent = count;
           el.style.fontSize = Math.max(10, size * 0.42) + "px";
         }
       } else {
-        const scaled = !uniformSize && count > 1;
-        const fontSize = scaled ? 11 + Math.min(count - 1, 6) * 1.5 : 11;
-        const stroke = scaled ? 1.5 + Math.min(count - 1, 6) * 0.3 : 2;
+        const fontSize = 11 + scale * 1.5;
+        const stroke = 2 + scale * 0.3;
         el.className = "marker-label";
         el.style.fontSize = fontSize + "px";
         el.style.WebkitTextStroke = stroke + "px rgba(0,0,0,0.8)";
@@ -408,6 +431,35 @@ function fmtTime(iso) {
   if (!iso) return "?";
   const m = iso.match(/T(\d{2}:\d{2})/);
   return m ? m[1] : "?";
+}
+
+function totalDurationHours(recs) {
+  let total = 0;
+  for (const r of recs) {
+    if (r.arrival && r.departure) {
+      const a = new Date(r.arrival);
+      const d = new Date(r.departure);
+      if (d > a) total += (d - a) / 3600000;
+    }
+  }
+  return total;
+}
+
+function scaleByDuration(allGroups, baseSize, maxExtra) {
+  const durations = [];
+  for (const recs of allGroups) {
+    durations.push(totalDurationHours(recs));
+  }
+  const sorted = [...durations].sort((a, b) => a - b);
+  const lo = sorted[Math.floor(sorted.length * 0.05)] || 0;
+  const hi = sorted[Math.floor(sorted.length * 0.95)] || 1;
+  const range = hi > lo ? hi - lo : 1;
+  const map = new Map();
+  for (let i = 0; i < allGroups.length; i++) {
+    const t = Math.max(lo, Math.min(hi, durations[i]));
+    map.set(i, baseSize + ((t - lo) / range) * maxExtra);
+  }
+  return map;
 }
 
 // ── control panel toggle ──────────────────────────────────────
@@ -489,15 +541,18 @@ labelModeBtns.forEach(btn => {
   });
 });
 colorConfigBtn.addEventListener("click", showColorConfig);
-uniformSizeCb.addEventListener("change", () => {
-  uniformSize = uniformSizeCb.checked;
-  localStorage.setItem(LS_UNIFORM_KEY, uniformSize);
-  renderMarkers();
+sizeModeBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    sizeMode = btn.dataset.mode === sizeMode ? "" : btn.dataset.mode;
+    localStorage.setItem(LS_SIZE_KEY, sizeMode);
+    sizeModeBtns.forEach(b => b.classList.toggle("active", b.dataset.mode === sizeMode));
+    renderMarkers();
+  });
 });
 
 // ── bootstrap ──────────────────────────────────────────────────
 
 populateStyleOptions();
 labelModeBtns.forEach(b => b.classList.toggle("active", b.dataset.mode === labelMode));
-uniformSizeCb.checked = uniformSize;
+sizeModeBtns.forEach(b => b.classList.toggle("active", b.dataset.mode === sizeMode));
 initMap();
