@@ -1,23 +1,25 @@
 """
 Convert 交通_together.xlsx → js/data/traffic.js.
 
-Coordinates resolved by time-matching against records.js (hand-edited, with IDs).
-  origin coords = record with departure closest to traffic 'from' time
-  dest coords   = record with arrival closest to traffic 'to' time
-
-Only exports traffic on dates that exist in records.js.
+Matches traffic to gaps between consecutive records (sorted by time).
+  origin = the record before the gap
+  dest   = the record after the gap
+Traffic that doesn't fall in any gap is skipped — this naturally filters
+out trips to/from deleted places and redundant round-trips.
 
 Usage:
   source /tmp/xlsxenv/bin/activate
   python3 scripts/convert_traffic.py
 """
 import json, os, re
-from datetime import datetime
+from datetime import datetime, timedelta
 import openpyxl
 
 SRC_RECORDS_JS = os.path.join(os.path.dirname(__file__), "..", "js", "data", "records.js")
 SRC_TRAFFIC = os.path.join(os.path.dirname(__file__), "..", "交通_together.xlsx")
 DST = os.path.join(os.path.dirname(__file__), "..", "js", "data", "traffic.js")
+
+TOLERANCE = timedelta(minutes=2)
 
 
 def parse_dt(s):
@@ -31,7 +33,6 @@ def parse_dt(s):
 with open(SRC_RECORDS_JS, "r") as f:
     js_text = f.read()
 
-# extract JSON array from ES module (strip trailing comma before ])
 m = re.search(r"export const records = (\[.*?\]);", js_text, re.DOTALL)
 if not m:
     print("ERROR: could not parse records.js")
@@ -39,48 +40,44 @@ if not m:
 arr_text = re.sub(r",\s*\]", "]", m.group(1))
 records_data = json.loads(arr_text)
 
-record_times = []  # [{id, arrival_dt, departure_dt, lat, lng}]
-record_dates = set()
-
-for rec in records_data:
-    if not rec.get("arrival") or not rec.get("departure"):
+# build sorted list of records
+recs = []
+for r in records_data:
+    if not r.get("arrival") or not r.get("departure"):
         continue
-    if rec.get("lat") is None or rec.get("lng") is None:
+    if r.get("lat") is None or r.get("lng") is None:
         continue
-    arr_dt = parse_dt(rec["arrival"])
-    dep_dt = parse_dt(rec["departure"])
-    record_dates.add(rec["date"])
-    record_times.append({
-        "id": rec["id"],
-        "arrival": arr_dt,
-        "departure": dep_dt,
-        "lat": rec["lat"],
-        "lng": rec["lng"],
+    recs.append({
+        "id": r["id"],
+        "place": r["place"],
+        "arrival": parse_dt(r["arrival"]),
+        "departure": parse_dt(r["departure"]),
+        "lat": r["lat"],
+        "lng": r["lng"],
+        "date": r["date"],
     })
 
+recs.sort(key=lambda r: r["arrival"])
 
-def closest_origin(traffic_from_dt):
-    """Find the record whose departure is closest to the traffic start time."""
-    best = None
-    best_diff = float("inf")
-    for rec in record_times:
-        diff = abs((rec["departure"] - traffic_from_dt).total_seconds())
-        if diff < best_diff:
-            best_diff = diff
-            best = rec
-    return best["id"], best["lat"], best["lng"]
+# build gap index: each gap = (rec[i].departure, rec[i+1].arrival, rec[i], rec[i+1])
+gaps = []
+for i in range(len(recs) - 1):
+    gaps.append({
+        "start": recs[i]["departure"],
+        "end": recs[i + 1]["arrival"],
+        "origin_rec": recs[i],
+        "dest_rec": recs[i + 1],
+    })
+
+record_dates = {r["date"] for r in recs}
 
 
-def closest_dest(traffic_to_dt):
-    """Find the record whose arrival is closest to the traffic end time."""
-    best = None
-    best_diff = float("inf")
-    for rec in record_times:
-        diff = abs((rec["arrival"] - traffic_to_dt).total_seconds())
-        if diff < best_diff:
-            best_diff = diff
-            best = rec
-    return best["id"], best["lat"], best["lng"]
+def find_gap(t_from, t_to):
+    """Find the gap that contains this traffic time window (with tolerance)."""
+    for g in gaps:
+        if g["start"] - TOLERANCE <= t_from and t_to <= g["end"] + TOLERANCE:
+            return g
+    return None
 
 
 # ── read & convert traffic ──────────────────────────────────────
@@ -90,6 +87,7 @@ ws_tr = wb_tr.active
 
 traffic = []
 skipped_date = 0
+skipped_gap = 0
 
 for r in range(2, ws_tr.max_row + 1):
     typ = ws_tr.cell(r, 1).value
@@ -97,8 +95,8 @@ for r in range(2, ws_tr.max_row + 1):
     to_time = ws_tr.cell(r, 3).value
     tz = ws_tr.cell(r, 4).value
     dur = ws_tr.cell(r, 5).value
-    origin = ws_tr.cell(r, 6).value
-    dest = ws_tr.cell(r, 7).value
+    origin_name = ws_tr.cell(r, 6).value
+    dest_name = ws_tr.cell(r, 7).value
 
     if not typ or not from_time or not to_time:
         continue
@@ -110,8 +108,13 @@ for r in range(2, ws_tr.max_row + 1):
 
     f_dt = parse_dt(from_time)
     t_dt = parse_dt(to_time)
-    o_rid, o_lat, o_lng = closest_origin(f_dt)
-    d_rid, d_lat, d_lng = closest_dest(t_dt)
+    gap = find_gap(f_dt, t_dt)
+    if not gap:
+        skipped_gap += 1
+        continue
+
+    o = gap["origin_rec"]
+    d = gap["dest_rec"]
 
     traffic.append({
         "type": str(typ).strip(),
@@ -119,14 +122,14 @@ for r in range(2, ws_tr.max_row + 1):
         "to_time": to_time,
         "tz": str(tz).strip() if tz else "Asia/Shanghai",
         "duration_sec": int(dur) if dur else None,
-        "origin": str(origin).strip() if origin else None,
-        "origin_lat": o_lat,
-        "origin_lng": o_lng,
-        "origin_record_id": o_rid,
-        "dest": str(dest).strip() if dest else None,
-        "dest_lat": d_lat,
-        "dest_lng": d_lng,
-        "dest_record_id": d_rid,
+        "origin": str(origin_name).strip() if origin_name else o["place"],
+        "origin_lat": o["lat"],
+        "origin_lng": o["lng"],
+        "origin_record_id": o["id"],
+        "dest": str(dest_name).strip() if dest_name else d["place"],
+        "dest_lat": d["lat"],
+        "dest_lng": d["lng"],
+        "dest_record_id": d["id"],
         "date": date_str,
     })
 
@@ -140,4 +143,5 @@ js = (
 with open(DST, "w") as f:
     f.write(js)
 
-print(f"Written {len(traffic)} traffic records to {DST}  (skipped {skipped_date} outside record dates)")
+print(f"Written {len(traffic)} traffic records to {os.path.basename(DST)}")
+print(f"  skipped {skipped_date} outside record dates, {skipped_gap} not in any gap")
