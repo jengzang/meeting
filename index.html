@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>热力图</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <div class="card">
+    <div class="header">
+      <div>
+        <div class="title">热力图</div>
+        <div class="subtitle">2026.02.16 — 2026.06.14；一周一列，周一到周日。</div>
+        <a href="map.html" class="nav-link">地图 →</a>
+      </div>
+
+      <div class="controls">
+        <select id="modeSelect">
+          <option value="shape">模式 1：形状填充</option>
+          <option value="depth">模式 2：颜色深度</option>
+        </select>
+
+        <select id="themeSelect">
+          <option value="githubGreen">GitHub 绿</option>
+          <option value="oceanBlue">海洋蓝</option>
+          <option value="cyberCyan">炫酷青</option>
+          <option value="warmOrange">温暖橙</option>
+          <option value="rosePink">玫瑰粉</option>
+          <option value="violetPurple">紫罗兰</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="heatmap-wrap">
+      <div id="calendar" class="calendar"></div>
+    </div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="month-ratio" id="monthRatio"></div>
+
+    <div class="total-pie-section" id="totalPieSection"></div>
+
+    <div class="monthly-pie-section" id="monthlyPieSection"></div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

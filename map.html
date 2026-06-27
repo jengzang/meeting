@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>地图</title>
+  <link rel="stylesheet" href="css/map.css" />
+  <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" rel="stylesheet" />
+</head>
+
+<body>
+  <header class="header-bar">
+    <div class="header-left">
+      <span class="page-title">地图视图</span>
+      <a href="index.html" class="nav-link">← 热力图</a>
+    </div>
+  </header>
+
+  <div class="map-wrap">
+    <div id="map"></div>
+
+    <div class="map-controls">
+      <label for="styleSelect">底图</label>
+      <select id="styleSelect"></select>
+
+      <button class="control-btn" id="resetBtn">🎯 复位视图</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/map-main.js"></script>
+</body>
+</html>
