@@ -7,7 +7,10 @@ const LS_STYLE_KEY = "map-style";
 
 // ── state ──────────────────────────────────────────────────────
 
+const LS_LABEL_KEY = "map-label-mode";
+
 let currentStyle = localStorage.getItem(LS_STYLE_KEY) || "gaode";
+let labelMode = localStorage.getItem(LS_LABEL_KEY) || "activity";
 let map = null;
 let baseRecords = [];
 let currentRecords = [];
@@ -32,6 +35,7 @@ const mapControls = document.getElementById("mapControls");
 const recordCountEl = document.getElementById("recordCount");
 const dateFromEl = document.getElementById("dateFrom");
 const dateToEl = document.getElementById("dateTo");
+const labelModeSwitch = document.getElementById("labelModeSwitch");
 
 // ── detail popup ───────────────────────────────────────────────
 
@@ -64,10 +68,14 @@ function ensureDetail() {
     const timeEl = document.createElement("div");
     timeEl.className = "detail-time";
 
+    const noteEl = document.createElement("div");
+    noteEl.className = "detail-note";
+
     card.appendChild(closeBtn);
     card.appendChild(placeEl);
     card.appendChild(metaEl);
     card.appendChild(timeEl);
+    card.appendChild(noteEl);
     detailEl.appendChild(overlay);
     detailEl.appendChild(card);
     document.querySelector(".map-wrap").appendChild(detailEl);
@@ -83,6 +91,13 @@ function showDetail(props) {
   el.querySelector(".detail-meta").innerHTML =
     `<span class="detail-type-badge" style="background:${props.textColor}">${props.activity}</span>`;
   el.querySelector(".detail-time").textContent = `${props.date}  ${arr} — ${dep}`;
+  const noteEl = el.querySelector(".detail-note");
+  if (props.note) {
+    noteEl.textContent = props.note;
+    noteEl.style.display = "";
+  } else {
+    noteEl.style.display = "none";
+  }
   el.style.display = "";
 }
 
@@ -174,8 +189,12 @@ function renderMarkers() {
       const color = typeColorMap[r.activity] || "#a9a9a9";
       const el = document.createElement("div");
       el.className = "marker-label";
-      el.textContent = r.activity;
       el.style.color = color;
+      if (labelMode === "place") {
+        el.textContent = r.place.length > 5 ? r.place.slice(0, 5) + "…" : r.place;
+      } else {
+        el.textContent = r.activity;
+      }
       el.addEventListener("click", () => {
         showDetail({ ...r, textColor: color });
       });
@@ -271,8 +290,14 @@ dateToEl.addEventListener("change", () => {
 resetBtn.addEventListener("click", resetView);
 closePanelBtn.addEventListener("click", closePanel);
 reopenPanelBtn.addEventListener("click", reopenPanel);
+labelModeSwitch.addEventListener("change", () => {
+  labelMode = labelModeSwitch.checked ? "place" : "activity";
+  localStorage.setItem(LS_LABEL_KEY, labelMode);
+  renderMarkers();
+});
 
 // ── bootstrap ──────────────────────────────────────────────────
 
 populateStyleOptions();
+labelModeSwitch.checked = labelMode === "place";
 initMap();
