@@ -20,6 +20,7 @@ let map = null;
 let baseRecords = [];
 let currentRecords = [];
 let markers = [];
+let zoomDebounce = null;
 
 // ── default color map ─────────────────────────────────────────
 
@@ -300,7 +301,9 @@ function initMap() {
   });
 
   map.on("zoomend", () => {
-    if (autoCluster) renderMarkers();
+    if (!autoCluster) return;
+    clearTimeout(zoomDebounce);
+    zoomDebounce = setTimeout(() => renderMarkers(), 150);
   });
 
   styleSelect.value = currentStyle;
@@ -380,62 +383,60 @@ function renderMarkers({ fit = false } = {}) {
     durationSizes = scaleByDuration(recsList, 0, maxExtra);
   }
 
-  requestAnimationFrame(() => {
-    for (let gi = 0; gi < groupList.length; gi++) {
-      const { recs, lng, lat } = groupList[gi];
-      const count = recs.length;
-      const r = recs[0];
-      const color = typeColorMap[r.activity] || "#a9a9a9";
-      const el = document.createElement("div");
+  for (let gi = 0; gi < groupList.length; gi++) {
+    const { recs, lng, lat } = groupList[gi];
+    const count = recs.length;
+    const domAct = dominantActivity(recs);
+    const color = typeColorMap[domAct] || "#a9a9a9";
+    const el = document.createElement("div");
 
-      // compute scale factor (0 = uniform)
-      let scale = 0;
-      if (sizeMode === "count") {
-        scale = countSizes.get(gi);
-      } else if (sizeMode === "duration") {
-        scale = durationSizes.get(gi);
-      }
-
-      if (labelMode === "dot") {
-        const size = 12 + scale * 3;
-        const showNum = sizeMode === "count" && count > 1;
-        el.className = showNum ? "marker-dot marker-dot-numbered" : "marker-dot";
-        el.style.width = size + "px";
-        el.style.height = size + "px";
-        el.style.backgroundColor = color;
-        if (showNum) {
-          el.textContent = count;
-          el.style.fontSize = Math.max(10, size * 0.42) + "px";
-        }
-      } else {
-        const fontSize = 11 + scale * 1.5;
-        const stroke = 2 + scale * 0.3;
-        el.className = "marker-label";
-        el.style.fontSize = fontSize + "px";
-        el.style.WebkitTextStroke = stroke + "px rgba(0,0,0,0.8)";
-        el.style.color = color;
-        el.textContent = labelMode === "place"
-          ? (r.place.length > 5 ? r.place.slice(0, 5) + "…" : r.place)
-          : r.activity;
-      }
-
-      el.addEventListener("click", () => {
-        showDetail(recs, color);
-      });
-
-      const marker = new maplibregl.Marker({ element: el, anchor: "center" })
-        .setLngLat([lng, lat])
-        .addTo(map);
-
-      markers.push(marker);
-      coords.push([lng, lat]);
+    // compute scale factor (0 = uniform)
+    let scale = 0;
+    if (sizeMode === "count") {
+      scale = countSizes.get(gi);
+    } else if (sizeMode === "duration") {
+      scale = durationSizes.get(gi);
     }
 
-    if (fit && coords.length > 0) {
-      const { center, zoom } = calculateDenseMapCenterAndZoom(coords);
-      map.flyTo({ center, zoom });
+    if (labelMode === "dot") {
+      const size = 12 + scale * 3;
+      const showNum = sizeMode === "count" && count > 1;
+      el.className = showNum ? "marker-dot marker-dot-numbered" : "marker-dot";
+      el.style.width = size + "px";
+      el.style.height = size + "px";
+      el.style.backgroundColor = color;
+      if (showNum) {
+        el.textContent = count;
+        el.style.fontSize = Math.max(10, size * 0.42) + "px";
+      }
+    } else {
+      const fontSize = 11 + scale * 1.5;
+      const stroke = 2 + scale * 0.3;
+      el.className = "marker-label";
+      el.style.fontSize = fontSize + "px";
+      el.style.WebkitTextStroke = stroke + "px rgba(0,0,0,0.8)";
+      el.style.color = color;
+      el.textContent = labelMode === "place"
+        ? (recs[0].place.length > 5 ? recs[0].place.slice(0, 5) + "…" : recs[0].place)
+        : domAct;
     }
-  });
+
+    el.addEventListener("click", () => {
+      showDetail(recs, color);
+    });
+
+    const marker = new maplibregl.Marker({ element: el, anchor: "center" })
+      .setLngLat([lng, lat])
+      .addTo(map);
+
+    markers.push(marker);
+    coords.push([lng, lat]);
+  }
+
+  if (fit && coords.length > 0) {
+    const { center, zoom } = calculateDenseMapCenterAndZoom(coords);
+    map.flyTo({ center, zoom });
+  }
 }
 
 // ── helpers ────────────────────────────────────────────────────
@@ -444,6 +445,22 @@ function fmtTime(iso) {
   if (!iso) return "?";
   const m = iso.match(/T(\d{2}:\d{2})/);
   return m ? m[1] : "?";
+}
+
+function dominantActivity(recs) {
+  const acc = {};
+  for (const r of recs) {
+    if (r.arrival && r.departure) {
+      const a = new Date(r.arrival);
+      const d = new Date(r.departure);
+      if (d > a) acc[r.activity] = (acc[r.activity] || 0) + (d - a) / 3600000;
+    }
+  }
+  let best = null, max = -1;
+  for (const [act, hrs] of Object.entries(acc)) {
+    if (hrs > max) { max = hrs; best = act; }
+  }
+  return best || recs[0].activity;
 }
 
 function clusterPrecision() {

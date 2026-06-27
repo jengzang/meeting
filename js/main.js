@@ -30,7 +30,8 @@ function applyTheme(name) {
 // ── render all ─────────────────────────────────────────────────
 
 function renderAll() {
-  const startDate = parseDate(START_DATE);
+  // const startDate = parseDate(START_DATE);
+  const startDate = parseDate("2025-06-27");
   const endDate = parseDate(END_DATE);
   const paintedData = currentMode === "shape" ? shapeData : depthData;
   const monthStats = getMonthStats(startDate, endDate, paintedData);
