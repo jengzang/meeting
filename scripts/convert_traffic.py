@@ -20,6 +20,7 @@ SRC_TRAFFIC = os.path.join(os.path.dirname(__file__), "..", "交通_together.xls
 DST = os.path.join(os.path.dirname(__file__), "..", "js", "data", "traffic.js")
 
 TOLERANCE = timedelta(minutes=2)
+MAX_GAP = timedelta(hours=24)  # skip gaps larger than this — data is not continuous
 
 
 def parse_dt(s):
@@ -59,9 +60,14 @@ for r in records_data:
 
 recs.sort(key=lambda r: r["arrival"])
 
-# build gap index: each gap = (rec[i].departure, rec[i+1].arrival, rec[i], rec[i+1])
+# build gap index: only consecutive records close in time
 gaps = []
+skipped_large = 0
 for i in range(len(recs) - 1):
+    gap_dur = recs[i + 1]["arrival"] - recs[i]["departure"]
+    if gap_dur > MAX_GAP:
+        skipped_large += 1
+        continue
     gaps.append({
         "start": recs[i]["departure"],
         "end": recs[i + 1]["arrival"],
@@ -144,4 +150,4 @@ with open(DST, "w") as f:
     f.write(js)
 
 print(f"Written {len(traffic)} traffic records to {os.path.basename(DST)}")
-print(f"  skipped {skipped_date} outside record dates, {skipped_gap} not in any gap")
+print(f"  skipped {skipped_date} outside record dates, {skipped_gap} not in any gap, {skipped_large} gaps >24h ignored")
