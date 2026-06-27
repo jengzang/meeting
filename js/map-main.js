@@ -8,6 +8,7 @@ const LS_STYLE_KEY = "map-style";
 // ── state ──────────────────────────────────────────────────────
 
 const LS_LABEL_KEY = "map-label-mode";
+const LS_COLOR_KEY = "map-colors";
 
 let currentStyle = localStorage.getItem(LS_STYLE_KEY) || "gaode";
 let labelMode = localStorage.getItem(LS_LABEL_KEY) || "activity";
@@ -36,6 +37,7 @@ const recordCountEl = document.getElementById("recordCount");
 const dateFromEl = document.getElementById("dateFrom");
 const dateToEl = document.getElementById("dateTo");
 const labelModeBtns = document.querySelectorAll(".label-mode-btn");
+const colorConfigBtn = document.getElementById("colorConfigBtn");
 
 // ── detail popup ───────────────────────────────────────────────
 
@@ -105,14 +107,107 @@ function hideDetail() {
   if (detailEl) detailEl.style.display = "none";
 }
 
-// ── helpers ────────────────────────────────────────────────────
+// ── color config panel ─────────────────────────────────────────
 
-function buildColorMap(types) {
+let colorConfigEl = null;
+
+function ensureColorConfig() {
+  if (!colorConfigEl) {
+    colorConfigEl = document.createElement("div");
+    colorConfigEl.className = "color-config";
+    colorConfigEl.style.display = "none";
+
+    const overlay = document.createElement("div");
+    overlay.className = "color-config-overlay";
+    overlay.addEventListener("click", hideColorConfig);
+
+    const card = document.createElement("div");
+    card.className = "color-config-card";
+
+    const header = document.createElement("div");
+    header.className = "color-config-header";
+    header.innerHTML = '<span>配色方案</span>';
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "detail-close";
+    closeBtn.textContent = "✕";
+    closeBtn.addEventListener("click", hideColorConfig);
+    header.appendChild(closeBtn);
+
+    const list = document.createElement("div");
+    list.className = "color-config-list";
+
+    const resetBtn = document.createElement("button");
+    resetBtn.className = "color-config-reset";
+    resetBtn.textContent = "重置默认";
+    resetBtn.addEventListener("click", () => {
+      localStorage.removeItem(LS_COLOR_KEY);
+      populateColorList();
+      renderMarkers();
+    });
+
+    card.appendChild(header);
+    card.appendChild(list);
+    card.appendChild(resetBtn);
+    colorConfigEl.appendChild(overlay);
+    colorConfigEl.appendChild(card);
+    document.querySelector(".map-wrap").appendChild(colorConfigEl);
+  }
+  return colorConfigEl;
+}
+
+function populateColorList() {
+  const list = colorConfigEl.querySelector(".color-config-list");
+  const colorMap = getColorMap();
+  const types = Object.keys(colorMap).sort();
+  list.innerHTML = types.map(t => `
+    <div class="color-item">
+      <span class="color-item-label">${t}</span>
+      <input type="color" class="color-item-input" value="${colorMap[t]}" data-type="${t}" />
+    </div>
+  `).join("");
+
+  list.querySelectorAll(".color-item-input").forEach(input => {
+    input.addEventListener("input", () => {
+      const colorMap = getColorMap();
+      colorMap[input.dataset.type] = input.value;
+      saveColorMap(colorMap);
+      renderMarkers();
+    });
+  });
+}
+
+function showColorConfig() {
+  const el = ensureColorConfig();
+  populateColorList();
+  el.style.display = "";
+}
+
+function hideColorConfig() {
+  if (colorConfigEl) colorConfigEl.style.display = "none";
+}
+
+// ── color map ─────────────────────────────────────────────────
+
+function buildDefaultColorMap(types) {
   const map = {};
   types.forEach((t, i) => {
     map[t] = COLOR_PALETTE[i % COLOR_PALETTE.length];
   });
   return map;
+}
+
+function getColorMap() {
+  const defaults = buildDefaultColorMap(getUniqueTypes());
+  const saved = localStorage.getItem(LS_COLOR_KEY);
+  if (saved) {
+    try { return { ...defaults, ...JSON.parse(saved) }; } catch {}
+  }
+  return defaults;
+}
+
+function saveColorMap(map) {
+  localStorage.setItem(LS_COLOR_KEY, JSON.stringify(map));
 }
 
 // ── map init ───────────────────────────────────────────────────
@@ -182,7 +277,7 @@ function renderMarkers() {
 
   if (currentRecords.length === 0) return;
 
-  const typeColorMap = buildColorMap(getUniqueTypes());
+  const typeColorMap = getColorMap();
 
   requestAnimationFrame(() => {
     for (const r of currentRecords) {
@@ -301,6 +396,7 @@ labelModeBtns.forEach(btn => {
     renderMarkers();
   });
 });
+colorConfigBtn.addEventListener("click", showColorConfig);
 
 // ── bootstrap ──────────────────────────────────────────────────
 
