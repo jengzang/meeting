@@ -228,12 +228,6 @@
     var pwError = document.getElementById("pwError");
     var verifying = false;
 
-    // already authenticated this session?
-    if (sessionStorage.getItem(AUTH_KEY) === "1") {
-      pwOverlay.classList.add("hidden");
-      startMap();
-    }
-
     async function tryDecrypt(password) {
       if (verifying) return;
       verifying = true;
@@ -242,7 +236,7 @@
 
       try {
         await initFullData(password);
-        sessionStorage.setItem(AUTH_KEY, "1");
+        sessionStorage.setItem(AUTH_KEY, password);
         pwOverlay.classList.add("hidden");
         startMap();
       } catch (e) {
@@ -255,6 +249,13 @@
       } finally {
         verifying = false;
       }
+    }
+
+    // session restore: decrypt with saved password before starting map
+    var savedPw = sessionStorage.getItem(AUTH_KEY);
+    if (savedPw) {
+      pwOverlay.classList.add("hidden");
+      tryDecrypt(savedPw);
     }
 
     pwInput.addEventListener("keydown", function(e) {
