@@ -199,6 +199,10 @@
 
     .success-box {
       width: min(90vw, 420px);
+      max-width: calc(100vw - 48px);
+      max-height: 80vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       padding: 34px 24px;
       border-radius: 30px;
       background: rgba(255, 255, 255, 0.72);
@@ -268,11 +272,36 @@
     }
 
     @media (max-width: 420px) {
-      .card { min-height: 500px; padding-top: 30px; }
-      h1 { font-size: 25px; }
-      .btn { font-size: 17px; padding: 13px 20px; }
-      #noBtn { left: 18px; }
-      #yesBtn { right: 18px; }
+      .card { min-height: 440px; padding: 28px 16px 22px; }
+      h1 { font-size: 23px; }
+      .subtitle { font-size: 14px; max-width: 280px; }
+      .btn { font-size: 16px; padding: 12px 18px; }
+      .button-area { height: 200px; margin-top: 24px; }
+      #noBtn { left: 10px; top: 42px; }
+      #yesBtn { right: 10px; top: 42px; }
+      .tip { font-size: 13px; bottom: 6px; }
+      .success-box { padding: 28px 18px; }
+      .success-box .big { font-size: 52px; }
+      .success-box h2 { font-size: 22px; }
+    }
+
+    @media (max-width: 360px) {
+      body { overflow-y: auto; align-items: flex-start; padding-top: 12px; }
+      .card { min-height: 420px; padding: 24px 12px 18px; border-radius: 24px; }
+      h1 { font-size: 21px; }
+      .subtitle { font-size: 13px; }
+      .emoji { font-size: 48px; margin-bottom: 10px; }
+      .scene-pill { padding: 5px 10px; font-size: 12px; }
+      .scene-switcher { gap: 6px; margin-top: 14px; }
+      .button-area { height: 180px; margin-top: 18px; }
+      .btn { font-size: 15px; padding: 11px 16px; }
+      #noBtn { left: 6px; top: 36px; }
+      #yesBtn { right: 6px; top: 36px; }
+      .tip { font-size: 12px; bottom: 2px; }
+      .success-mask { padding: 16px; }
+      .success-box { padding: 24px 14px; border-radius: 24px; }
+      .success-box .big { font-size: 44px; margin-bottom: 10px; }
+      .success-box h2 { font-size: 20px; }
     }
   </style>
 </head>
@@ -469,9 +498,11 @@
 
       noBtn.style.transform = "scale(1)";
       noBtn.style.opacity = "1";
+      noBtn.style.left = "";
+      noBtn.style.top = "";
       yesBtn.style.transform = "scale(1)";
-      noBtn.style.left = "35px";
-      noBtn.style.top = "52px";
+      yesBtn.style.right = "";
+      yesBtn.style.top = "";
       tip.textContent = config.tips[0];
 
       successMask.style.display = "none";
