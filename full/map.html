@@ -224,7 +224,7 @@
 
   <script type="module">
     import { initFullData, startMap } from "../js/map-main-full.js?v=97b771a";
-    import { initCornerSheep, initSheepHerd, showLoadingSheep, hideLoadingSheep } from "../js/sheep.js";
+    import { initCornerSheep, showLoadingSheep, hideLoadingSheep } from "../js/sheep.js";
 
     var AUTH_KEY = "full-map-auth";
     var pwOverlay = document.getElementById("pwOverlay");
@@ -233,7 +233,6 @@
     var verifying = false;
 
     initCornerSheep();
-    initSheepHerd(35000);
 
     async function tryDecrypt(password) {
       if (verifying) return;
