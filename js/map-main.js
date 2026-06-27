@@ -307,7 +307,18 @@ function changeMapStyle(name) {
   if (!map) return;
   currentStyle = name;
   localStorage.setItem(LS_STYLE_KEY, name);
-  map.once("style.load", () => { renderMarkers(); });
+
+  let done = false;
+  const renderOnce = () => {
+    if (done) return;
+    done = true;
+    renderMarkers();
+  };
+
+  // style.load works for URL styles; idle covers inline style objects
+  map.once("style.load", renderOnce);
+  map.once("idle", renderOnce);
+
   map.setStyle(mapStyle(name));
 }
 
