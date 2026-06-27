@@ -10,7 +10,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 23.4133526,
     "lng": 116.6211484,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 2,
@@ -22,7 +24,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 23.4133507,
     "lng": 116.6244019,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 3,
@@ -34,7 +38,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 23.4120446,
     "lng": 116.6351299,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 4,
@@ -46,7 +52,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 23.4113644,
     "lng": 116.6362022,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 5,
@@ -58,7 +66,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 23.4133526,
     "lng": 116.6211484,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 6,
@@ -70,7 +80,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 23.4105072,
     "lng": 116.63924,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 7,
@@ -82,7 +94,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 23.3689196,
     "lng": 116.6802627,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 8,
@@ -94,7 +108,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 23.3512811,
     "lng": 116.6619347,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 9,
@@ -106,7 +122,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 23.354972,
     "lng": 116.6646607,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 10,
@@ -118,7 +136,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 23.3520864,
     "lng": 116.6717568,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 11,
@@ -130,7 +150,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 23.4147736,
     "lng": 115.9182716,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 12,
@@ -142,7 +164,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.9523306,
     "lng": 115.1123185,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 13,
@@ -154,7 +178,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 23.0985096,
     "lng": 113.9460511,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 14,
@@ -166,7 +192,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 23.0984119,
     "lng": 113.9314015,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 15,
@@ -178,7 +206,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 23.0985096,
     "lng": 113.9460511,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 16,
@@ -190,7 +220,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 23.0918704,
     "lng": 113.8546851,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 17,
@@ -202,7 +234,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.612747,
     "lng": 114.0258226,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 18,
@@ -214,7 +248,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.586272,
     "lng": 113.9613871,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 19,
@@ -226,7 +262,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.588079,
     "lng": 113.9688094,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 20,
@@ -238,7 +276,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.5955185,
     "lng": 113.96397,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 21,
@@ -250,7 +290,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.5883961,
     "lng": 113.966756,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 22,
@@ -262,7 +304,9 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.612747,
     "lng": 114.0258226,
-    "note": null
+    "note": null,
+    "photo_we": null,
+    "photo_spots": null
   },
   {
     "id": 23,
