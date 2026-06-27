@@ -97,6 +97,8 @@ const colorConfigBtn = document.getElementById("colorConfigBtn");
 const sizeModeBtns = document.querySelectorAll(".size-mode-btn");
 const showTrafficCb = document.getElementById("showTrafficCb");
 const autoClusterCb = document.getElementById("autoClusterCb");
+const scenicCb = document.getElementById("scenicCb");
+const photoCb = document.getElementById("photoCb");
 
 // ── detail popup ───────────────────────────────────────────────
 
@@ -788,6 +790,18 @@ autoClusterCb.addEventListener("change", () => {
   autoCluster = autoClusterCb.checked;
   localStorage.setItem(LS_CLUSTER_KEY, autoCluster);
   renderMarkers();
+});
+
+scenicCb.addEventListener("change", (e) => {
+  e.preventDefault();
+  scenicCb.checked = false;
+  window.showIntroSheep && window.showIntroSheep('坐等绵羊整理照片', 2500);
+});
+
+photoCb.addEventListener("change", (e) => {
+  e.preventDefault();
+  photoCb.checked = false;
+  window.showIntroSheep && window.showIntroSheep('坐等绵羊整理照片', 2500);
 });
 
 // ── bootstrap ──────────────────────────────────────────────────
