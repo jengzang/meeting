@@ -35,7 +35,7 @@ const mapControls = document.getElementById("mapControls");
 const recordCountEl = document.getElementById("recordCount");
 const dateFromEl = document.getElementById("dateFrom");
 const dateToEl = document.getElementById("dateTo");
-const labelModeSwitch = document.getElementById("labelModeSwitch");
+const labelModeBtns = document.querySelectorAll(".label-mode-btn");
 
 // ── detail popup ───────────────────────────────────────────────
 
@@ -188,12 +188,15 @@ function renderMarkers() {
     for (const r of currentRecords) {
       const color = typeColorMap[r.activity] || "#a9a9a9";
       const el = document.createElement("div");
-      el.className = "marker-label";
-      el.style.color = color;
-      if (labelMode === "place") {
-        el.textContent = r.place.length > 5 ? r.place.slice(0, 5) + "…" : r.place;
+      if (labelMode === "dot") {
+        el.className = "marker-dot";
+        el.style.backgroundColor = color;
       } else {
-        el.textContent = r.activity;
+        el.className = "marker-label";
+        el.style.color = color;
+        el.textContent = labelMode === "place"
+          ? (r.place.length > 5 ? r.place.slice(0, 5) + "…" : r.place)
+          : r.activity;
       }
       el.addEventListener("click", () => {
         showDetail({ ...r, textColor: color });
@@ -290,14 +293,17 @@ dateToEl.addEventListener("change", () => {
 resetBtn.addEventListener("click", resetView);
 closePanelBtn.addEventListener("click", closePanel);
 reopenPanelBtn.addEventListener("click", reopenPanel);
-labelModeSwitch.addEventListener("change", () => {
-  labelMode = labelModeSwitch.checked ? "place" : "activity";
-  localStorage.setItem(LS_LABEL_KEY, labelMode);
-  renderMarkers();
+labelModeBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    labelMode = btn.dataset.mode;
+    localStorage.setItem(LS_LABEL_KEY, labelMode);
+    labelModeBtns.forEach(b => b.classList.toggle("active", b.dataset.mode === labelMode));
+    renderMarkers();
+  });
 });
 
 // ── bootstrap ──────────────────────────────────────────────────
 
 populateStyleOptions();
-labelModeSwitch.checked = labelMode === "place";
+labelModeBtns.forEach(b => b.classList.toggle("active", b.dataset.mode === labelMode));
 initMap();

@@ -25,13 +25,10 @@
       <button class="control-close" id="closePanelBtn" title="关闭控制区">✕</button>
       <label for="styleSelect">底图</label>
       <select id="styleSelect"></select>
-      <div class="switch-row">
-        <span class="switch-label">活动</span>
-        <label class="switch-toggle">
-          <input type="checkbox" id="labelModeSwitch" />
-          <span class="switch-slider"></span>
-        </label>
-        <span class="switch-label">地点</span>
+      <div class="label-mode-row">
+        <button class="label-mode-btn" data-mode="activity">活动</button>
+        <button class="label-mode-btn" data-mode="place">地点</button>
+        <button class="label-mode-btn" data-mode="dot">圆点</button>
       </div>
       <label for="dateFrom">时间范围</label>
       <div class="date-range-row">
