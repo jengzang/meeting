@@ -660,26 +660,29 @@ function renderTraffic() {
     }
 
     const segTotal = segments.reduce((s, seg) => s + seg.duration_sec, 0);
-    // compute cumulative proportions and split the line geometrically
-    let cumPct = 0;
     const first = items[0];
     const last = items[items.length - 1];
     const oLng = first.origin_lng, oLat = first.origin_lat;
     const dLng = last.dest_lng, dLat = last.dest_lat;
 
+    // precompute the full arc path
+    const arcPath = buildArc(oLng, oLat, dLng, dLat, 20);
+    const arcLen = arcPath.length - 1; // number of segments in the arc
+
+    let cumPct = 0;
     for (const seg of segments) {
       const segPct = seg.duration_sec / segTotal;
       const startPct = cumPct;
       cumPct += segPct;
       const endPct = cumPct;
 
-      const sLng = oLng + (dLng - oLng) * startPct;
-      const sLat = oLat + (dLat - oLat) * startPct;
-      const eLng = oLng + (dLng - oLng) * endPct;
-      const eLat = oLat + (dLat - oLat) * endPct;
+      // slice the arc path proportionally
+      const startIdx = Math.round(startPct * arcLen);
+      const endIdx = Math.round(endPct * arcLen);
+      const coords = arcPath.slice(startIdx, endIdx + 1);
+      if (coords.length < 2) coords.push(arcPath[Math.min(endIdx + 1, arcLen)]);
 
       const color = TRAFFIC_COLOR_MAP[seg.type] || "#a9a9a9";
-      // bundle all items for click detail
       const detail = items.map(t => ({
         type: t.type,
         origin: t.origin,
@@ -691,12 +694,36 @@ function renderTraffic() {
       features.push({
         type: "Feature",
         properties: { color, width: lineWidth, detail: JSON.stringify(detail) },
-        geometry: { type: "LineString", coordinates: [[sLng, sLat], [eLng, eLat]] },
+        geometry: { type: "LineString", coordinates: coords },
       });
     }
   }
 
   src.setData({ type: "FeatureCollection", features });
+}
+
+function buildArc(lng1, lat1, lng2, lat2, n) {
+  // quadratic bezier with control point offset perpendicular to the line
+  const mx = (lng1 + lng2) / 2;
+  const my = (lat1 + lat2) / 2;
+  const dx = lng2 - lng1;
+  const dy = lat2 - lat1;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const offset = dist * 0.3; // curvature
+  // perpendicular unit vector
+  const len = dist || 1;
+  const px = -dy / len * offset;
+  const py = dx / len * offset;
+  const cx = mx + px;
+  const cy = my + py;
+  const pts = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const x = (1 - t) * (1 - t) * lng1 + 2 * (1 - t) * t * cx + t * t * lng2;
+    const y = (1 - t) * (1 - t) * lat1 + 2 * (1 - t) * t * cy + t * t * lat2;
+    pts.push([x, y]);
+  }
+  return pts;
 }
 
 // ── helpers ────────────────────────────────────────────────────
