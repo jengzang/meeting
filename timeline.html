@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🐑 时间线</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
-  <link rel="stylesheet" href="css/intro.css?v=ccbe9ea" />
-  <link rel="stylesheet" href="css/sheep.css?v=ccbe9ea" />
+  <link rel="stylesheet" href="css/intro.css?v=2329aef" />
+  <link rel="stylesheet" href="css/sheep.css?v=2329aef" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -187,6 +187,15 @@
       position: relative;
       flex-shrink: 0;
       border-right: 1px solid rgba(255,255,255,0.04);
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent var(--hh),
+        rgba(255,255,255,0.03) var(--hh),
+        rgba(255,255,255,0.03) calc(var(--hh) + 1px)
+      );
+      background-position: 0 var(--hh);
+      contain: layout style paint;
     }
 
     .tl-date-hd {
@@ -212,16 +221,6 @@
       font-weight: 500;
     }
 
-    /* grid lines */
-    .tl-grid {
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: rgba(255,255,255,0.03);
-      pointer-events: none;
-    }
-
     /* ── Activity block ──────────────────────── */
     .tl-block {
       position: absolute;
@@ -232,7 +231,6 @@
       transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
                   box-shadow 0.18s ease,
                   filter 0.18s ease;
-      backdrop-filter: blur(6px);
       box-shadow: 0 2px 8px rgba(0,0,0,0.25);
       border: 1px solid rgba(255,255,255,0.1);
       background: color-mix(in srgb, var(--c) 65%, transparent);
@@ -280,6 +278,7 @@
     }
 
     /* ── Compact mode ─────────────────────────── */
+    .tl-compact { max-height: 90dvh; }
     .tl-compact .tl-day { border-right-color: transparent; }
     .tl-compact .tl-date-hd {
       font-size: 8px;
@@ -292,7 +291,6 @@
       padding: 0;
       border: none;
       box-shadow: none;
-      backdrop-filter: none;
     }
     .tl-compact .tl-block::after { display: none; }
     .tl-compact .tl-block:hover {
@@ -537,10 +535,10 @@
 
   <!-- ── Module script ─────────────────────────── -->
   <script type="module">
-    import { Timeline, recordsToTimeline, trafficToTimeline } from "./js/timeline.js?v=ccbe9ea";
+    import { Timeline, recordsToTimeline, trafficToTimeline } from "./js/timeline.js?v=2329aef";
     import { records } from "./js/data/records.js";
     import { traffic } from "./js/data/traffic.js";
-    import { initCornerSheep, initTransitions } from "./js/sheep.js?v=ccbe9ea";
+    import { initCornerSheep, initTransitions } from "./js/sheep.js?v=2329aef";
 
     initCornerSheep();
     initTransitions();

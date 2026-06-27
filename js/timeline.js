@@ -164,6 +164,7 @@ export class Timeline {
     this._recordsByDate.clear();
     this._sortedDates = [];
     this._lanesByItem.clear();
+    this._blockData = null;
     this._removeTooltip();
   }
 
@@ -186,20 +187,57 @@ export class Timeline {
       this._recordsByDate.set(date, list);
     };
 
+    const isoDatePart = (isoStr) => {
+      // Extract YYYY-MM-DD from ISO timestamp string directly (timezone-safe)
+      const m = isoStr && isoStr.match(/^(\d{4}-\d{2}-\d{2})T/);
+      return m ? m[1] : null;
+    };
+
     for (const item of items) {
-      const startMin = timeToMinutes(item.startTime);
-      const endMin = timeToMinutes(item.endTime);
+      // Detect true date range from raw timestamps
+      let realStart = item.date;
+      let realEnd = item.date;
+      const r = item._raw;
+      if (r) {
+        const arrStr = item.source === 'traffic' ? r.from_time : r.arrival;
+        const depStr = item.source === 'traffic' ? r.to_time : r.departure;
+        const sd = isoDatePart(arrStr);
+        const ed = isoDatePart(depStr);
+        if (sd && ed) { realStart = sd; realEnd = ed; }
+      }
 
-      if (endMin <= startMin) {
-        // Cross-midnight: split into parts so each day displays correctly
-        const part1 = { ...item, id: item.id + '_a', endTime: '24:00', _origEndTime: item.endTime };
-        pushDate(item.date, part1);
-
-        const nextD = addDays(item.date, 1);
-        const part2 = { ...item, id: item.id + '_b', date: nextD, startTime: '00:00', _origStartTime: item.startTime };
-        pushDate(nextD, part2);
+      if (realStart !== realEnd) {
+        // Multi-day: create one part per calendar day
+        let cur = realStart;
+        while (cur <= realEnd) {
+          const isFirst = cur === realStart;
+          const isLast = cur === realEnd;
+          const suffix = isFirst ? '_a' : isLast ? '_z' : '_m' + cur;
+          const part = {
+            ...item,
+            id: item.id + suffix,
+            date: cur,
+            startTime: isFirst ? item.startTime : '00:00',
+            endTime: isLast ? item.endTime : '24:00',
+          };
+          if (!isFirst) part._origStartTime = item.startTime;
+          if (!isLast) part._origEndTime = item.endTime;
+          pushDate(cur, part);
+          cur = addDays(cur, 1);
+        }
       } else {
-        pushDate(item.date, item);
+        // Same calendar day — still check for wrapped times (23:00→01:00 edge case)
+        const startMin = timeToMinutes(item.startTime);
+        const endMin = timeToMinutes(item.endTime);
+        if (endMin <= startMin) {
+          const part1 = { ...item, id: item.id + '_a', endTime: '24:00', _origEndTime: item.endTime };
+          pushDate(item.date, part1);
+          const nextD = addDays(item.date, 1);
+          const part2 = { ...item, id: item.id + '_b', date: nextD, startTime: '00:00', _origStartTime: item.startTime };
+          pushDate(nextD, part2);
+        } else {
+          pushDate(item.date, item);
+        }
       }
     }
 
@@ -315,6 +353,8 @@ export class Timeline {
     this.container.innerHTML = '';
     this._removeTooltip();
 
+    this._blockData = new Map();
+
     const colW = this.compact ? 12 : this.colWidth;
     const hdHeight = this.compact ? 28 : 38;
 
@@ -358,7 +398,7 @@ export class Timeline {
     inner.className = 'tl-inner';
     inner.style.height = (24 * this.hourHeight) + 'px';
 
-    // Time axis (no padding-top — headers are now in separate row)
+    // Time axis
     const axis = document.createElement('div');
     axis.className = 'tl-axis';
     for (let h = 0; h <= 24; h++) {
@@ -388,37 +428,26 @@ export class Timeline {
       const col = document.createElement('div');
       col.className = 'tl-day';
       col.style.width = colW + 'px';
-
-      if (!this.compact) {
-        for (let h = 1; h < 24; h++) {
-          const line = document.createElement('div');
-          line.className = 'tl-grid';
-          line.style.top = (h * this.hourHeight) + 'px';
-          col.appendChild(line);
-        }
-      }
+      // Grid lines via CSS background instead of DOM nodes
+      col.style.setProperty('--hh', this.hourHeight + 'px');
 
       for (const item of items) {
-        const style = this._getBlockStyle(item, colW);
+        const s = this._getBlockStyle(item, colW);
         const block = document.createElement('div');
         block.className = 'tl-block';
-        block.style.top = style.top + 'px';
-        block.style.height = style.height + 'px';
-        block.style.left = style.left + 'px';
-        block.style.width = style.width + 'px';
+        block.style.top = s.top + 'px';
+        block.style.height = s.height + 'px';
+        block.style.left = s.left + 'px';
+        block.style.width = s.width + 'px';
         block.style.setProperty('--c', item.color);
 
-        if (this.compact) {
-          block.addEventListener('mouseenter', function (e) { self._showTooltip(item, e); });
-          block.addEventListener('mousemove', function (e) { self._positionTooltip(e); });
-          block.addEventListener('mouseleave', function () { self._hideTooltip(); });
-        } else {
+        if (!this.compact) {
           const label = document.createElement('div');
           label.className = 'tl-lbl';
           label.textContent = item.title;
           block.appendChild(label);
 
-          if (style.showTime) {
+          if (s.showTime) {
             const time = document.createElement('div');
             time.className = 'tl-time';
             time.textContent = item.startTime + '-' + item.endTime;
@@ -430,18 +459,37 @@ export class Timeline {
           block.title = item.title + (item.subtitle ? ' · ' + item.subtitle : '') + ' ' + item.startTime + '-' + item.endTime;
         }
 
-        if (this.onBlockClick) {
-          block.addEventListener('click', function (e) {
-            e.stopPropagation();
-            self._hideTooltip();
-            self.onBlockClick(item, e);
-          });
-        }
-
+        this._blockData.set(block, item);
         col.appendChild(block);
       }
 
       canvas.appendChild(col);
+    }
+
+    // ── Delegated events (single listener for all blocks) ──
+    canvas.addEventListener('mouseover', function (e) {
+      const block = e.target.closest('.tl-block');
+      if (!block) { self._hideTooltip(); return; }
+      const item = self._blockData.get(block);
+      if (item) self._showTooltip(item, e);
+    });
+    canvas.addEventListener('mousemove', function (e) {
+      if (e.target.closest('.tl-block')) self._positionTooltip(e);
+    });
+    canvas.addEventListener('mouseout', function (e) {
+      if (!e.relatedTarget || !e.relatedTarget.closest('.tl-block')) self._hideTooltip();
+    });
+    if (this.onBlockClick) {
+      canvas.addEventListener('click', function (e) {
+        const block = e.target.closest('.tl-block');
+        if (!block) return;
+        const item = self._blockData.get(block);
+        if (item) {
+          e.stopPropagation();
+          self._hideTooltip();
+          self.onBlockClick(item, e);
+        }
+      });
     }
 
     inner.appendChild(canvas);
