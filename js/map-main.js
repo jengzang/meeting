@@ -348,73 +348,20 @@ function initMap() {
   map.addControl(new maplibregl.NavigationControl(), "top-left");
 
   map.on("load", () => {
-    // traffic line layer
-    map.addSource("traffic-source", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-    // shadow underneath
-    map.addLayer({
-      id: "traffic-shadow",
-      type: "line",
-      source: "traffic-source",
-      layout: { "line-cap": "round", "line-join": "round" },
-      paint: {
-        "line-color": "#000",
-        "line-width": ["+", ["get", "width"], 3],
-        "line-opacity": 0.35,
-        "line-blur": 2,
-      },
-    });
-    // small arrow icon for direction
-    const arrowCanvas = document.createElement("canvas");
-    arrowCanvas.width = 16; arrowCanvas.height = 16;
-    const actx = arrowCanvas.getContext("2d");
-    actx.fillStyle = "#fff";
-    actx.beginPath();
-    actx.moveTo(8, 0); actx.lineTo(16, 12); actx.lineTo(10, 12); actx.lineTo(10, 16);
-    actx.lineTo(6, 16); actx.lineTo(6, 12); actx.lineTo(0, 12); actx.closePath();
-    actx.fill();
-    map.addImage("arrow", actx.getImageData(0, 0, 16, 16), { width: 16, height: 16 });
-    map.addLayer({
-      id: "traffic-line",
-      type: "line",
-      source: "traffic-source",
-      layout: { "line-cap": "round", "line-join": "round" },
-      paint: {
-        "line-color": ["get", "color"],
-        "line-width": ["get", "width"],
-        "line-opacity": 0.75,
-      },
-    });
-    // arrow markers along traffic lines
-    map.addLayer({
-      id: "traffic-arrow",
-      type: "symbol",
-      source: "traffic-source",
-      layout: {
-        "symbol-placement": "line",
-        "symbol-spacing": 80,
-        "icon-image": "arrow",
-        "icon-size": 0.5,
-        "icon-rotate": 90,
-        "icon-rotation-alignment": "map",
-      },
-      paint: {
-        "icon-opacity": 0.7,
-      },
-    });
-
-    // traffic line click
-    map.on("click", "traffic-line", (e) => {
-      if (!e.features || !e.features.length) return;
-      const props = e.features[0].properties;
-      const detail = JSON.parse(props.detail);
-      showTrafficDetail(detail, props.color);
-    });
-    map.on("mouseenter", "traffic-line", () => { map.getCanvas().style.cursor = "pointer"; });
-    map.on("mouseleave", "traffic-line", () => { map.getCanvas().style.cursor = ""; });
-
+    initTrafficLayers();
     initTimeline();
     renderMarkers({ fit: true });
   });
+
+  // traffic line interaction (persists across style changes)
+  map.on("click", "traffic-line", (e) => {
+    if (!e.features || !e.features.length) return;
+    const props = e.features[0].properties;
+    const detail = JSON.parse(props.detail);
+    showTrafficDetail(detail, props.color);
+  });
+  map.on("mouseenter", "traffic-line", () => { map.getCanvas().style.cursor = "pointer"; });
+  map.on("mouseleave", "traffic-line", () => { map.getCanvas().style.cursor = ""; });
 
   thumbFrom.addEventListener("mousedown", thumbDrag);
   thumbFrom.addEventListener("touchstart", thumbDrag, { passive: false });
@@ -630,6 +577,71 @@ function renderMarkers({ fit = false } = {}) {
   renderTraffic();
 }
 
+function initTrafficLayers() {
+  if (!map) return;
+
+  // arrow icon
+  const arrowCanvas = document.createElement("canvas");
+  arrowCanvas.width = 16; arrowCanvas.height = 16;
+  const actx = arrowCanvas.getContext("2d");
+  actx.fillStyle = "#fff";
+  actx.beginPath();
+  actx.moveTo(8, 0); actx.lineTo(16, 12); actx.lineTo(10, 12); actx.lineTo(10, 16);
+  actx.lineTo(6, 16); actx.lineTo(6, 12); actx.lineTo(0, 12); actx.closePath();
+  actx.fill();
+  if (map.hasImage("arrow")) map.removeImage("arrow");
+  map.addImage("arrow", actx.getImageData(0, 0, 16, 16), { width: 16, height: 16 });
+
+  // source
+  if (map.getSource("traffic-source")) map.removeSource("traffic-source");
+  map.addSource("traffic-source", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+
+  // shadow
+  map.addLayer({
+    id: "traffic-shadow",
+    type: "line",
+    source: "traffic-source",
+    layout: { "line-cap": "round", "line-join": "round" },
+    paint: {
+      "line-color": "#000",
+      "line-width": ["+", ["get", "width"], 3],
+      "line-opacity": 0.35,
+      "line-blur": 2,
+    },
+  });
+
+  // colored line
+  map.addLayer({
+    id: "traffic-line",
+    type: "line",
+    source: "traffic-source",
+    layout: { "line-cap": "round", "line-join": "round" },
+    paint: {
+      "line-color": ["get", "color"],
+      "line-width": ["get", "width"],
+      "line-opacity": 0.75,
+    },
+  });
+
+  // arrows
+  map.addLayer({
+    id: "traffic-arrow",
+    type: "symbol",
+    source: "traffic-source",
+    layout: {
+      "symbol-placement": "line",
+      "symbol-spacing": 80,
+      "icon-image": "arrow",
+      "icon-size": 0.5,
+      "icon-rotate": 90,
+      "icon-rotation-alignment": "map",
+    },
+    paint: {
+      "icon-opacity": 0.7,
+    },
+  });
+}
+
 // ── traffic lines ──────────────────────────────────────────────
 
 function renderTraffic() {
@@ -830,6 +842,8 @@ function changeMapStyle(name) {
   const renderOnce = () => {
     if (done) return;
     done = true;
+    initTrafficLayers();
+    if (trafficVisible) renderTraffic();
     renderMarkers();
   };
 
