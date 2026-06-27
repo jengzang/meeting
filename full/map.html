@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>全量地图</title>
+  <link rel="stylesheet" href="../css/map.css" />
+  <link rel="stylesheet" href="../css/intro.css?v=97b771a" />
+  <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" rel="stylesheet" />
+  <style>
+    /* ── password overlay ──────────────────────────────── */
+    .pw-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(20px);
+    }
+    .pw-overlay.hidden { display: none; }
+    .pw-card {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 40px 36px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      min-width: 300px;
+    }
+    .pw-card h2 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      color: #e5e7eb;
+      font-weight: 800;
+    }
+    .pw-card p {
+      margin: 0 0 24px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    .pw-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #e5e7eb;
+      font-size: 16px;
+      text-align: center;
+      outline: none;
+      letter-spacing: 0.2em;
+      transition: border 0.2s;
+      box-sizing: border-box;
+    }
+    .pw-input:focus { border-color: #3b82f6; }
+    .pw-input.error { border-color: #ef4444; animation: shake 0.3s; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+    .pw-error {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #ef4444;
+      min-height: 18px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ── Password Overlay ──────────────────────────── -->
+  <div class="pw-overlay" id="pwOverlay">
+    <div class="pw-card">
+      <h2>全量记录地图</h2>
+      <p>请输入密码以查看完整数据</p>
+      <input type="password" class="pw-input" id="pwInput" placeholder="••••••" autofocus />
+      <div class="pw-error" id="pwError"></div>
+    </div>
+  </div>
+
+  <!-- ── Intro Sheep ──────────────────────────────── -->
+  <div class="intro-overlay" id="introOverlay">
+    <div class="intro-scene">
+      <div class="intro-sparkle intro-sparkle-1"></div>
+      <div class="intro-sparkle intro-sparkle-2"></div>
+      <div class="intro-sparkle intro-sparkle-3"></div>
+      <div class="intro-sparkle intro-sparkle-4"></div>
+      <div class="intro-sparkle intro-sparkle-5"></div>
+      <div class="intro-sparkle intro-sparkle-6"></div>
+      <div class="intro-shadow"></div>
+      <div class="intro-message" id="introMessage"></div>
+      <svg class="intro-sheep" viewBox="0 0 200 220" width="200" height="220" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="bodyGrad" cx="45%" cy="35%">
+            <stop offset="0%" stop-color="#fffefb"/>
+            <stop offset="70%" stop-color="#f5f0e8"/>
+            <stop offset="100%" stop-color="#e8e0d4"/>
+          </radialGradient>
+          <radialGradient id="fluffGrad" cx="40%" cy="30%">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="100%" stop-color="#f2ede5"/>
+          </radialGradient>
+          <radialGradient id="headGrad" cx="40%" cy="35%">
+            <stop offset="0%" stop-color="#5a4a3a"/>
+            <stop offset="100%" stop-color="#3d3026"/>
+          </radialGradient>
+          <radialGradient id="earInnerGrad" cx="50%" cy="50%">
+            <stop offset="0%" stop-color="#f7c5c5"/>
+            <stop offset="100%" stop-color="#e8a0a0"/>
+          </radialGradient>
+        </defs>
+        <g class="sheep-body-cloud">
+          <circle cx="100" cy="130" r="42" fill="url(#bodyGrad)"/>
+          <circle cx="70" cy="118" r="26" fill="url(#fluffGrad)"/>
+          <circle cx="130" cy="118" r="26" fill="url(#fluffGrad)"/>
+          <circle cx="82" cy="100" r="24" fill="url(#fluffGrad)"/>
+          <circle cx="118" cy="100" r="24" fill="url(#fluffGrad)"/>
+          <circle cx="100" cy="96" r="28" fill="url(#fluffGrad)"/>
+          <circle cx="66" cy="130" r="20" fill="url(#fluffGrad)"/>
+          <circle cx="134" cy="130" r="20" fill="url(#fluffGrad)"/>
+          <circle cx="76" cy="142" r="18" fill="#ede6db"/>
+          <circle cx="124" cy="142" r="18" fill="#ede6db"/>
+          <circle cx="90" cy="148" r="16" fill="#e8e0d4"/>
+          <circle cx="110" cy="148" r="16" fill="#e8e0d4"/>
+        </g>
+        <g class="sheep-tail">
+          <circle cx="56" cy="124" r="14" fill="url(#fluffGrad)"/>
+          <circle cx="50" cy="118" r="9" fill="#ffffff"/>
+        </g>
+        <g class="sheep-head-group">
+          <g class="ear-left">
+            <ellipse cx="78" cy="55" rx="15" ry="8" fill="url(#headGrad)" transform="rotate(-32 78 55)"/>
+            <ellipse cx="78" cy="55" rx="9" ry="5" fill="url(#earInnerGrad)" transform="rotate(-32 78 55)"/>
+          </g>
+          <g class="ear-right">
+            <ellipse cx="122" cy="55" rx="15" ry="8" fill="url(#headGrad)" transform="rotate(32 122 55)"/>
+            <ellipse cx="122" cy="55" rx="9" ry="5" fill="url(#earInnerGrad)" transform="rotate(32 122 55)"/>
+          </g>
+          <ellipse cx="100" cy="72" rx="30" ry="28" fill="url(#headGrad)"/>
+          <circle cx="88" cy="50" r="11" fill="#5a4a3a"/>
+          <circle cx="100" cy="46" r="12" fill="#665544"/>
+          <circle cx="112" cy="50" r="11" fill="#5a4a3a"/>
+          <g class="eye-blink">
+            <circle cx="88" cy="70" r="7.5" fill="white"/>
+            <circle cx="112" cy="70" r="7.5" fill="white"/>
+            <circle cx="89" cy="69" r="4" fill="#1a1410"/>
+            <circle cx="113" cy="69" r="4" fill="#1a1410"/>
+            <circle cx="91.5" cy="67" r="1.8" fill="white"/>
+            <circle cx="87" cy="71" r="0.9" fill="white"/>
+            <circle cx="115.5" cy="67" r="1.8" fill="white"/>
+            <circle cx="111" cy="71" r="0.9" fill="white"/>
+          </g>
+          <ellipse cx="78" cy="78" rx="6" ry="4" fill="#e8a0a0" opacity="0.45"/>
+          <ellipse cx="122" cy="78" rx="6" ry="4" fill="#e8a0a0" opacity="0.45"/>
+          <ellipse cx="100" cy="76" rx="5" ry="3.5" fill="#2a2018"/>
+          <path d="M96 80.5 Q100 85 104 80.5" stroke="#2a2018" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        </g>
+        <rect class="leg-back-left" x="74" y="158" width="10" height="22" rx="5" fill="#4a3c30"/>
+        <rect class="leg-back-right" x="116" y="158" width="10" height="22" rx="5" fill="#4a3c30"/>
+        <rect class="leg-front-left" x="84" y="156" width="10" height="24" rx="5" fill="#3d3026"/>
+        <rect class="leg-front-right" x="106" y="156" width="10" height="24" rx="5" fill="#3d3026"/>
+        <ellipse class="leg-front-left" cx="89" cy="180" rx="5.5" ry="3" fill="#2a2018"/>
+        <ellipse class="leg-front-right" cx="111" cy="180" rx="5.5" ry="3" fill="#2a2018"/>
+        <ellipse class="leg-back-left" cx="79" cy="180" rx="5.5" ry="3" fill="#2a2018"/>
+        <ellipse class="leg-back-right" cx="121" cy="180" rx="5.5" ry="3" fill="#2a2018"/>
+      </svg>
+    </div>
+  </div>
+
+  <header class="header-bar">
+    <div class="header-left">
+      <span class="page-title">全量地图视图</span>
+      <span class="record-count" id="recordCount"></span>
+      <a href="../index.html" class="nav-link">← 热力图</a>
+      <a href="../map.html" class="nav-link">地图</a>
+    </div>
+  </header>
+
+  <div class="map-wrap">
+    <div id="map"></div>
+
+    <div class="map-controls" id="mapControls">
+      <button class="control-close" id="closePanelBtn" title="关闭控制区">✕</button>
+      <label for="styleSelect">底图</label>
+      <div class="style-row">
+        <select id="styleSelect"></select>
+        <button class="control-btn" id="resetBtn">🎯 复位</button>
+      </div>
+      <div class="label-mode-row">
+        <button class="label-mode-btn" data-mode="activity">活动</button>
+        <button class="label-mode-btn" data-mode="place">地点</button>
+        <button class="label-mode-btn" data-mode="dot">圆点</button>
+      </div>
+      <div class="opts-row">
+        <button class="color-btn" id="colorConfigBtn">🎨 配色</button>
+        <button class="size-mode-btn" data-mode="count">按次数</button>
+        <button class="size-mode-btn" data-mode="duration">按时间</button>
+        <label class="opt-check"><input type="checkbox" id="autoClusterCb" /> 聚合</label>
+      </div>
+      <label>时间范围 <span id="rangeDisplay"></span></label>
+      <div class="range-slider" id="rangeSlider">
+        <div class="range-track" id="rangeTrack">
+          <div class="range-fill" id="rangeFill"></div>
+          <div class="range-thumb" id="thumbFrom" data-thumb="from"></div>
+          <div class="range-thumb" id="thumbTo" data-thumb="to"></div>
+        </div>
+      </div>
+      <div class="reset-row">
+        <label class="opt-check"><input type="checkbox" id="showTrafficCb" /> 显示交通</label>
+        <label class="opt-check"><input type="checkbox" id="scenicCb" /> 景点</label>
+        <label class="opt-check"><input type="checkbox" id="photoCb" /> 合照</label>
+      </div>
+    </div>
+
+    <button class="reopen-panel" id="reopenPanelBtn" title="打开控制区" style="display:none;">⚙</button>
+  </div>
+
+  <script type="module">
+    import { initFullData, startMap } from "../js/map-main-full.js?v=97b771a";
+
+    var AUTH_KEY = "full-map-auth";
+    var pwOverlay = document.getElementById("pwOverlay");
+    var pwInput = document.getElementById("pwInput");
+    var pwError = document.getElementById("pwError");
+    var verifying = false;
+
+    // already authenticated this session?
+    if (sessionStorage.getItem(AUTH_KEY) === "1") {
+      pwOverlay.classList.add("hidden");
+      startMap();
+    }
+
+    async function tryDecrypt(password) {
+      if (verifying) return;
+      verifying = true;
+      pwInput.disabled = true;
+      pwError.textContent = "";
+
+      try {
+        await initFullData(password);
+        sessionStorage.setItem(AUTH_KEY, "1");
+        pwOverlay.classList.add("hidden");
+        startMap();
+      } catch (e) {
+        pwInput.classList.add("error");
+        pwError.textContent = "密码错误";
+        setTimeout(function() { pwInput.classList.remove("error"); }, 300);
+        pwInput.value = "";
+        pwInput.disabled = false;
+        pwInput.focus();
+      } finally {
+        verifying = false;
+      }
+    }
+
+    pwInput.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") tryDecrypt(pwInput.value.trim());
+    });
+    pwInput.addEventListener("input", function() {
+      pwError.textContent = "";
+      if (pwInput.value.trim().length >= 6) tryDecrypt(pwInput.value.trim());
+    });
+  </script>
+
+  <script>
+    // ── intro sheep ──────────────────────────────────
+    (function() {
+      var overlay = document.getElementById('introOverlay');
+      var msgEl = document.getElementById('introMessage');
+      function hide() {
+        overlay && overlay.classList.add('hide');
+        if (msgEl) msgEl.textContent = '';
+      }
+      setTimeout(hide, 2800);
+      overlay && overlay.addEventListener('click', hide);
+      window.showIntroSheep = function(msg, duration) {
+        if (!overlay) return;
+        if (msgEl && msg) msgEl.textContent = msg;
+        overlay.classList.remove('hide');
+        setTimeout(hide, duration || 2500);
+      };
+    })();
+  </script>
+</body>
+</html>

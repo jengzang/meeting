@@ -6,7 +6,10 @@ import { mdToDateStr } from "./utils.js";
 
 let _typesCache = null;
 
-export function getUniqueTypes() {
+export function getUniqueTypes(recordsList) {
+  if (recordsList) {
+    _typesCache = [...new Set(recordsList.map(r => r.activity))].sort();
+  }
   if (!_typesCache) {
     _typesCache = [...new Set(records.map(r => r.activity))].sort();
   }
