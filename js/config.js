@@ -1,7 +1,9 @@
+import { rangeMD } from "./utils.js";
+
 export const YEAR = 2026;
 
 export const START_DATE = "2026-02-16";
-export const END_DATE = "2026-06-14";
+export const END_DATE = "2026-06-21";
 
 export const SHAPE_INPUT = {
   top: [
@@ -24,11 +26,8 @@ export const SHAPE_INPUT = {
     "5.2", "5.3", "5.4",
     "5.15", "5.16", "5.17", "5.18",
     "5.23", "5.24",
-    // rangeMD("5.28", "6.9") — resolved at init time by rangeMD()
-    ...Array.from({ length: 13 }, (_, i) => {
-      const d = new Date(2026, 4, 28 + i); // 5.28 — 6.9
-      return `${d.getMonth() + 1}.${d.getDate()}`;
-    })
+    ...rangeMD("5.28", "6.9", YEAR),
+    ...rangeMD("6.18", "6.21", YEAR)
   ]
 };
 
@@ -38,30 +37,15 @@ export const DEPTH_INPUT = {
     "4.4", "4.5", "4.18", "4.19", "4.20",
     "5.15", "5.16", "5.17", "5.18",
     "5.23", "5.24",
-    ...(() => {
-      const result = [];
-      const start = new Date(2026, 4, 28); // 5.28
-      const end = new Date(2026, 5, 9);   // 6.9
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        result.push(`${d.getMonth() + 1}.${d.getDate()}`);
-      }
-      return result;
-    })()
+    ...rangeMD("5.28", "6.9", YEAR),
+    ...rangeMD("6.18", "6.21", YEAR)
   ],
 
   3: [
     "2.26",
     "3.6", "3.13", "3.20",
     "5.14", "5.22", "5.27",
-    ...(() => {
-      const result = [];
-      const start = new Date(2026, 4, 2);  // 5.2
-      const end = new Date(2026, 4, 4);    // 5.4
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        result.push(`${d.getMonth() + 1}.${d.getDate()}`);
-      }
-      return result;
-    })()
+    ...rangeMD("5.2", "5.4", YEAR)
   ],
 
   2: [

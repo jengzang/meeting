@@ -21,12 +21,14 @@
   <div class="map-wrap">
     <div id="map"></div>
 
-    <div class="map-controls">
+    <div class="map-controls" id="mapControls">
+      <button class="control-close" id="closePanelBtn" title="关闭控制区">✕</button>
       <label for="styleSelect">底图</label>
       <select id="styleSelect"></select>
-
       <button class="control-btn" id="resetBtn">🎯 复位视图</button>
     </div>
+
+    <button class="reopen-panel" id="reopenPanelBtn" title="打开控制区" style="display:none;">⚙</button>
   </div>
 
   <script type="module" src="js/map-main.js"></script>

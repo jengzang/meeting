@@ -1,12 +1,16 @@
 import { mapStyleConfig, mapStyle, calculateDenseMapCenterAndZoom } from "./map-source.js";
 import { getDefaultRecords, getUniqueTypes, getTypeStats, getDateExtent } from "./map-data.js";
 
+// ── localStorage key ────────────────────────────────────────────
+
+const LS_STYLE_KEY = "map-style";
+
 // ── state ──────────────────────────────────────────────────────
 
-let currentStyle = "gaode";
+let currentStyle = localStorage.getItem(LS_STYLE_KEY) || "gaode";
 let map = null;
 let clusteredPopup = null;
-let currentRecords = []; // the currently displayed record set
+let currentRecords = [];
 
 // ── 20-color palette ───────────────────────────────────────────
 
@@ -21,13 +25,13 @@ const COLOR_PALETTE = [
 
 const styleSelect = document.getElementById("styleSelect");
 const resetBtn = document.getElementById("resetBtn");
+const closePanelBtn = document.getElementById("closePanelBtn");
+const reopenPanelBtn = document.getElementById("reopenPanelBtn");
+const mapControls = document.getElementById("mapControls");
 const recordCountEl = document.getElementById("recordCount");
 
 // ── helpers ────────────────────────────────────────────────────
 
-/**
- * Build a MapLibre Popup singleton.
- */
 function getPopup() {
   if (!clusteredPopup) {
     clusteredPopup = new maplibregl.Popup({
@@ -39,9 +43,6 @@ function getPopup() {
   return clusteredPopup;
 }
 
-/**
- * Activity type → color string.
- */
 function buildColorMap(types) {
   const map = {};
   types.forEach((t, i) => {
@@ -53,6 +54,8 @@ function buildColorMap(types) {
 // ── map init ───────────────────────────────────────────────────
 
 function initMap() {
+  console.log("[map] init with style:", currentStyle, "container:", document.getElementById("map"));
+
   map = new maplibregl.Map({
     container: "map",
     style: mapStyle(currentStyle),
@@ -64,31 +67,38 @@ function initMap() {
   map.addControl(new maplibregl.NavigationControl(), "top-left");
 
   map.on("load", () => {
+    console.log("[map] style loaded OK");
     renderMarkers();
   });
+
+  map.on("error", (e) => {
+    console.error("[map] error:", e.error);
+  });
+
+  styleSelect.value = currentStyle;
 }
 
-// ── marker rendering ───────────────────────────────────────────
+// ── marker rendering (circle-only, no glyphs) ───────────────────
 
 function renderMarkers() {
   if (!map) return;
 
   currentRecords = getDefaultRecords();
+  console.log("[map] records to render:", currentRecords.length);
   recordCountEl.textContent = `${currentRecords.length} 条记录`;
-  if (currentRecords.length === 0) return;
 
-  // assign colors per activity type
+  if (currentRecords.length === 0) {
+    console.warn("[map] no records in date range");
+    return;
+  }
+
   const typeColorMap = buildColorMap(getUniqueTypes());
 
-  // build GeoJSON
   const geojson = {
     type: "FeatureCollection",
     features: currentRecords.map(r => ({
       type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: [r.lng, r.lat]
-      },
+      geometry: { type: "Point", coordinates: [r.lng, r.lat] },
       properties: {
         activity: r.activity,
         place: r.place,
@@ -106,11 +116,11 @@ function renderMarkers() {
     type: "geojson",
     data: geojson,
     cluster: true,
-    clusterMaxZoom: 20,
+    clusterMaxZoom: 17,
     clusterRadius: 30
   });
 
-  // cluster circles
+  // cluster circles (no text — radius encodes count)
   map.addLayer({
     id: "clusters",
     type: "circle",
@@ -128,70 +138,59 @@ function renderMarkers() {
         "step",
         ["get", "point_count"],
         20,
-        10, 25,
-        30, 35
+        10, 28,
+        30, 38
       ],
-      "circle-opacity": 0.85,
+      "circle-opacity": 0.88,
       "circle-stroke-width": 2,
-      "circle-stroke-color": "#fff"
+      "circle-stroke-color": "rgba(255, 255, 255, 0.9)"
     }
   });
 
-  // cluster count labels
+  // unclustered point circles (color = activity type)
   map.addLayer({
-    id: "cluster-count",
-    type: "symbol",
-    source: "records",
-    filter: ["has", "point_count"],
-    layout: {
-      "text-field": "{point_count_abbreviated}",
-      "text-font": ["Open Sans Bold"],
-      "text-size": 13
-    },
-    paint: {
-      "text-color": "#ffffff"
-    }
-  });
-
-  // unclustered point backgrounds
-  map.addLayer({
-    id: "unclustered-point-bg",
+    id: "unclustered-point",
     type: "circle",
     source: "records",
     filter: ["!", ["has", "point_count"]],
     paint: {
-      "circle-radius": 14,
+      "circle-radius": 12,
       "circle-color": ["get", "bgColor"],
       "circle-opacity": 0.88,
-      "circle-stroke-width": 1.5,
-      "circle-stroke-color": "rgba(255, 255, 255, 0.75)"
-    }
-  });
-
-  // unclustered point text
-  map.addLayer({
-    id: "unclustered-point-text",
-    type: "symbol",
-    source: "records",
-    filter: ["!", ["has", "point_count"]],
-    layout: {
-      "text-field": ["get", "activity"],
-      "text-size": 10,
-      "text-font": ["Open Sans Regular"],
-      "text-anchor": "center",
-      "text-offset": [0, 0]
-    },
-    paint: {
-      "text-color": "#ffffff"
+      "circle-stroke-width": 2,
+      "circle-stroke-color": "rgba(255, 255, 255, 0.85)"
     }
   });
 
   bindInteractions();
+  renderLegend();
 
-  // auto-center on data
+  // auto-center
   const coords = currentRecords.map(r => [r.lng, r.lat]);
   const { center, zoom } = calculateDenseMapCenterAndZoom(coords);
   map.flyTo({ center, zoom });
+}
+
+// ── legend ─────────────────────────────────────────────────────
+
+function renderLegend() {
+  let el = document.getElementById("typeLegend");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "typeLegend";
+    el.className = "type-legend";
+    document.querySelector(".map-wrap").appendChild(el);
+  }
+
+  const stats = getTypeStats(currentRecords);
+  const colorMap = buildColorMap(getUniqueTypes());
+
+  el.innerHTML = stats.map(([type, count]) => `
+    <span class="type-legend-item">
+      <span class="type-dot" style="background:${colorMap[type]}"></span>
+      ${type} ${count}
+    </span>
+  `).join("");
 }
 
 // ── interaction handlers ───────────────────────────────────────
@@ -199,44 +198,59 @@ function renderMarkers() {
 function bindInteractions() {
   if (!map) return;
 
-  const popup = getPopup();
+  // remove old listeners to prevent stacking
+  map.off("click", "clusters", onClusterClick);
+  map.off("mouseenter", "unclustered-point", onPointEnter);
+  map.off("mouseleave", "unclustered-point", onPointLeave);
+  map.off("mouseenter", "clusters", onClusterEnter);
+  map.off("mouseleave", "clusters", onClusterLeave);
 
-  // click cluster → zoom in
-  map.on("click", "clusters", (e) => {
-    const features = map.queryRenderedFeatures(e.point, { layers: ["clusters"] });
-    if (!features.length) return;
-    const clusterId = features[0].properties.cluster_id;
-    map.getSource("records").getClusterExpansionZoom(clusterId, (err, zoom) => {
-      if (err) return;
-      map.easeTo({ center: features[0].geometry.coordinates, zoom: zoom + 0.5 });
-    });
-  });
+  map.on("click", "clusters", onClusterClick);
+  map.on("mouseenter", "unclustered-point", onPointEnter);
+  map.on("mouseleave", "unclustered-point", onPointLeave);
+  map.on("mouseenter", "clusters", onClusterEnter);
+  map.on("mouseleave", "clusters", onClusterLeave);
+}
 
-  // hover unclustered point → popup
-  map.on("mouseenter", "unclustered-point-bg", (e) => {
-    map.getCanvas().style.cursor = "pointer";
-    if (e.features.length > 0) {
-      const p = e.features[0].properties;
-      popup
-        .setLngLat(e.lngLat)
-        .setHTML(`<strong>${p.place}</strong><br>${p.activity} · ${p.date}`)
-        .addTo(map);
-    }
+function onClusterClick(e) {
+  const features = map.queryRenderedFeatures(e.point, { layers: ["clusters"] });
+  if (!features.length) return;
+  const clusterId = features[0].properties.cluster_id;
+  map.getSource("records").getClusterExpansionZoom(clusterId, (err, zoom) => {
+    if (err) return;
+    map.easeTo({ center: features[0].geometry.coordinates, zoom: zoom + 0.5 });
   });
+}
 
-  map.on("mouseleave", "unclustered-point-bg", () => {
-    map.getCanvas().style.cursor = "";
-    popup.remove();
-  });
+function onPointEnter(e) {
+  map.getCanvas().style.cursor = "pointer";
+  if (e.features.length > 0) {
+    const p = e.features[0].properties;
+    getPopup()
+      .setLngLat(e.lngLat)
+      .setHTML(`<strong>${p.place}</strong><br>${p.activity} · ${p.date}`)
+      .addTo(map);
+  }
+}
 
-  // hover cluster → pointer
-  map.on("mouseenter", "clusters", () => {
-    map.getCanvas().style.cursor = "pointer";
-  });
+function onPointLeave() {
+  map.getCanvas().style.cursor = "";
+  getPopup().remove();
+}
 
-  map.on("mouseleave", "clusters", () => {
-    map.getCanvas().style.cursor = "";
-  });
+function onClusterEnter() { map.getCanvas().style.cursor = "pointer"; }
+function onClusterLeave() { map.getCanvas().style.cursor = ""; }
+
+// ── control panel toggle ──────────────────────────────────────
+
+function closePanel() {
+  mapControls.style.display = "none";
+  reopenPanelBtn.style.display = "";
+}
+
+function reopenPanel() {
+  mapControls.style.display = "";
+  reopenPanelBtn.style.display = "none";
 }
 
 // ── cleanup ────────────────────────────────────────────────────
@@ -244,7 +258,7 @@ function bindInteractions() {
 function cleanMapLayers() {
   if (!map) return;
 
-  ["unclustered-point-text", "unclustered-point-bg", "cluster-count", "clusters"].forEach(id => {
+  ["unclustered-point", "clusters"].forEach(id => {
     if (map.getLayer(id)) map.removeLayer(id);
   });
 
@@ -258,9 +272,8 @@ function cleanMapLayers() {
 function changeMapStyle(name) {
   if (!map) return;
   currentStyle = name;
+  localStorage.setItem(LS_STYLE_KEY, name);
   map.setStyle(mapStyle(name));
-
-  // re-render markers once the new style loads
   map.once("style.load", () => {
     renderMarkers();
   });
@@ -293,6 +306,8 @@ styleSelect.addEventListener("change", () => {
 });
 
 resetBtn.addEventListener("click", resetView);
+closePanelBtn.addEventListener("click", closePanel);
+reopenPanelBtn.addEventListener("click", reopenPanel);
 
 // ── bootstrap ──────────────────────────────────────────────────
 

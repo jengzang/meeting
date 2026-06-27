@@ -129,12 +129,13 @@ export function mapStyle(name) {
   return {
     version: 8,
     name: name,
+    glyphs: "https://orangemug.github.io/font-glyphs/glyphs/{fontstack}/{range}.pbf",
     sources: {
       [name]: {
         type: "raster",
         tiles: cfg.tiles,
         tileSize: 256,
-        maxzoom: 18,
+        maxzoom: 22,
         minzoom: 0
       }
     },

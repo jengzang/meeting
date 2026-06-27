@@ -52,6 +52,23 @@ export function mdToDateStr(md, year) {
 }
 
 /**
+ * Generate "M.D" strings from startMD to endMD (inclusive).
+ *   rangeMD("5.28", "6.9", 2026) → ["5.28","5.29",...,"6.9"]
+ */
+export function rangeMD(startMD, endMD, year) {
+  const result = [];
+  let current = parseDate(mdToDateStr(startMD, year));
+  const end = parseDate(mdToDateStr(endMD, year));
+
+  while (current <= end) {
+    result.push(`${current.getMonth() + 1}.${current.getDate()}`);
+    current = addDays(current, 1);
+  }
+
+  return result;
+}
+
+/**
  * Build an array of weeks, each week an array of 7 Dates (Mon–Sun).
  */
 export function buildWeeks(startDate, endDate) {

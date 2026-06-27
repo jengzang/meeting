@@ -1,7 +1,13 @@
 """
 Convert 记录_together.xlsx → js/data/records.js as an ES module.
 
-Usage:  source /tmp/xlsxenv/bin/activate && python3 scripts/convert_xlsx.py
+Re-run this whenever the xlsx file changes.
+
+Usage:
+  python3 -m venv /tmp/xlsxenv
+  source /tmp/xlsxenv/bin/activate
+  pip install openpyxl
+  python3 scripts/convert_xlsx.py
 """
 import openpyxl, json, os, re
 from datetime import datetime
