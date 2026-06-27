@@ -6,8 +6,8 @@
   <title>🐑 全量地图</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
   <link rel="stylesheet" href="../css/map.css" />
-  <link rel="stylesheet" href="../css/intro.css?v=60499bf" />
-  <link rel="stylesheet" href="../css/sheep.css?v=60499bf" />
+  <link rel="stylesheet" href="../css/intro.css?v=27f07fa" />
+  <link rel="stylesheet" href="../css/sheep.css?v=27f07fa" />
   <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
   <link href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" rel="stylesheet" />
   <style>
@@ -502,6 +502,7 @@
       <a href="../index.html" class="nav-link">🏠 基地</a>
       <a href="../heat.html" class="nav-link">← 热力图</a>
       <a href="../map.html" class="nav-link">地图</a>
+      <a href="#timeline" class="nav-link">⏰ 时间线</a>
     </div>
   </header>
 
@@ -549,6 +550,7 @@
   <div id="viewTimeline">
     <div style="display:flex;align-items:center;gap:12px;padding:8px 16px;background:var(--panel);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);">
       <a href="../index.html" class="nav-link" style="text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;">基地</a>
+      <a href="#" class="nav-link" style="text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;">地图</a>
       <span style="font-size:16px;font-weight:800;flex:1;">时间线</span>
       <span class="tl-record-badge" id="tlBadge"></span>
       <label class="tl-mode-switch" title="切换紧凑/完整模式">
@@ -562,9 +564,9 @@
   </div>
 
   <script type="module">
-    import { initFullData, startMap, records, traffic } from "../js/map-main-full.js?v=60499bf";
+    import { initFullData, startMap, records, traffic } from "../js/map-main-full.js?v=27f07fa";
     import { Timeline, recordsToTimeline, trafficToTimeline } from "../js/timeline.js";
-    import { initCornerSheep, initTransitions, showLoadingSheep, hideLoadingSheep } from "../js/sheep.js?v=60499bf";
+    import { initCornerSheep, initTransitions, showLoadingSheep, hideLoadingSheep } from "../js/sheep.js?v=27f07fa";
 
     var AUTH_KEY = "full-map-auth";
     var pwOverlay = document.getElementById("pwOverlay");
@@ -587,6 +589,7 @@
 
     function showTimeline() {
       document.getElementById('viewMap').style.display = 'none';
+      document.querySelector('.header-bar').style.display = 'none';
       document.getElementById('viewTimeline').style.display = 'flex';
 
       var recItems = recordsToTimeline(records);
