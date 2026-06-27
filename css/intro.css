@@ -1,0 +1,308 @@
+/* ── Intro Overlay ────────────────────────────────────────────── */
+
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #0f172a;
+  transition: opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+              visibility 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.intro-overlay.hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ── Scene ────────────────────────────────────────────────────── */
+
+.intro-scene {
+  position: relative;
+  width: 260px;
+  height: 280px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+/* ── Shadow ───────────────────────────────────────────────────── */
+
+.intro-shadow {
+  position: absolute;
+  z-index: 0;
+  bottom: 30px;
+  left: 50%;
+  width: 100px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  filter: blur(10px);
+  animation: shadowPulse 0.6s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+
+/* ── Sheep group ──────────────────────────────────────────────── */
+
+.intro-sheep {
+  position: relative;
+  z-index: 1;
+  animation: sheepEnter 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+             sheepBounce 0.6s cubic-bezier(0.45, 0, 0.55, 1) 0.55s infinite alternate;
+}
+
+/* ── Body cloud ───────────────────────────────────────────────── */
+
+.sheep-body-cloud {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: bodySquash 0.6s cubic-bezier(0.45, 0, 0.55, 1) 0.55s infinite alternate;
+}
+
+/* ── Head ─────────────────────────────────────────────────────── */
+
+.sheep-head-group {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: headTilt 1.2s ease-in-out 0.55s infinite;
+}
+
+/* ── Ears ─────────────────────────────────────────────────────── */
+
+.ear-left {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: earFlapLeft 0.6s ease-in-out 0.55s infinite alternate;
+}
+
+.ear-right {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: earFlapRight 0.6s ease-in-out 0.7s infinite alternate;
+}
+
+/* ── Eyes blink ───────────────────────────────────────────────── */
+
+.eye-blink {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: eyeBlink 1.6s ease-in-out 0.9s infinite;
+}
+
+/* ── Legs ─────────────────────────────────────────────────────── */
+
+.leg-front-left,
+.leg-front-right,
+.leg-back-left,
+.leg-back-right {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+}
+
+.leg-front-left {
+  animation: legKick 0.6s ease-in-out 0.55s infinite alternate;
+}
+
+.leg-front-right {
+  animation: legKick 0.6s ease-in-out 0.85s infinite alternate;
+}
+
+.leg-back-left {
+  animation: legKick 0.6s ease-in-out 0.7s infinite alternate;
+}
+
+.leg-back-right {
+  animation: legKick 0.6s ease-in-out 1.0s infinite alternate;
+}
+
+/* ── Tail ─────────────────────────────────────────────────────── */
+
+.sheep-tail {
+  transform-box: fill-box;
+  transform-origin: 30% 50%;
+  animation: tailWag 0.45s ease-in-out 0.55s infinite alternate;
+}
+
+/* ── Sparkles ─────────────────────────────────────────────────── */
+
+.intro-sparkle {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.intro-sparkle::before,
+.intro-sparkle::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fef3c7;
+  box-shadow: 0 0 8px 2px rgba(254, 243, 199, 0.7);
+}
+
+.intro-sparkle-1 {
+  top: 10px;
+  left: 30px;
+  animation: sparkleFloat 1.8s ease-out 0.7s infinite;
+}
+
+.intro-sparkle-2 {
+  top: 50px;
+  right: 30px;
+  animation: sparkleFloat 2s ease-out 1s infinite;
+}
+
+.intro-sparkle-3 {
+  top: 20px;
+  left: 110px;
+  animation: sparkleFloat 1.6s ease-out 1.3s infinite;
+}
+
+.intro-sparkle-4 {
+  top: 80px;
+  left: 20px;
+  animation: sparkleFloat 2.2s ease-out 1.6s infinite;
+}
+
+.intro-sparkle-5 {
+  top: 40px;
+  right: 50px;
+  animation: sparkleFloat 1.7s ease-out 0.9s infinite;
+}
+
+.intro-sparkle-6 {
+  top: 70px;
+  right: 15px;
+  animation: sparkleFloat 1.9s ease-out 1.5s infinite;
+}
+
+/* ── Keyframes ────────────────────────────────────────────────── */
+
+@keyframes sheepEnter {
+  0% {
+    transform: translateY(80px) scale(0.3);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(-12px) scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes sheepBounce {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-18px);
+  }
+}
+
+@keyframes bodySquash {
+  0% {
+    transform: scaleY(1) scaleX(1);
+  }
+  80% {
+    transform: scaleY(0.94) scaleX(1.05);
+  }
+  100% {
+    transform: scaleY(1.04) scaleX(0.97);
+  }
+}
+
+@keyframes headTilt {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(4deg);
+  }
+  75% {
+    transform: rotate(-4deg);
+  }
+}
+
+@keyframes earFlapLeft {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(12deg);
+  }
+}
+
+@keyframes earFlapRight {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-12deg);
+  }
+}
+
+@keyframes eyeBlink {
+  0%, 94%, 100% {
+    transform: scaleY(1);
+  }
+  97% {
+    transform: scaleY(0.08);
+  }
+}
+
+@keyframes legKick {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-14deg);
+  }
+}
+
+@keyframes tailWag {
+  0% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(14deg);
+  }
+  70% {
+    transform: rotate(-10deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes shadowPulse {
+  0% {
+    transform: translateX(-50%) scaleX(1);
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateX(-50%) scaleX(0.75);
+    opacity: 0.2;
+  }
+}
+
+@keyframes sparkleFloat {
+  0% {
+    transform: translateY(0) scale(0);
+    opacity: 0;
+  }
+  20% {
+    transform: translateY(-10px) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-60px) scale(0);
+    opacity: 0;
+  }
+}
