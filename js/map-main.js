@@ -1,5 +1,6 @@
 import { mapStyleConfig, mapStyle, calculateDenseMapCenterAndZoom } from "./map-source.js";
-import { getDefaultRecords, getUniqueTypes, getShapeInputDateExtent, filterByDateRange } from "./map-data.js";
+import { getUniqueTypes, getDateExtent, filterByDateRange } from "./map-data.js";
+import { records } from "./data/records.js";
 
 // ── localStorage key ────────────────────────────────────────────
 
@@ -21,6 +22,12 @@ let baseRecords = [];
 let currentRecords = [];
 let markers = [];
 let zoomDebounce = null;
+
+// range slider state
+let rangeMinDate = "";
+let rangeMaxDate = "";
+let rangeFromDate = "";
+let rangeToDate = "";
 
 // ── default color map ─────────────────────────────────────────
 
@@ -65,8 +72,12 @@ const closePanelBtn = document.getElementById("closePanelBtn");
 const reopenPanelBtn = document.getElementById("reopenPanelBtn");
 const mapControls = document.getElementById("mapControls");
 const recordCountEl = document.getElementById("recordCount");
-const dateFromEl = document.getElementById("dateFrom");
-const dateToEl = document.getElementById("dateTo");
+const rangeSlider = document.getElementById("rangeSlider");
+const rangeTrack = document.getElementById("rangeTrack");
+const rangeFill = document.getElementById("rangeFill");
+const thumbFrom = document.getElementById("thumbFrom");
+const thumbTo = document.getElementById("thumbTo");
+const rangeDisplay = document.getElementById("rangeDisplay");
 const labelModeBtns = document.querySelectorAll(".label-mode-btn");
 const colorConfigBtn = document.getElementById("colorConfigBtn");
 const sizeModeBtns = document.querySelectorAll(".size-mode-btn");
@@ -296,6 +307,11 @@ function initMap() {
     renderMarkers({ fit: true });
   });
 
+  thumbFrom.addEventListener("mousedown", thumbDrag);
+  thumbFrom.addEventListener("touchstart", thumbDrag, { passive: false });
+  thumbTo.addEventListener("mousedown", thumbDrag);
+  thumbTo.addEventListener("touchstart", thumbDrag, { passive: false });
+
   map.on("error", (e) => {
     console.error("[map] error:", e.error);
   });
@@ -312,24 +328,94 @@ function initMap() {
 // ── timeline ───────────────────────────────────────────────────
 
 function initTimeline() {
-  const [min, max] = getShapeInputDateExtent();
-  dateFromEl.value = "2025-06-27";
-  dateToEl.value = max;
-  dateFromEl.min = "2025-06-27";
-  dateFromEl.max = max;
-  dateToEl.min = "2025-06-27";
-  dateToEl.max = max;
+  const ext = getDateExtent(records);
+  if (!ext.length) return;
+  rangeMinDate = ext[0];
+  rangeMaxDate = ext[1];
+  rangeFromDate = "2025-06-27";
+  rangeToDate = rangeMaxDate;
+  updateSliderUI();
+}
+
+function dateToPct(date) {
+  const total = new Date(rangeMaxDate) - new Date(rangeMinDate);
+  if (total <= 0) return 0;
+  return ((new Date(date) - new Date(rangeMinDate)) / total) * 100;
+}
+
+function pctToDate(pct) {
+  const total = new Date(rangeMaxDate) - new Date(rangeMinDate);
+  const d = new Date(new Date(rangeMinDate).getTime() + total * pct / 100);
+  return d.toISOString().slice(0, 10);
+}
+
+function updateSliderUI() {
+  const fromPct = dateToPct(rangeFromDate);
+  const toPct = dateToPct(rangeToDate);
+  thumbFrom.style.left = fromPct + "%";
+  thumbTo.style.left = toPct + "%";
+  rangeFill.style.left = fromPct + "%";
+  rangeFill.style.width = (toPct - fromPct) + "%";
+  rangeDisplay.textContent = `${rangeFromDate} — ${rangeToDate}`;
 }
 
 function applyTimelineFilter() {
-  const from = dateFromEl.value;
-  const to = dateToEl.value;
-  if (from && to) {
-    currentRecords = filterByDateRange(baseRecords, from, to);
-  } else {
-    currentRecords = [...baseRecords];
-  }
+  currentRecords = filterByDateRange(baseRecords, rangeFromDate, rangeToDate);
 }
+
+// range slider drag
+function thumbDrag(e) {
+  const thumb = e.target.closest(".range-thumb");
+  if (!thumb) return;
+  e.preventDefault();
+  thumb.classList.add("dragging");
+  const which = thumb.dataset.thumb;
+
+  function onMove(ev) {
+    const rect = rangeTrack.getBoundingClientRect();
+    let pct = ((ev.clientX - rect.left) / rect.width) * 100;
+    pct = Math.max(0, Math.min(100, pct));
+    const date = pctToDate(pct);
+    if (which === "from" && date <= rangeToDate) {
+      rangeFromDate = date;
+    } else if (which === "to" && date >= rangeFromDate) {
+      rangeToDate = date;
+    }
+    updateSliderUI();
+  }
+
+  function onUp() {
+    thumb.classList.remove("dragging");
+    document.removeEventListener("mousemove", onMove);
+    document.removeEventListener("mouseup", onUp);
+    document.removeEventListener("touchmove", onMove);
+    document.removeEventListener("touchend", onUp);
+    applyTimelineFilter();
+    renderMarkers();
+  }
+
+  document.addEventListener("mousemove", onMove);
+  document.addEventListener("mouseup", onUp, { once: true });
+  document.addEventListener("touchmove", onMove, { passive: false });
+  document.addEventListener("touchend", onUp, { once: true });
+}
+
+rangeTrack.addEventListener("mousedown", (e) => {
+  const rect = rangeTrack.getBoundingClientRect();
+  const pct = ((e.clientX - rect.left) / rect.width) * 100;
+  const date = pctToDate(pct);
+  // snap to nearer thumb
+  const distFrom = Math.abs(dateToPct(rangeFromDate) - pct);
+  const distTo = Math.abs(dateToPct(rangeToDate) - pct);
+  if (distFrom <= distTo) {
+    rangeFromDate = date;
+  } else {
+    rangeToDate = date;
+  }
+  updateSliderUI();
+  applyTimelineFilter();
+  renderMarkers();
+});
 
 // ── DOM Markers ────────────────────────────────────────────────
 
@@ -341,7 +427,7 @@ function clearMarkers() {
 function renderMarkers({ fit = false } = {}) {
   if (!map) return;
 
-  baseRecords = getDefaultRecords();
+  baseRecords = records;
   applyTimelineFilter();
 
   clearMarkers();
@@ -349,15 +435,15 @@ function renderMarkers({ fit = false } = {}) {
 
   if (currentRecords.length === 0) return;
 
-  // group by coordinate: autoCluster scales grid with zoom, else exact
-  const precision = autoCluster ? clusterPrecision() : 7;
+  // group by coordinate: autoCluster uses continuous grid, else exact
+  const gridDeg = autoCluster ? clusterGridDeg() : 0;
   const groups = new Map();
   for (const r of currentRecords) {
-    const gridLng = parseFloat(r.lng.toFixed(precision));
-    const gridLat = parseFloat(r.lat.toFixed(precision));
-    const key = `${gridLng},${gridLat}`;
+    const gLng = gridDeg ? Math.round(r.lng / gridDeg) * gridDeg : r.lng;
+    const gLat = gridDeg ? Math.round(r.lat / gridDeg) * gridDeg : r.lat;
+    const key = `${gLng.toFixed(7)},${gLat.toFixed(7)}`;
     if (!groups.has(key)) {
-      groups.set(key, { recs: [], lng: gridLng, lat: gridLat });
+      groups.set(key, { recs: [], lng: gLng, lat: gLat });
     }
     groups.get(key).recs.push(r);
   }
@@ -370,18 +456,12 @@ function renderMarkers({ fit = false } = {}) {
   const typeColorMap = getColorMap();
   const coords = [];
 
-  // pre-compute size scaling
-  let countSizes, durationSizes;
-  if (sizeMode === "count") {
-    countSizes = new Map();
-    for (let i = 0; i < recsList.length; i++) {
-      const n = recsList[i].length;
-      countSizes.set(i, n > 1 ? Math.min(n - 1, 8) : 0);
-    }
-  } else if (sizeMode === "duration") {
-    const maxExtra = labelMode === "dot" ? 8 : 5;
-    durationSizes = scaleByDuration(recsList, 0, maxExtra);
-  }
+  // pre-compute size scaling — sqrt compresses outliers, preserves value order
+  const maxScale = labelMode === "dot" ? 15 : 10;
+  const rawValues = sizeMode === "count"
+    ? recsList.map(recs => Math.sqrt(recs.length - 1))              // n=1 → 0
+    : recsList.map(recs => Math.sqrt(totalDurationHours(recs)));
+  const sizeScale = sqrtScale(rawValues, maxScale);
 
   for (let gi = 0; gi < groupList.length; gi++) {
     const { recs, lng, lat } = groupList[gi];
@@ -390,16 +470,10 @@ function renderMarkers({ fit = false } = {}) {
     const color = typeColorMap[domAct] || "#a9a9a9";
     const el = document.createElement("div");
 
-    // compute scale factor (0 = uniform)
-    let scale = 0;
-    if (sizeMode === "count") {
-      scale = countSizes.get(gi);
-    } else if (sizeMode === "duration") {
-      scale = durationSizes.get(gi);
-    }
+    const scale = sizeScale.has(gi) ? sizeScale.get(gi) : 0;
 
     if (labelMode === "dot") {
-      const size = 12 + scale * 3;
+      const size = 10 + scale * 2.5;
       const showNum = sizeMode === "count" && count > 1;
       el.className = showNum ? "marker-dot marker-dot-numbered" : "marker-dot";
       el.style.width = size + "px";
@@ -410,8 +484,8 @@ function renderMarkers({ fit = false } = {}) {
         el.style.fontSize = Math.max(10, size * 0.42) + "px";
       }
     } else {
-      const fontSize = 11 + scale * 1.5;
-      const stroke = 2 + scale * 0.3;
+      const fontSize = 10 + scale * 1.0;
+      const stroke = 2 + scale * 0.2;
       el.className = "marker-label";
       el.style.fontSize = fontSize + "px";
       el.style.WebkitTextStroke = stroke + "px rgba(0,0,0,0.8)";
@@ -463,12 +537,11 @@ function dominantActivity(recs) {
   return best || recs[0].activity;
 }
 
-function clusterPrecision() {
-  // 40px target cluster distance, adapts to zoom
+function clusterGridDeg() {
+  // ~20 screen pixels target — only merge truly adjacent points
   const metersPerPixel = 156543 / Math.pow(2, map.getZoom());
-  const targetMeters = 40 * metersPerPixel;
-  const gridDeg = targetMeters / 111320;
-  return Math.max(1, Math.min(5, Math.round(-Math.log10(gridDeg))));
+  const targetMeters = 20 * metersPerPixel;
+  return targetMeters / 111320;
 }
 
 function totalDurationHours(recs) {
@@ -483,19 +556,13 @@ function totalDurationHours(recs) {
   return total;
 }
 
-function scaleByDuration(allGroups, baseSize, maxExtra) {
-  const durations = [];
-  for (const recs of allGroups) {
-    durations.push(totalDurationHours(recs));
-  }
-  const sorted = [...durations].sort((a, b) => a - b);
-  const lo = sorted[Math.floor(sorted.length * 0.05)] || 0;
-  const hi = sorted[Math.floor(sorted.length * 0.95)] || 1;
+function sqrtScale(values, maxScale) {
+  const lo = Math.min(...values);
+  const hi = Math.max(...values);
   const range = hi > lo ? hi - lo : 1;
   const map = new Map();
-  for (let i = 0; i < allGroups.length; i++) {
-    const t = Math.max(lo, Math.min(hi, durations[i]));
-    map.set(i, baseSize + ((t - lo) / range) * maxExtra);
+  for (let i = 0; i < values.length; i++) {
+    map.set(i, Math.round(((values[i] - lo) / range) * maxScale));
   }
   return map;
 }
@@ -555,16 +622,6 @@ function populateStyleOptions() {
 
 styleSelect.addEventListener("change", () => {
   changeMapStyle(styleSelect.value);
-});
-
-dateFromEl.addEventListener("change", () => {
-  if (dateFromEl.value > dateToEl.value) dateToEl.value = dateFromEl.value;
-  renderMarkers();
-});
-
-dateToEl.addEventListener("change", () => {
-  if (dateToEl.value < dateFromEl.value) dateFromEl.value = dateToEl.value;
-  renderMarkers();
 });
 
 resetBtn.addEventListener("click", resetView);

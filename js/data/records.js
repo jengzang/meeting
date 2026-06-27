@@ -66,32 +66,6 @@ export const records = [
     "photo_spots":null
   },
   {
-    "activity": "学校",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-06-21T14:59:55+0800",
-    "departure": "2026-06-21T16:11:04+0800",
-    "date": "2026-06-21",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
-    "note": null,
-    "photo_we": null,
-    "photo_spots":null
-  },
-  {
-    "activity": "学校",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-06-21T11:59:27+0800",
-    "departure": "2026-06-21T12:27:35+0800",
-    "date": "2026-06-21",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
-    "note": null,
-    "photo_we": null,
-    "photo_spots":null
-  },
-  {
     "activity": "办事",
     "place": "大学城体育中心羽毛球馆",
     "arrival": "2026-06-21T07:50:44+0800",
@@ -113,32 +87,6 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.592572,
     "lng": 113.9812155,
-    "note": null,
-    "photo_we": null,
-    "photo_spots":null
-  },
-  {
-    "activity": "学校",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-06-20T23:25:20+0800",
-    "departure": "2026-06-21T01:08:13+0800",
-    "date": "2026-06-20",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
-    "note": null,
-    "photo_we": null,
-    "photo_spots":null
-  },
-  {
-    "activity": "汽车相关",
-    "place": "学苑大道",
-    "arrival": "2026-06-20T23:06:50+0800",
-    "departure": "2026-06-20T23:18:44+0800",
-    "date": "2026-06-20",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5922668,
-    "lng": 113.9644784,
     "note": null,
     "photo_we": null,
     "photo_spots":null
@@ -1231,19 +1179,6 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.4553463,
     "lng": 113.3371417,
-    "note": null,
-    "photo_we": null,
-    "photo_spots":null
-  },
-  {
-    "activity": "学校",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-05-24T22:59:20+0800",
-    "departure": "2026-05-25T10:19:32+0800",
-    "date": "2026-05-24",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
     "note": null,
     "photo_we": null,
     "photo_spots":null
@@ -2939,45 +2874,6 @@ export const records = [
     "photo_spots":null
   },
   {
-    "activity": "汽车相关",
-    "place": "丽水路2227号",
-    "arrival": "2026-03-21T23:27:15+0800",
-    "departure": "2026-03-22T00:20:49+0800",
-    "date": "2026-03-21",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5936493,
-    "lng": 113.9698205,
-    "note": null,
-    "photo_we": null,
-    "photo_spots":null
-  },
-  {
-    "activity": "学校",
-    "place": "哈尔滨工业大学深圳校区T2栋",
-    "arrival": "2026-03-21T23:11:32+0800",
-    "departure": "2026-03-21T23:26:04+0800",
-    "date": "2026-03-21",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5887083,
-    "lng": 113.968942,
-    "note": null,
-    "photo_we": null,
-    "photo_spots":null
-  },
-  {
-    "activity": "学校",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-03-21T22:20:17+0800",
-    "departure": "2026-03-21T23:11:31+0800",
-    "date": "2026-03-21",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
-    "note": null,
-    "photo_we": null,
-    "photo_spots":null
-  },
-  {
     "activity": "就餐",
     "place": "tea’stone(壹方城购物中心北区店)",
     "arrival": "2026-03-21T19:36:07+0800",
@@ -3597,19 +3493,6 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.5876794,
     "lng": 113.9673923,
-    "note": null,
-    "photo_we": null,
-    "photo_spots":null
-  },
-  {
-    "activity": "学校",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-03-08T22:53:17+0800",
-    "departure": "2026-03-09T10:51:14+0800",
-    "date": "2026-03-08",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
     "note": null,
     "photo_we": null,
     "photo_spots":null
@@ -4323,7 +4206,7 @@ export const records = [
     "note": null
   },
   {
-    "activity": "外出住宿",
+    "activity": "住宿",
     "place": "大学路247号",
     "arrival": "2025-06-27T12:47:06+0800",
     "departure": "2025-06-27T14:35:27+0800",
@@ -4334,7 +4217,7 @@ export const records = [
     "note": null
   },
   {
-    "activity": "活动聚会",
+    "activity": "学校",
     "place": "汕头大学(3号门)",
     "arrival": "2025-06-27T11:19:22+0800",
     "departure": "2025-06-27T12:26:00+0800",
@@ -4345,7 +4228,7 @@ export const records = [
     "note": null
   },
   {
-    "activity": "活动聚会",
+    "activity": "学校",
     "place": "汕头大学桑浦山校区(2号门)",
     "arrival": "2025-06-27T09:23:39+0800",
     "departure": "2025-06-27T11:02:07+0800",
@@ -4367,7 +4250,7 @@ export const records = [
     "note": null
   },
   {
-    "activity": "外出住宿",
+    "activity": "住宿",
     "place": "大学路247号",
     "arrival": "2025-06-27T01:29:11+0800",
     "departure": "2025-06-27T08:34:01+0800",

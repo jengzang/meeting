@@ -285,41 +285,59 @@ body {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* ── timeline date inputs ────────────────────────────────────── */
+/* ── timeline range slider ─────────────────────────────────── */
 
-.date-range-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.range-slider {
+  padding: 4px 0;
+  user-select: none;
 }
 
-.date-input {
-  flex: 1;
-  min-width: 0;
-  padding: 6px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text);
-  font-size: 11px;
-  font-family: inherit;
+.range-track {
+  position: relative;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
   cursor: pointer;
-  outline: none;
+  margin: 0 10px;
 }
 
-.date-input:focus {
-  border-color: var(--accent);
+.range-fill {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
 }
 
-.date-input::-webkit-calendar-picker-indicator {
-  filter: invert(0.8);
-  cursor: pointer;
+.range-thumb {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  margin-top: -10px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid #fff;
+  cursor: grab;
+  box-shadow: 0 0 6px rgba(0,0,0,0.4);
+  z-index: 2;
+  transition: box-shadow 0.15s;
 }
 
-.date-sep {
-  color: var(--muted);
-  font-size: 11px;
-  flex-shrink: 0;
+.range-thumb:active {
+  cursor: grabbing;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.range-thumb.dragging {
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+#rangeDisplay {
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 10px;
 }
 
 /* ── label mode pills ───────────────────────────────────────── */

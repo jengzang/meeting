@@ -36,11 +36,13 @@
         <button class="size-mode-btn" data-mode="duration">按时间</button>
         <label class="opt-check"><input type="checkbox" id="showTrafficCb" /> 显示交通</label>
       </div>
-      <label for="dateFrom">时间范围</label>
-      <div class="date-range-row">
-        <input type="date" id="dateFrom" class="date-input" />
-        <span class="date-sep">—</span>
-        <input type="date" id="dateTo" class="date-input" />
+      <label>时间范围 <span id="rangeDisplay"></span></label>
+      <div class="range-slider" id="rangeSlider">
+        <div class="range-track" id="rangeTrack">
+          <div class="range-fill" id="rangeFill"></div>
+          <div class="range-thumb" id="thumbFrom" data-thumb="from"></div>
+          <div class="range-thumb" id="thumbTo" data-thumb="to"></div>
+        </div>
       </div>
       <div class="reset-row">
         <button class="control-btn" id="resetBtn">🎯 复位视图</button>
