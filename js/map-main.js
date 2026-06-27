@@ -17,9 +17,34 @@ let baseRecords = [];
 let currentRecords = [];
 let markers = [];
 
-// ── 20-color palette ───────────────────────────────────────────
+// ── default color map ─────────────────────────────────────────
 
-const COLOR_PALETTE = [
+const DEFAULT_COLOR_MAP = {
+  "学校": "#00FFFF",
+  "活动聚会": "#008000",
+  "汽车相关": "#0000FF",
+  "办事": "#012F7B",
+  "地标": "#FF0000",
+  "飞机相关": "#0000FF",
+  "宿舍": "#4B0082",
+  "旅行": "#FF0000",
+  "商场及购物": "#C3D117",
+  "外出住宿": "#800080",
+  "火车": "#0000FF",
+  "就餐": "#A52A2A",
+  "运动": "#FFAB01",
+  "东莞家": "#FF6A00",
+  "探亲祭祖": "#FF8648",
+  "医院": "#831100",
+  "理发按摩": "#8D8602",
+  "约会": "#FFC0CB",
+  "地铁": "#0000FF",
+  "老家": "#DA5100",
+  "工作": "#3EB489",
+  "杭州租房": "#FFA500"
+};
+
+const FALLBACK_PALETTE = [
   "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231",
   "#911eb4", "#42d4f4", "#f032e6", "#bfe745", "#fabed4",
   "#469990", "#dcbaff", "#9a6324", "#fffac8", "#800000",
@@ -192,7 +217,7 @@ function hideColorConfig() {
 function buildDefaultColorMap(types) {
   const map = {};
   types.forEach((t, i) => {
-    map[t] = COLOR_PALETTE[i % COLOR_PALETTE.length];
+    map[t] = DEFAULT_COLOR_MAP[t] || FALLBACK_PALETTE[i % FALLBACK_PALETTE.length];
   });
   return map;
 }
