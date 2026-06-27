@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>热力图</title>
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/intro.css?v=591805a" />
+  <link rel="stylesheet" href="css/intro.css?v=a377137" />
 </head>
 
 <body>
@@ -19,6 +19,7 @@
       <div class="intro-sparkle intro-sparkle-5"></div>
       <div class="intro-sparkle intro-sparkle-6"></div>
       <div class="intro-shadow"></div>
+      <div class="intro-message" id="introMessage"></div>
       <svg class="intro-sheep" viewBox="0 0 200 220" width="200" height="220" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <radialGradient id="bodyGrad" cx="45%" cy="35%">
@@ -163,13 +164,21 @@
   <script>
     (function() {
       var overlay = document.getElementById('introOverlay');
-      function hide() { overlay && overlay.classList.add('hide'); }
-      // auto-hide after the dance (~2.8s)
+      var msgEl = document.getElementById('introMessage');
+      function hide() {
+        overlay && overlay.classList.add('hide');
+        if (msgEl) msgEl.textContent = '';
+      }
       setTimeout(hide, 2800);
-      // also hide on any click
       overlay && overlay.addEventListener('click', hide);
+      window.showIntroSheep = function(msg, duration) {
+        if (!overlay) return;
+        if (msgEl && msg) msgEl.textContent = msg;
+        overlay.classList.remove('hide');
+        setTimeout(hide, duration || 2500);
+      };
     })();
   </script>
-  <script type="module" src="js/main.js?v=591805a"></script>
+  <script type="module" src="js/main.js?v=a377137"></script>
 </body>
 </html>

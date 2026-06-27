@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>地图</title>
   <link rel="stylesheet" href="css/map.css" />
-  <link rel="stylesheet" href="css/intro.css?v=591805a" />
+  <link rel="stylesheet" href="css/intro.css?v=a377137" />
   <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
   <link href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" rel="stylesheet" />
 </head>
@@ -21,6 +21,7 @@
       <div class="intro-sparkle intro-sparkle-5"></div>
       <div class="intro-sparkle intro-sparkle-6"></div>
       <div class="intro-shadow"></div>
+      <div class="intro-message" id="introMessage"></div>
       <svg class="intro-sheep" viewBox="0 0 200 220" width="200" height="220" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <radialGradient id="bodyGrad" cx="45%" cy="35%">
@@ -140,6 +141,7 @@
         <button class="color-btn" id="colorConfigBtn">🎨 配色</button>
         <button class="size-mode-btn" data-mode="count">按次数</button>
         <button class="size-mode-btn" data-mode="duration">按时间</button>
+        <button class="cluster-btn" id="autoClusterBtn">自动聚合</button>
       </div>
       <label>时间范围 <span id="rangeDisplay"></span></label>
       <div class="range-slider" id="rangeSlider">
@@ -151,7 +153,8 @@
       </div>
       <div class="reset-row">
         <label class="opt-check"><input type="checkbox" id="showTrafficCb" /> 显示交通</label>
-        <label class="opt-check"><input type="checkbox" id="autoClusterCb" /> 自动聚合</label>
+        <label class="opt-check"><input type="checkbox" id="scenicCb" /> 景点</label>
+        <label class="opt-check"><input type="checkbox" id="photoCb" /> 合照</label>
       </div>
     </div>
 
@@ -161,11 +164,23 @@
   <script>
     (function() {
       var overlay = document.getElementById('introOverlay');
-      function hide() { overlay && overlay.classList.add('hide'); }
+      var msgEl = document.getElementById('introMessage');
+      function hide() {
+        overlay && overlay.classList.add('hide');
+        if (msgEl) msgEl.textContent = '';
+      }
+      // auto-hide after dance
       setTimeout(hide, 2800);
       overlay && overlay.addEventListener('click', hide);
+      // expose for manual trigger with custom message
+      window.showIntroSheep = function(msg, duration) {
+        if (!overlay) return;
+        if (msgEl && msg) msgEl.textContent = msg;
+        overlay.classList.remove('hide');
+        setTimeout(hide, duration || 2500);
+      };
     })();
   </script>
-  <script type="module" src="js/map-main.js?v=591805a"></script>
+  <script type="module" src="js/map-main.js?v=a377137"></script>
 </body>
 </html>
