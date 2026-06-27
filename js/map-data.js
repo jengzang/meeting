@@ -60,6 +60,14 @@ export function filterByTypes(recordsList, types) {
 }
 
 /**
+ * Get [min, max] "YYYY-MM-DD" of SHAPE_INPUT dates.
+ */
+export function getShapeInputDateExtent() {
+  const dates = [...getShapeInputDateSet()].sort();
+  return dates.length ? [dates[0], dates[dates.length - 1]] : [];
+}
+
+/**
  * Get the date extent across all records as [min, max].
  */
 export function getDateExtent(recordsList) {

@@ -1,5 +1,5 @@
 import { mapStyleConfig, mapStyle, calculateDenseMapCenterAndZoom } from "./map-source.js";
-import { getDefaultRecords, getUniqueTypes, getTypeStats, getDateExtent } from "./map-data.js";
+import { getDefaultRecords, getUniqueTypes, getShapeInputDateExtent, filterByDateRange } from "./map-data.js";
 
 // ── localStorage key ────────────────────────────────────────────
 
@@ -10,7 +10,8 @@ const LS_STYLE_KEY = "map-style";
 let currentStyle = localStorage.getItem(LS_STYLE_KEY) || "gaode";
 let map = null;
 let clusteredPopup = null;
-let currentRecords = [];
+let baseRecords = [];   // all SHAPE_INPUT-matching records
+let currentRecords = []; // after timeline filter
 
 // ── 20-color palette ───────────────────────────────────────────
 
@@ -29,6 +30,8 @@ const closePanelBtn = document.getElementById("closePanelBtn");
 const reopenPanelBtn = document.getElementById("reopenPanelBtn");
 const mapControls = document.getElementById("mapControls");
 const recordCountEl = document.getElementById("recordCount");
+const dateFromEl = document.getElementById("dateFrom");
+const dateToEl = document.getElementById("dateTo");
 
 // ── helpers ────────────────────────────────────────────────────
 
@@ -54,8 +57,6 @@ function buildColorMap(types) {
 // ── map init ───────────────────────────────────────────────────
 
 function initMap() {
-  console.log("[map] init with style:", currentStyle, "container:", document.getElementById("map"));
-
   map = new maplibregl.Map({
     container: "map",
     style: mapStyle(currentStyle),
@@ -68,6 +69,7 @@ function initMap() {
 
   map.on("load", () => {
     console.log("[map] style loaded OK");
+    initTimeline();
     renderMarkers();
   });
 
@@ -78,17 +80,41 @@ function initMap() {
   styleSelect.value = currentStyle;
 }
 
-// ── marker rendering (circle-only, no glyphs) ───────────────────
+// ── timeline ───────────────────────────────────────────────────
+
+function initTimeline() {
+  const [min, max] = getShapeInputDateExtent();
+  dateFromEl.value = min;
+  dateToEl.value = max;
+  dateFromEl.min = min;
+  dateFromEl.max = max;
+  dateToEl.min = min;
+  dateToEl.max = max;
+}
+
+function applyTimelineFilter() {
+  const from = dateFromEl.value;
+  const to = dateToEl.value;
+  if (from && to) {
+    currentRecords = filterByDateRange(baseRecords, from, to);
+  } else {
+    currentRecords = [...baseRecords];
+  }
+}
+
+// ── marker rendering ───────────────────────────────────────────
 
 function renderMarkers() {
   if (!map) return;
 
-  currentRecords = getDefaultRecords();
-  console.log("[map] records to render:", currentRecords.length);
+  baseRecords = getDefaultRecords();
+  applyTimelineFilter();
+
+  console.log("[map] records to render:", currentRecords.length, "of", baseRecords.length);
   recordCountEl.textContent = `${currentRecords.length} 条记录`;
 
   if (currentRecords.length === 0) {
-    console.warn("[map] no records in date range");
+    console.warn("[map] no records in current filter");
     return;
   }
 
@@ -120,7 +146,7 @@ function renderMarkers() {
     clusterRadius: 30
   });
 
-  // cluster circles (no text — radius encodes count)
+  // cluster circles
   map.addLayer({
     id: "clusters",
     type: "circle",
@@ -128,23 +154,31 @@ function renderMarkers() {
     filter: ["has", "point_count"],
     paint: {
       "circle-color": [
-        "step",
-        ["get", "point_count"],
-        "#51bbd6",
-        10, "#f1f075",
-        30, "#f28cb1"
+        "step", ["get", "point_count"],
+        "#51bbd6", 10, "#f1f075", 30, "#f28cb1"
       ],
       "circle-radius": [
-        "step",
-        ["get", "point_count"],
-        20,
-        10, 28,
-        30, 38
+        "step", ["get", "point_count"],
+        20, 10, 28, 30, 38
       ],
       "circle-opacity": 0.88,
       "circle-stroke-width": 2,
       "circle-stroke-color": "rgba(255, 255, 255, 0.9)"
     }
+  });
+
+  // cluster count text
+  map.addLayer({
+    id: "cluster-count",
+    type: "symbol",
+    source: "records",
+    filter: ["has", "point_count"],
+    layout: {
+      "text-field": "{point_count_abbreviated}",
+      "text-font": ["Open Sans Bold"],
+      "text-size": 13
+    },
+    paint: { "text-color": "#ffffff" }
   });
 
   // unclustered point circles (color = activity type)
@@ -154,16 +188,31 @@ function renderMarkers() {
     source: "records",
     filter: ["!", ["has", "point_count"]],
     paint: {
-      "circle-radius": 12,
+      "circle-radius": 9,
       "circle-color": ["get", "bgColor"],
-      "circle-opacity": 0.88,
-      "circle-stroke-width": 2,
-      "circle-stroke-color": "rgba(255, 255, 255, 0.85)"
+      "circle-opacity": 0.85,
+      "circle-stroke-width": 1.5,
+      "circle-stroke-color": "rgba(255, 255, 255, 0.7)"
     }
   });
 
+  // activity name label on unclustered points
+  map.addLayer({
+    id: "unclustered-label",
+    type: "symbol",
+    source: "records",
+    filter: ["!", ["has", "point_count"]],
+    layout: {
+      "text-field": ["get", "activity"],
+      "text-font": ["Open Sans Regular"],
+      "text-size": 10,
+      "text-anchor": "bottom",
+      "text-offset": [0, -0.8]
+    },
+    paint: { "text-color": "#ffffff" }
+  });
+
   bindInteractions();
-  renderLegend();
 
   // auto-center
   const coords = currentRecords.map(r => [r.lng, r.lat]);
@@ -171,34 +220,11 @@ function renderMarkers() {
   map.flyTo({ center, zoom });
 }
 
-// ── legend ─────────────────────────────────────────────────────
-
-function renderLegend() {
-  let el = document.getElementById("typeLegend");
-  if (!el) {
-    el = document.createElement("div");
-    el.id = "typeLegend";
-    el.className = "type-legend";
-    document.querySelector(".map-wrap").appendChild(el);
-  }
-
-  const stats = getTypeStats(currentRecords);
-  const colorMap = buildColorMap(getUniqueTypes());
-
-  el.innerHTML = stats.map(([type, count]) => `
-    <span class="type-legend-item">
-      <span class="type-dot" style="background:${colorMap[type]}"></span>
-      ${type} ${count}
-    </span>
-  `).join("");
-}
-
 // ── interaction handlers ───────────────────────────────────────
 
 function bindInteractions() {
   if (!map) return;
 
-  // remove old listeners to prevent stacking
   map.off("click", "clusters", onClusterClick);
   map.off("mouseenter", "unclustered-point", onPointEnter);
   map.off("mouseleave", "unclustered-point", onPointLeave);
@@ -235,7 +261,6 @@ function onPointEnter(e) {
   }
 }
 
-/** "2026-06-22T15:09:29+0800" → "15:09" */
 function fmtTime(iso) {
   if (!iso) return "?";
   const m = iso.match(/T(\d{2}:\d{2})/);
@@ -267,7 +292,7 @@ function reopenPanel() {
 function cleanMapLayers() {
   if (!map) return;
 
-  ["unclustered-point", "clusters"].forEach(id => {
+  ["unclustered-label", "unclustered-point", "cluster-count", "clusters"].forEach(id => {
     if (map.getLayer(id)) map.removeLayer(id);
   });
 
@@ -282,10 +307,7 @@ function changeMapStyle(name) {
   if (!map) return;
   currentStyle = name;
   localStorage.setItem(LS_STYLE_KEY, name);
-  // register BEFORE setStyle — inline style objects may fire style.load synchronously
-  map.once("style.load", () => {
-    renderMarkers();
-  });
+  map.once("style.load", () => { renderMarkers(); });
   map.setStyle(mapStyle(name));
 }
 
@@ -313,6 +335,16 @@ function populateStyleOptions() {
 
 styleSelect.addEventListener("change", () => {
   changeMapStyle(styleSelect.value);
+});
+
+dateFromEl.addEventListener("change", () => {
+  if (dateFromEl.value > dateToEl.value) dateToEl.value = dateFromEl.value;
+  renderMarkers();
+});
+
+dateToEl.addEventListener("change", () => {
+  if (dateToEl.value < dateFromEl.value) dateFromEl.value = dateToEl.value;
+  renderMarkers();
 });
 
 resetBtn.addEventListener("click", resetView);
