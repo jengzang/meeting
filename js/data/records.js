@@ -1,17 +1,6 @@
 /* auto-generated — do not edit */
 export const records = [
   {
-    "activity": "宿舍",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-06-21T22:15:22+0800",
-    "departure": "2026-06-22T09:37:40+0800",
-    "date": "2026-06-21",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
-    "note": null
-  },
-  {
     "activity": "活动聚会",
     "place": "GAME ONE(深圳大悦城店)",
     "arrival": "2026-06-21T20:46:18+0800",
@@ -185,28 +174,6 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.4553463,
     "lng": 113.3371417,
-    "note": null
-  },
-  {
-    "activity": "东莞家",
-    "place": "石崇大道105号",
-    "arrival": "2026-06-10T23:54:47+0800",
-    "departure": "2026-06-11T00:12:01+0800",
-    "date": "2026-06-10",
-    "tz": "Asia/Shanghai",
-    "lat": 23.1002487,
-    "lng": 113.9338592,
-    "note": null
-  },
-  {
-    "activity": "宿舍",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-06-10T15:20:41+0800",
-    "departure": "2026-06-10T22:13:47+0800",
-    "date": "2026-06-10",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
     "note": null
   },
   {
@@ -640,17 +607,6 @@ export const records = [
   },
   {
     "activity": "火车",
-    "place": "衡山西站",
-    "arrival": "2026-06-01T15:21:50+0800",
-    "departure": "2026-06-01T15:39:28+0800",
-    "date": "2026-06-01",
-    "tz": "Asia/Shanghai",
-    "lat": 27.2507254,
-    "lng": 112.7843103,
-    "note": null
-  },
-  {
-    "activity": "火车",
     "place": "萍乡高铁站",
     "arrival": "2026-06-01T13:20:46+0800",
     "departure": "2026-06-01T14:17:09+0800",
@@ -1069,28 +1025,6 @@ export const records = [
   },
   {
     "activity": "火车",
-    "place": "丰城站",
-    "arrival": "2026-05-30T08:02:43+0800",
-    "departure": "2026-05-30T08:13:50+0800",
-    "date": "2026-05-30",
-    "tz": "Asia/Shanghai",
-    "lat": 28.1855601,
-    "lng": 115.7854374,
-    "note": null
-  },
-  {
-    "activity": "火车",
-    "place": "株洲站(西出站口)",
-    "arrival": "2026-05-30T04:20:54+0800",
-    "departure": "2026-05-30T04:54:49+0800",
-    "date": "2026-05-30",
-    "tz": "Asia/Shanghai",
-    "lat": 27.8388779,
-    "lng": 113.1514999,
-    "note": null
-  },
-  {
-    "activity": "火车",
     "place": "广州白云站",
     "arrival": "2026-05-29T20:52:25+0800",
     "departure": "2026-05-29T21:15:55+0800",
@@ -1189,94 +1123,6 @@ export const records = [
     "note": null
   },
   {
-    "activity": "旅行",
-    "place": "古寨沟停车点",
-    "arrival": "2026-05-28T16:51:19+0800",
-    "departure": "2026-05-28T17:14:54+0800",
-    "date": "2026-05-28",
-    "tz": "Asia/Shanghai",
-    "lat": 22.4217079,
-    "lng": 113.3987463,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "会同古村旅游区停车点",
-    "arrival": "2026-05-28T16:03:48+0800",
-    "departure": "2026-05-28T16:28:07+0800",
-    "date": "2026-05-28",
-    "tz": "Asia/Shanghai",
-    "lat": 22.3583531,
-    "lng": 113.5098793,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "二月咖啡",
-    "arrival": "2026-05-28T15:49:53+0800",
-    "departure": "2026-05-28T16:03:47+0800",
-    "date": "2026-05-28",
-    "tz": "Asia/Shanghai",
-    "lat": 22.3564863,
-    "lng": 113.5117707,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "会同古村旅游区停车点",
-    "arrival": "2026-05-28T14:40:57+0800",
-    "departure": "2026-05-28T15:49:53+0800",
-    "date": "2026-05-28",
-    "tz": "Asia/Shanghai",
-    "lat": 22.3583531,
-    "lng": 113.5098793,
-    "note": null
-  },
-  {
-    "activity": "就餐",
-    "place": "关东人家",
-    "arrival": "2026-05-28T13:21:47+0800",
-    "departure": "2026-05-28T14:20:41+0800",
-    "date": "2026-05-28",
-    "tz": "Asia/Shanghai",
-    "lat": 22.3495959,
-    "lng": 113.5381384,
-    "note": null
-  },
-  {
-    "activity": "活动聚会",
-    "place": "励耘路",
-    "arrival": "2026-05-28T12:45:16+0800",
-    "departure": "2026-05-28T13:09:45+0800",
-    "date": "2026-05-28",
-    "tz": "Asia/Shanghai",
-    "lat": 22.3542902,
-    "lng": 113.5379038,
-    "note": null
-  },
-  {
-    "activity": "活动聚会",
-    "place": "北京师范大学珠海校区1902大礼堂",
-    "arrival": "2026-05-28T12:06:09+0800",
-    "departure": "2026-05-28T12:27:54+0800",
-    "date": "2026-05-28",
-    "tz": "Asia/Shanghai",
-    "lat": 22.3476694,
-    "lng": 113.5229351,
-    "note": null
-  },
-  {
-    "activity": "活动聚会",
-    "place": "会同北路",
-    "arrival": "2026-05-28T11:31:42+0800",
-    "departure": "2026-05-28T11:50:47+0800",
-    "date": "2026-05-28",
-    "tz": "Asia/Shanghai",
-    "lat": 22.3543002,
-    "lng": 113.5335973,
-    "note": null
-  },
-  {
     "activity": "外出住宿",
     "place": "碧桂园·柏坦尼雅",
     "arrival": "2026-05-27T21:56:20+0800",
@@ -1285,83 +1131,6 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.4553463,
     "lng": 113.3371417,
-    "note": null
-  },
-  {
-    "activity": "就餐",
-    "place": "顺生餐厅",
-    "arrival": "2026-05-27T19:29:33+0800",
-    "departure": "2026-05-27T20:46:22+0800",
-    "date": "2026-05-27",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5700036,
-    "lng": 113.8441621,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "郑毓秀像",
-    "arrival": "2026-05-27T19:07:14+0800",
-    "departure": "2026-05-27T19:26:33+0800",
-    "date": "2026-05-27",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5972694,
-    "lng": 113.8281138,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "林中栈道",
-    "arrival": "2026-05-27T18:37:57+0800",
-    "departure": "2026-05-27T18:59:43+0800",
-    "date": "2026-05-27",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5900474,
-    "lng": 113.8315298,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "金湾大道辅路",
-    "arrival": "2026-05-27T18:14:12+0800",
-    "departure": "2026-05-27T18:37:57+0800",
-    "date": "2026-05-27",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5918528,
-    "lng": 113.8307192,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "金湾大道",
-    "arrival": "2026-05-27T17:31:18+0800",
-    "departure": "2026-05-27T18:06:19+0800",
-    "date": "2026-05-27",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5978024,
-    "lng": 113.8292507,
-    "note": null
-  },
-  {
-    "activity": "宿舍",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-05-27T14:06:07+0800",
-    "departure": "2026-05-27T16:36:06+0800",
-    "date": "2026-05-27",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
-    "note": null
-  },
-  {
-    "activity": "就餐",
-    "place": "乐美味台式自选餐厅(平山村)",
-    "arrival": "2026-05-27T13:28:24+0800",
-    "departure": "2026-05-27T14:05:29+0800",
-    "date": "2026-05-27",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5876098,
-    "lng": 113.9635237,
     "note": null
   },
   {
@@ -1538,105 +1307,6 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.5386289,
     "lng": 114.0620986,
-    "note": null
-  },
-  {
-    "activity": "就餐",
-    "place": "牛吉韵·鲜切牛肉火锅",
-    "arrival": "2026-05-22T18:22:59+0800",
-    "departure": "2026-05-22T20:25:35+0800",
-    "date": "2026-05-22",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5299975,
-    "lng": 113.9159834,
-    "note": "语言学爱好者小聚"
-  },
-  {
-    "activity": "宿舍",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-05-22T16:29:36+0800",
-    "departure": "2026-05-22T17:46:44+0800",
-    "date": "2026-05-22",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
-    "note": null
-  },
-  {
-    "activity": "学校",
-    "place": "L栋",
-    "arrival": "2026-05-22T13:58:16+0800",
-    "departure": "2026-05-22T16:29:36+0800",
-    "date": "2026-05-22",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5910572,
-    "lng": 113.9677585,
-    "note": null
-  },
-  {
-    "activity": "学校",
-    "place": "T5栋",
-    "arrival": "2026-05-22T11:19:59+0800",
-    "departure": "2026-05-22T13:58:16+0800",
-    "date": "2026-05-22",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5882357,
-    "lng": 113.9682746,
-    "note": null
-  },
-  {
-    "activity": "学校",
-    "place": "L栋",
-    "arrival": "2026-05-22T10:59:13+0800",
-    "departure": "2026-05-22T11:19:59+0800",
-    "date": "2026-05-22",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5910572,
-    "lng": 113.9677585,
-    "note": null
-  },
-  {
-    "activity": "学校",
-    "place": "T5栋",
-    "arrival": "2026-05-19T20:03:19+0800",
-    "departure": "2026-05-20T00:11:37+0800",
-    "date": "2026-05-19",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5882357,
-    "lng": 113.9682746,
-    "note": null
-  },
-  {
-    "activity": "就餐",
-    "place": "一鼎来潮汕牛肉自助火锅",
-    "arrival": "2026-05-19T18:04:51+0800",
-    "departure": "2026-05-19T19:55:03+0800",
-    "date": "2026-05-19",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5890029,
-    "lng": 113.959187,
-    "note": "和董思聪吃饭"
-  },
-  {
-    "activity": "宿舍",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-05-19T13:51:03+0800",
-    "departure": "2026-05-19T17:29:43+0800",
-    "date": "2026-05-19",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
-    "note": null
-  },
-  {
-    "activity": "汽车相关",
-    "place": "哈尔滨工业大学深圳校区深圳研究生院先进制造技术重点实验室",
-    "arrival": "2026-05-19T13:32:48+0800",
-    "departure": "2026-05-19T13:51:03+0800",
-    "date": "2026-05-19",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5916801,
-    "lng": 113.9635864,
     "note": null
   },
   {
@@ -1824,248 +1494,6 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.4553463,
     "lng": 113.3371417,
-    "note": null
-  },
-  {
-    "activity": "活动聚会",
-    "place": "壹弓馆",
-    "arrival": "2026-05-14T20:07:24+0800",
-    "departure": "2026-05-14T22:02:56+0800",
-    "date": "2026-05-14",
-    "tz": "Asia/Shanghai",
-    "lat": 23.1769968,
-    "lng": 113.3231209,
-    "note": null
-  },
-  {
-    "activity": "就餐",
-    "place": "新一家",
-    "arrival": "2026-05-14T17:36:06+0800",
-    "departure": "2026-05-14T19:50:27+0800",
-    "date": "2026-05-14",
-    "tz": "Asia/Shanghai",
-    "lat": 23.1693179,
-    "lng": 113.3471654,
-    "note": null
-  },
-  {
-    "activity": "办事",
-    "place": "建阳路",
-    "arrival": "2026-05-14T15:31:02+0800",
-    "departure": "2026-05-14T16:31:57+0800",
-    "date": "2026-05-14",
-    "tz": "Asia/Shanghai",
-    "lat": 23.1312484,
-    "lng": 113.3415586,
-    "note": null
-  },
-  {
-    "activity": "办事",
-    "place": "暨南大学(石牌校区)行政办公楼",
-    "arrival": "2026-05-14T15:06:24+0800",
-    "departure": "2026-05-14T15:31:01+0800",
-    "date": "2026-05-14",
-    "tz": "Asia/Shanghai",
-    "lat": 23.1292144,
-    "lng": 113.3406988,
-    "note": null
-  },
-  {
-    "activity": "就餐",
-    "place": "陈记佳飨潮州牛肉火锅",
-    "arrival": "2026-05-14T12:27:58+0800",
-    "departure": "2026-05-14T14:01:54+0800",
-    "date": "2026-05-14",
-    "tz": "Asia/Shanghai",
-    "lat": 23.0399618,
-    "lng": 113.3832843,
-    "note": null
-  },
-  {
-    "activity": "外出住宿",
-    "place": "巴东申旺民宿",
-    "arrival": "2026-05-05T22:59:42+0800",
-    "departure": "2026-05-06T09:30:45+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 31.0639138,
-    "lng": 110.3394977,
-    "note": null
-  },
-  {
-    "activity": "汽车相关",
-    "place": "255省道",
-    "arrival": "2026-05-05T21:27:08+0800",
-    "departure": "2026-05-05T21:40:36+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 31.0343457,
-    "lng": 110.7511325,
-    "note": null
-  },
-  {
-    "activity": "就餐",
-    "place": "馒头小卤",
-    "arrival": "2026-05-05T20:09:44+0800",
-    "departure": "2026-05-05T21:00:52+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 30.9118968,
-    "lng": 110.8176286,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "鹰嘴岩公共停车场",
-    "arrival": "2026-05-05T19:40:41+0800",
-    "departure": "2026-05-05T19:54:56+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 30.8918075,
-    "lng": 110.8289614,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "屈原镇",
-    "arrival": "2026-05-05T19:23:15+0800",
-    "departure": "2026-05-05T19:40:40+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 30.8895445,
-    "lng": 110.8330352,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "中堡岛",
-    "arrival": "2026-05-05T18:00:13+0800",
-    "departure": "2026-05-05T18:14:03+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 30.8112132,
-    "lng": 110.9962939,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "三峡大坝全景观景台",
-    "arrival": "2026-05-05T17:30:13+0800",
-    "departure": "2026-05-05T17:56:51+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 30.8125769,
-    "lng": 111.0219208,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "三峡人家风景区-售货长廊",
-    "arrival": "2026-05-05T14:48:49+0800",
-    "departure": "2026-05-05T16:04:30+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 30.8012483,
-    "lng": 111.1582012,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "听泉阁",
-    "arrival": "2026-05-05T14:18:33+0800",
-    "departure": "2026-05-05T14:38:14+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 30.8067252,
-    "lng": 111.149811,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "婚嫁楼",
-    "arrival": "2026-05-05T13:49:20+0800",
-    "departure": "2026-05-05T14:18:32+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 30.8040331,
-    "lng": 111.1529824,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "七叠桥",
-    "arrival": "2026-05-05T13:31:30+0800",
-    "departure": "2026-05-05T13:49:19+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 30.8006634,
-    "lng": 111.1565319,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "棉花坊",
-    "arrival": "2026-05-05T12:20:50+0800",
-    "departure": "2026-05-05T13:23:39+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 30.7942092,
-    "lng": 111.150749,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "百步梯",
-    "arrival": "2026-05-05T11:57:51+0800",
-    "departure": "2026-05-05T12:20:49+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 30.792646,
-    "lng": 111.1484628,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "索道码头",
-    "arrival": "2026-05-05T11:38:20+0800",
-    "departure": "2026-05-05T11:57:50+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 30.7888004,
-    "lng": 111.1474871,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "乐天溪镇",
-    "arrival": "2026-05-05T11:17:40+0800",
-    "departure": "2026-05-05T11:33:47+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 30.7820227,
-    "lng": 111.1566845,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "三峡人家王家坪游客中心",
-    "arrival": "2026-05-05T10:43:39+0800",
-    "departure": "2026-05-05T11:02:26+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 30.8130175,
-    "lng": 111.1863945,
-    "note": null
-  },
-  {
-    "activity": "汽车相关",
-    "place": "服务区",
-    "arrival": "2026-05-05T09:23:22+0800",
-    "departure": "2026-05-05T10:01:13+0800",
-    "date": "2026-05-05",
-    "tz": "Asia/Shanghai",
-    "lat": 30.7604263,
-    "lng": 111.3042615,
     "note": null
   },
   {
@@ -2586,72 +2014,6 @@ export const records = [
     "note": null
   },
   {
-    "activity": "旅行",
-    "place": "沿湖大道22号",
-    "arrival": "2026-05-01T16:28:59+0800",
-    "departure": "2026-05-01T16:50:02+0800",
-    "date": "2026-05-01",
-    "tz": "Asia/Shanghai",
-    "lat": 30.5792453,
-    "lng": 114.3715926,
-    "note": null
-  },
-  {
-    "activity": "外出住宿",
-    "place": "天悦快捷酒店",
-    "arrival": "2026-05-01T14:39:09+0800",
-    "departure": "2026-05-01T15:50:25+0800",
-    "date": "2026-05-01",
-    "tz": "Asia/Shanghai",
-    "lat": 30.6019315,
-    "lng": 114.4136221,
-    "note": null
-  },
-  {
-    "activity": "火车",
-    "place": "婺源站(出站口)",
-    "arrival": "2026-05-01T10:49:03+0800",
-    "departure": "2026-05-01T11:14:21+0800",
-    "date": "2026-05-01",
-    "tz": "Asia/Shanghai",
-    "lat": 29.2424835,
-    "lng": 117.8727014,
-    "note": null
-  },
-  {
-    "activity": "外出住宿",
-    "place": "渼季酒店",
-    "arrival": "2026-05-01T10:17:00+0800",
-    "departure": "2026-05-01T10:49:02+0800",
-    "date": "2026-05-01",
-    "tz": "Asia/Shanghai",
-    "lat": 29.2432628,
-    "lng": 117.8675009,
-    "note": null
-  },
-  {
-    "activity": "旅行",
-    "place": "弦高城(中俄文创生活馆)",
-    "arrival": "2026-05-01T09:35:47+0800",
-    "departure": "2026-05-01T10:11:50+0800",
-    "date": "2026-05-01",
-    "tz": "Asia/Shanghai",
-    "lat": 29.2506658,
-    "lng": 117.8535132,
-    "note": null
-  },
-  {
-    "activity": "杭州租房",
-    "place": "58幢",
-    "arrival": "2026-04-20T23:48:06+0800",
-    "departure": "2026-04-21T08:46:32+0800",
-    "date": "2026-04-20",
-    "tz": "Asia/Shanghai",
-    "lat": 30.2903098,
-    "lng": 120.0300153,
-    "note": null
-  },
-  {
     "activity": "火车",
     "place": "东宁路",
     "arrival": "2026-04-20T22:59:55+0800",
@@ -3070,50 +2432,6 @@ export const records = [
     "note": null
   },
   {
-    "activity": "东莞家",
-    "place": "2号楼",
-    "arrival": "2026-04-06T21:24:08+0800",
-    "departure": "2026-04-07T10:59:27+0800",
-    "date": "2026-04-06",
-    "tz": "Asia/Shanghai",
-    "lat": 23.0867445,
-    "lng": 113.9339136,
-    "note": null
-  },
-  {
-    "activity": "就餐",
-    "place": "石排大道597-599号",
-    "arrival": "2026-04-06T19:50:54+0800",
-    "departure": "2026-04-06T21:19:56+0800",
-    "date": "2026-04-06",
-    "tz": "Asia/Shanghai",
-    "lat": 23.1011812,
-    "lng": 113.9297719,
-    "note": null
-  },
-  {
-    "activity": "汽车相关",
-    "place": "南顺服务区",
-    "arrival": "2026-04-06T17:30:51+0800",
-    "departure": "2026-04-06T17:51:52+0800",
-    "date": "2026-04-06",
-    "tz": "Asia/Shanghai",
-    "lat": 22.7711273,
-    "lng": 113.4559699,
-    "note": null
-  },
-  {
-    "activity": "汽车相关",
-    "place": "南区街道",
-    "arrival": "2026-04-06T14:58:43+0800",
-    "departure": "2026-04-06T15:58:41+0800",
-    "date": "2026-04-06",
-    "tz": "Asia/Shanghai",
-    "lat": 22.456757,
-    "lng": 113.3359446,
-    "note": null
-  },
-  {
     "activity": "就餐",
     "place": "玛迪亚(星汇大信·新都汇店)",
     "arrival": "2026-04-06T13:14:27+0800",
@@ -3276,17 +2594,6 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.4553463,
     "lng": 113.3371417,
-    "note": null
-  },
-  {
-    "activity": "火车",
-    "place": "天水路72号",
-    "arrival": "2026-04-04T02:36:30+0800",
-    "departure": "2026-04-04T03:54:21+0800",
-    "date": "2026-04-04",
-    "tz": "Asia/Shanghai",
-    "lat": 24.6381494,
-    "lng": 118.0679473,
     "note": null
   },
   {
@@ -3463,72 +2770,6 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.5163436,
     "lng": 113.9411545,
-    "note": null
-  },
-  {
-    "activity": "就餐",
-    "place": "金豪川味面庄(平山村店)",
-    "arrival": "2026-03-20T20:23:43+0800",
-    "departure": "2026-03-20T20:34:32+0800",
-    "date": "2026-03-20",
-    "tz": "Asia/Shanghai",
-    "lat": 22.586272,
-    "lng": 113.9613871,
-    "note": null
-  },
-  {
-    "activity": "宿舍",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-03-20T17:47:01+0800",
-    "departure": "2026-03-20T20:23:43+0800",
-    "date": "2026-03-20",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
-    "note": null
-  },
-  {
-    "activity": "学校",
-    "place": "哈尔滨工业大学深圳校区T2栋",
-    "arrival": "2026-03-20T13:33:49+0800",
-    "departure": "2026-03-20T17:47:01+0800",
-    "date": "2026-03-20",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5887083,
-    "lng": 113.968942,
-    "note": null
-  },
-  {
-    "activity": "学校",
-    "place": "T4栋",
-    "arrival": "2026-03-20T12:48:46+0800",
-    "departure": "2026-03-20T13:33:43+0800",
-    "date": "2026-03-20",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5882103,
-    "lng": 113.967372,
-    "note": null
-  },
-  {
-    "activity": "学校",
-    "place": "哈尔滨工业大学深圳校区T2栋",
-    "arrival": "2026-03-20T09:24:10+0800",
-    "departure": "2026-03-20T12:48:45+0800",
-    "date": "2026-03-20",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5887083,
-    "lng": 113.968942,
-    "note": null
-  },
-  {
-    "activity": "宿舍",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-03-20T01:16:01+0800",
-    "departure": "2026-03-20T09:05:17+0800",
-    "date": "2026-03-20",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
     "note": null
   },
   {
@@ -3919,61 +3160,6 @@ export const records = [
   {
     "activity": "宿舍",
     "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-03-13T20:40:12+0800",
-    "departure": "2026-03-13T21:27:15+0800",
-    "date": "2026-03-13",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
-    "note": null
-  },
-  {
-    "activity": "学校",
-    "place": "哈尔滨工业大学深圳校区T2栋",
-    "arrival": "2026-03-13T13:37:41+0800",
-    "departure": "2026-03-13T20:40:12+0800",
-    "date": "2026-03-13",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5887083,
-    "lng": 113.968942,
-    "note": null
-  },
-  {
-    "activity": "就餐",
-    "place": "私家小厨卤肉饭",
-    "arrival": "2026-03-13T13:17:12+0800",
-    "departure": "2026-03-13T13:37:38+0800",
-    "date": "2026-03-13",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5874249,
-    "lng": 113.9669116,
-    "note": null
-  },
-  {
-    "activity": "学校",
-    "place": "哈尔滨工业大学深圳校区T2栋",
-    "arrival": "2026-03-13T09:07:16+0800",
-    "departure": "2026-03-13T13:17:12+0800",
-    "date": "2026-03-13",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5887083,
-    "lng": 113.968942,
-    "note": null
-  },
-  {
-    "activity": "宿舍",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-03-13T02:32:17+0800",
-    "departure": "2026-03-13T09:07:15+0800",
-    "date": "2026-03-13",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
-    "note": null
-  },
-  {
-    "activity": "宿舍",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
     "arrival": "2026-03-08T22:53:17+0800",
     "departure": "2026-03-09T10:51:14+0800",
     "date": "2026-03-08",
@@ -4147,28 +3333,7 @@ export const records = [
     "lng": 113.3371417,
     "note": null
   },
-  {
-    "activity": "东莞家",
-    "place": "2号楼",
-    "arrival": "2026-03-06T13:05:49+0800",
-    "departure": "2026-03-06T21:24:59+0800",
-    "date": "2026-03-06",
-    "tz": "Asia/Shanghai",
-    "lat": 23.0867445,
-    "lng": 113.9339136,
-    "note": null
-  },
-  {
-    "activity": "就餐",
-    "place": "左妈莞味",
-    "arrival": "2026-03-06T12:31:45+0800",
-    "departure": "2026-03-06T13:02:40+0800",
-    "date": "2026-03-06",
-    "tz": "Asia/Shanghai",
-    "lat": 23.0965323,
-    "lng": 113.9414214,
-    "note": null
-  },
+
   {
     "activity": "就餐",
     "place": "盛安街",
@@ -4310,28 +3475,6 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.1513866,
     "lng": 111.7886079,
-    "note": null
-  },
-  {
-    "activity": "老家",
-    "place": "阳春市鸿星针织厂(东南门)",
-    "arrival": "2026-02-22T16:18:14+0800",
-    "departure": "2026-02-22T17:39:59+0800",
-    "date": "2026-02-22",
-    "tz": "Asia/Shanghai",
-    "lat": 22.235361,
-    "lng": 111.8244544,
-    "note": null
-  },
-  {
-    "activity": "探亲祭祖",
-    "place": "国鼎御景半岛花园(西门)",
-    "arrival": "2026-02-22T11:28:11+0800",
-    "departure": "2026-02-22T16:12:58+0800",
-    "date": "2026-02-22",
-    "tz": "Asia/Shanghai",
-    "lat": 22.1903656,
-    "lng": 111.8030397,
     "note": null
   },
   {
@@ -4552,50 +3695,6 @@ export const records = [
     "tz": "Asia/Shanghai",
     "lat": 22.2347186,
     "lng": 111.822803,
-    "note": null
-  },
-  {
-    "activity": "老家",
-    "place": "阳春市鸿星针织厂(东南门)",
-    "arrival": "2026-02-16T23:43:29+0800",
-    "departure": "2026-02-17T11:44:01+0800",
-    "date": "2026-02-16",
-    "tz": "Asia/Shanghai",
-    "lat": 22.235361,
-    "lng": 111.8244544,
-    "note": null
-  },
-  {
-    "activity": "活动聚会",
-    "place": "陂面镇",
-    "arrival": "2026-02-16T22:17:44+0800",
-    "departure": "2026-02-16T23:30:49+0800",
-    "date": "2026-02-16",
-    "tz": "Asia/Shanghai",
-    "lat": 22.3083944,
-    "lng": 111.8543289,
-    "note": null
-  },
-  {
-    "activity": "老家",
-    "place": "合水镇",
-    "arrival": "2026-02-16T16:28:32+0800",
-    "departure": "2026-02-16T21:52:11+0800",
-    "date": "2026-02-16",
-    "tz": "Asia/Shanghai",
-    "lat": 22.2347186,
-    "lng": 111.822803,
-    "note": null
-  },
-  {
-    "activity": "活动聚会",
-    "place": "陂面镇",
-    "arrival": "2026-02-16T14:32:43+0800",
-    "departure": "2026-02-16T16:12:58+0800",
-    "date": "2026-02-16",
-    "tz": "Asia/Shanghai",
-    "lat": 22.3083944,
-    "lng": 111.8543289,
     "note": null
   },
   {
