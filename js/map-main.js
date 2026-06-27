@@ -61,13 +61,13 @@ const DEFAULT_COLOR_MAP = {
 
 const TRAFFIC_COLOR_MAP = {
   "步行": "#00FF88",
-  "机动车": "#3388ff",
-  "地铁": "#FF4444",
-  "骑行": "#FFAB01",
-  "火车": "#8B4513",
-  "大巴": "#FF6B6B",
-  "船": "#00CED1",
-  "飞行": "#87CEEB",
+  "机动车": "#1424b8",
+  "地铁": "#9a2bb3",
+  "骑行": "#0f6025",
+  "火车": "#ce2a2a",
+  "大巴": "#248dd3",
+  "船": "#002ad1",
+  "飞行": "#2fc4e2",
   "缆车": "#A0522D",
 };
 
@@ -647,11 +647,19 @@ function renderTraffic() {
     odMap.get(key).push(t);
   }
 
-  // compute max duration for width scaling
-  let maxDur = 0;
-  for (const items of odMap.values()) {
-    const total = items.reduce((s, i) => s + i.duration_sec, 0);
-    if (total > maxDur) maxDur = total;
+  // 5-tier width based on total duration per OD
+  const odTotals = [...odMap.values()].map(items => items.reduce((s, i) => s + i.duration_sec, 0));
+  odTotals.sort((a, b) => a - b);
+  const quintile = (p) => odTotals[Math.floor(odTotals.length * p)] || 0;
+  const WIDTHS = [1, 2, 3, 4.5, 6];
+
+  function getWidth(totalSec) {
+    if (odTotals.length < 3) return 2;
+    if (totalSec <= quintile(0.2)) return WIDTHS[0];
+    if (totalSec <= quintile(0.4)) return WIDTHS[1];
+    if (totalSec <= quintile(0.6)) return WIDTHS[2];
+    if (totalSec <= quintile(0.8)) return WIDTHS[3];
+    return WIDTHS[4];
   }
 
   const features = [];
@@ -659,7 +667,7 @@ function renderTraffic() {
     // sort by from_time, then split into segments by type
     items.sort((a, b) => a.from_time.localeCompare(b.from_time));
     const totalDur = items.reduce((s, i) => s + i.duration_sec, 0);
-    const lineWidth = Math.max(1.5, Math.log1p(totalDur) / Math.log1p(maxDur) * 6);
+    const lineWidth = getWidth(totalDur);
 
     // merge consecutive same-type segments
     const segments = [];
