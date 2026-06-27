@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🐑 时间线</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
-  <link rel="stylesheet" href="css/intro.css?v=de6f177" />
-  <link rel="stylesheet" href="css/sheep.css?v=de6f177" />
+  <link rel="stylesheet" href="css/intro.css?v=c047e1c" />
+  <link rel="stylesheet" href="css/sheep.css?v=c047e1c" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -134,6 +134,24 @@
       display: flex;
     }
 
+    /* ── Header row (sticky top, outside content) ── */
+    .tl-hd-row {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      display: flex;
+    }
+    .tl-hd-spacer {
+      position: sticky;
+      left: 0;
+      z-index: 4;
+      flex-shrink: 0;
+      background: var(--panel);
+      backdrop-filter: blur(14px);
+      border-right: 1px solid var(--border);
+    }
+    .tl-hd-canvas { display: flex; }
+
     /* ── Time axis (sticky left) ─────────────── */
     .tl-axis {
       position: sticky;
@@ -146,7 +164,6 @@
       flex-direction: column;
       flex-shrink: 0;
       width: 52px;
-      padding-top: 38px;
     }
     .tl-hour {
       display: flex;
@@ -173,9 +190,7 @@
     }
 
     .tl-date-hd {
-      position: sticky;
-      top: 0;
-      z-index: 1;
+      flex-shrink: 0;
       background: var(--panel);
       backdrop-filter: blur(14px);
       padding: 4px;
@@ -273,7 +288,6 @@
       letter-spacing: 0;
     }
     .tl-compact .tl-wday { display: none; }
-    .tl-compact .tl-axis { padding-top: 28px; }
     .tl-compact .tl-block {
       border-radius: 3px;
       padding: 0;
@@ -405,14 +419,15 @@
     /* ── Mobile ──────────────────────────────── */
     @media (max-width: 768px) {
       :root { --col-w: 80px; --hour-h: 56px; }
-      .tl-axis { width: 40px; padding-top: 36px; }
+      .tl-axis { width: 40px; }
+      .tl-hd-spacer { width: 40px; }
       .tl-hour { font-size: 9px; padding-right: 4px; }
-      .tl-date-hd { font-size: 10px; }
+      .tl-date-hd { font-size: 10px; height: 36px; }
       .tl-lbl { font-size: 9px; }
       .header-bar { padding: 6px 12px; gap: 10px; }
       .header-bar .page-title { font-size: 16px; }
-      .tl-compact .tl-axis { padding-top: 26px; }
       .tl-compact .tl-date-hd { height: 26px; }
+      .tl-compact .tl-hd-spacer { height: 26px; }
     }
   </style>
 </head>
@@ -523,10 +538,10 @@
 
   <!-- ── Module script ─────────────────────────── -->
   <script type="module">
-    import { Timeline, recordsToTimeline, trafficToTimeline } from "./js/timeline.js?v=de6f177";
+    import { Timeline, recordsToTimeline, trafficToTimeline } from "./js/timeline.js?v=c047e1c";
     import { records } from "./js/data/records.js";
     import { traffic } from "./js/data/traffic.js";
-    import { initCornerSheep, initTransitions } from "./js/sheep.js?v=de6f177";
+    import { initCornerSheep, initTransitions } from "./js/sheep.js?v=c047e1c";
 
     initCornerSheep();
     initTransitions();
@@ -546,13 +561,15 @@
 
     function showDetail(item) {
       const r = item._raw || {};
+      const sTime = item._origStartTime || item.startTime;
+      const eTime = item._origEndTime || item.endTime;
       let rows = '';
       if (item.source === 'record') {
-        rows += '<div class="dt-row"><span class="dt-label">时间</span><span>' + r.date + ' ' + item.startTime + ' ~ ' + item.endTime + '</span></div>';
+        rows += '<div class="dt-row"><span class="dt-label">时间</span><span>' + r.date + ' ' + sTime + ' ~ ' + eTime + '</span></div>';
         if (r.place) rows += '<div class="dt-row"><span class="dt-label">地点</span><span>' + r.place + '</span></div>';
         if (r.note) rows += '<div class="dt-row"><span class="dt-label">备注</span><span>' + r.note + '</span></div>';
       } else {
-        rows += '<div class="dt-row"><span class="dt-label">时间</span><span>' + r.date + ' ' + item.startTime + ' ~ ' + item.endTime + '</span></div>';
+        rows += '<div class="dt-row"><span class="dt-label">时间</span><span>' + r.date + ' ' + sTime + ' ~ ' + eTime + '</span></div>';
         if (r.origin) rows += '<div class="dt-row"><span class="dt-label">起点</span><span>' + r.origin + '</span></div>';
         if (r.dest) rows += '<div class="dt-row"><span class="dt-label">终点</span><span>' + r.dest + '</span></div>';
         if (r.duration_sec) rows += '<div class="dt-row"><span class="dt-label">耗时</span><span>' + Math.round(r.duration_sec / 60) + ' 分钟</span></div>';
@@ -590,16 +607,15 @@
 
     // Scroll to today
     const today = new Date();
+    const target = (today.getMonth() + 1) + '月' + today.getDate() + '日';
     setTimeout(() => {
       const scrollEl = document.querySelector('.tl-scroll');
       if (scrollEl) {
-        const cols = scrollEl.querySelectorAll('.tl-day');
-        for (const col of cols) {
-          const hd = col.querySelector('.tl-date-hd');
-          if (hd && hd.textContent.includes(
-            (today.getMonth() + 1) + '月' + today.getDate() + '日'
-          )) {
-            col.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+        const hds = scrollEl.querySelectorAll('.tl-hd-canvas .tl-date-hd');
+        const cols = scrollEl.querySelectorAll('.tl-canvas .tl-day');
+        for (let i = 0; i < hds.length; i++) {
+          if (hds[i].textContent.includes(target) && cols[i]) {
+            cols[i].scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
             break;
           }
         }
