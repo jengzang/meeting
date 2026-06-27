@@ -108,6 +108,15 @@ function timeToMinutes(timeStr) {
   return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
 }
 
+function addDays(dateStr, n) {
+  const parts = dateStr.split('-').map(Number);
+  const d = new Date(parts[0], parts[1] - 1, parts[2] + n);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + day;
+}
+
 export class Timeline {
   constructor(container, options = {}) {
     this.container = container;
@@ -171,10 +180,27 @@ export class Timeline {
       return a.startTime.localeCompare(b.startTime);
     });
 
-    for (const item of items) {
-      const list = this._recordsByDate.get(item.date) || [];
+    const pushDate = (date, item) => {
+      const list = this._recordsByDate.get(date) || [];
       list.push(item);
-      this._recordsByDate.set(item.date, list);
+      this._recordsByDate.set(date, list);
+    };
+
+    for (const item of items) {
+      const startMin = timeToMinutes(item.startTime);
+      const endMin = timeToMinutes(item.endTime);
+
+      if (endMin <= startMin) {
+        // Cross-midnight: split into parts so each day displays correctly
+        const part1 = { ...item, id: item.id + '_a', endTime: '24:00', _origEndTime: item.endTime };
+        pushDate(item.date, part1);
+
+        const nextD = addDays(item.date, 1);
+        const part2 = { ...item, id: item.id + '_b', date: nextD, startTime: '00:00', _origStartTime: item.startTime };
+        pushDate(nextD, part2);
+      } else {
+        pushDate(item.date, item);
+      }
     }
 
     this._sortedDates = [...this._recordsByDate.keys()].sort();
@@ -202,7 +228,14 @@ export class Timeline {
           lanes[lane].endMin = endMin;
         }
 
-        this._lanesByItem.set(item.id, { lane, maxLanes: lanes.length });
+        this._lanesByItem.set(item.id, { lane });
+      }
+
+      // Second pass: set the correct maxLanes for ALL items on this date
+      const finalMaxLanes = lanes.length;
+      for (const item of items) {
+        const info = this._lanesByItem.get(item.id);
+        if (info) info.maxLanes = finalMaxLanes;
       }
     }
   }
@@ -283,6 +316,7 @@ export class Timeline {
     this._removeTooltip();
 
     const colW = this.compact ? 12 : this.colWidth;
+    const hdHeight = this.compact ? 28 : 38;
 
     const wrap = document.createElement('div');
     wrap.className = 'tl-wrap';
@@ -291,11 +325,40 @@ export class Timeline {
     const scroll = document.createElement('div');
     scroll.className = 'tl-scroll';
 
+    // ── Header row (sticky top, shares horizontal scroll) ──
+    const hdRow = document.createElement('div');
+    hdRow.className = 'tl-hd-row';
+
+    const hdSpacer = document.createElement('div');
+    hdSpacer.className = 'tl-hd-spacer';
+    hdSpacer.style.width = '52px';
+    hdSpacer.style.height = hdHeight + 'px';
+    hdRow.appendChild(hdSpacer);
+
+    const hdCanvas = document.createElement('div');
+    hdCanvas.className = 'tl-hd-canvas';
+
+    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+    for (const date of this._sortedDates) {
+      const parts = date.split('-').map(Number);
+      const dObj = new Date(parts[0], parts[1] - 1, parts[2]);
+      const header = document.createElement('div');
+      header.className = 'tl-date-hd';
+      header.style.width = colW + 'px';
+      header.innerHTML = parts[1] + '月' + parts[2] + '日<br><span class="tl-wday">' + weekdays[dObj.getDay()] + '</span>';
+      hdCanvas.appendChild(header);
+    }
+
+    hdRow.appendChild(hdCanvas);
+    scroll.appendChild(hdRow);
+
+    // ── Content ──
     const inner = document.createElement('div');
     inner.className = 'tl-inner';
     inner.style.height = (24 * this.hourHeight) + 'px';
 
-    // Time axis
+    // Time axis (no padding-top — headers are now in separate row)
     const axis = document.createElement('div');
     axis.className = 'tl-axis';
     for (let h = 0; h <= 24; h++) {
@@ -311,7 +374,6 @@ export class Timeline {
     const canvas = document.createElement('div');
     canvas.className = 'tl-canvas';
 
-    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
     const self = this;
 
     for (const date of this._sortedDates) {
@@ -326,13 +388,6 @@ export class Timeline {
       const col = document.createElement('div');
       col.className = 'tl-day';
       col.style.width = colW + 'px';
-
-      const parts = date.split('-').map(Number);
-      const dObj = new Date(parts[0], parts[1] - 1, parts[2]);
-      const header = document.createElement('div');
-      header.className = 'tl-date-hd';
-      header.innerHTML = parts[1] + '月' + parts[2] + '日<br><span class="tl-wday">' + weekdays[dObj.getDay()] + '</span>';
-      col.appendChild(header);
 
       if (!this.compact) {
         for (let h = 1; h < 24; h++) {
