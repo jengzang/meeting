@@ -133,31 +133,35 @@ body {
 }
 
 .control-btn {
-  width: 100%;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border: none;
   border-radius: 8px;
   background: var(--accent);
   color: white;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s;
+  white-space: nowrap;
 }
 
 .control-btn:hover {
   background: #2563eb;
 }
 
-.reset-row {
+.style-row {
   display: flex;
-  align-items: center;
   gap: 6px;
 }
 
-.reset-row .control-btn {
+.style-row select {
   flex: 1;
-  width: auto;
+}
+
+.reset-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .color-btn {

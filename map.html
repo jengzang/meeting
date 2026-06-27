@@ -24,7 +24,10 @@
     <div class="map-controls" id="mapControls">
       <button class="control-close" id="closePanelBtn" title="关闭控制区">✕</button>
       <label for="styleSelect">底图</label>
-      <select id="styleSelect"></select>
+      <div class="style-row">
+        <select id="styleSelect"></select>
+        <button class="control-btn" id="resetBtn">🎯 复位视图</button>
+      </div>
       <div class="label-mode-row">
         <button class="label-mode-btn" data-mode="activity">活动</button>
         <button class="label-mode-btn" data-mode="place">地点</button>
@@ -34,7 +37,6 @@
         <button class="color-btn" id="colorConfigBtn">🎨 配色</button>
         <button class="size-mode-btn" data-mode="count">按次数</button>
         <button class="size-mode-btn" data-mode="duration">按时间</button>
-        <label class="opt-check"><input type="checkbox" id="showTrafficCb" /> 显示交通</label>
       </div>
       <label>时间范围 <span id="rangeDisplay"></span></label>
       <div class="range-slider" id="rangeSlider">
@@ -45,7 +47,7 @@
         </div>
       </div>
       <div class="reset-row">
-        <button class="control-btn" id="resetBtn">🎯 复位视图</button>
+        <label class="opt-check"><input type="checkbox" id="showTrafficCb" /> 显示交通</label>
         <label class="opt-check"><input type="checkbox" id="autoClusterCb" /> 自动聚合</label>
       </div>
     </div>

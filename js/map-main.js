@@ -459,8 +459,8 @@ function renderMarkers({ fit = false } = {}) {
   // pre-compute size scaling — sqrt compresses outliers, preserves value order
   const maxScale = labelMode === "dot" ? 15 : 10;
   const rawValues = sizeMode === "count"
-    ? recsList.map(recs => Math.sqrt(recs.length - 1))              // n=1 → 0
-    : recsList.map(recs => Math.sqrt(totalDurationHours(recs)));
+    ? recsList.map(recs => Math.log1p(recs.length - 1))             // n=1 → 0
+    : recsList.map(recs => Math.log1p(totalDurationHours(recs)));
   const sizeScale = sqrtScale(rawValues, maxScale);
 
   for (let gi = 0; gi < groupList.length; gi++) {
