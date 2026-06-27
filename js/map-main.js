@@ -11,6 +11,7 @@ let currentStyle = localStorage.getItem(LS_STYLE_KEY) || "gaode";
 let map = null;
 let baseRecords = [];
 let currentRecords = [];
+let markers = [];
 
 // ── 20-color palette ───────────────────────────────────────────
 
@@ -32,48 +33,61 @@ const recordCountEl = document.getElementById("recordCount");
 const dateFromEl = document.getElementById("dateFrom");
 const dateToEl = document.getElementById("dateTo");
 
-// ── custom popup ───────────────────────────────────────────────
+// ── detail popup ───────────────────────────────────────────────
 
-let popupEl = null;
+let detailEl = null;
 
-function ensurePopup() {
-  if (!popupEl) {
-    popupEl = document.createElement("div");
-    popupEl.className = "custom-popup";
-    popupEl.style.display = "none";
-    document.querySelector(".map-wrap").appendChild(popupEl);
+function ensureDetail() {
+  if (!detailEl) {
+    detailEl = document.createElement("div");
+    detailEl.className = "detail-popup";
+    detailEl.style.display = "none";
+
+    const overlay = document.createElement("div");
+    overlay.className = "detail-overlay";
+    overlay.addEventListener("click", hideDetail);
+
+    const card = document.createElement("div");
+    card.className = "detail-card";
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "detail-close";
+    closeBtn.textContent = "✕";
+    closeBtn.addEventListener("click", hideDetail);
+
+    const placeEl = document.createElement("div");
+    placeEl.className = "detail-place";
+
+    const metaEl = document.createElement("div");
+    metaEl.className = "detail-meta";
+
+    const timeEl = document.createElement("div");
+    timeEl.className = "detail-time";
+
+    card.appendChild(closeBtn);
+    card.appendChild(placeEl);
+    card.appendChild(metaEl);
+    card.appendChild(timeEl);
+    detailEl.appendChild(overlay);
+    detailEl.appendChild(card);
+    document.querySelector(".map-wrap").appendChild(detailEl);
   }
-  return popupEl;
+  return detailEl;
 }
 
-function showPopup(lngLat, props) {
-  const el = ensurePopup();
+function showDetail(props) {
+  const el = ensureDetail();
   const arr = fmtTime(props.arrival);
   const dep = fmtTime(props.departure);
-  el.innerHTML = `
-    <div class="custom-popup-place">${props.place}</div>
-    <div class="custom-popup-meta">${props.activity}</div>
-    <div class="custom-popup-time">${props.date} ${arr} — ${dep}</div>
-  `;
+  el.querySelector(".detail-place").textContent = props.place;
+  el.querySelector(".detail-meta").innerHTML =
+    `<span class="detail-type-badge" style="background:${props.textColor}">${props.activity}</span>`;
+  el.querySelector(".detail-time").textContent = `${props.date}  ${arr} — ${dep}`;
   el.style.display = "";
-
-  // position next tick so layout is computed
-  requestAnimationFrame(() => {
-    const pt = map.project(lngLat);
-    el.style.left = pt.x + "px";
-    el.style.top = (pt.y - el.offsetHeight - 10) + "px";
-  });
 }
 
-function hidePopup() {
-  if (popupEl) popupEl.style.display = "none";
-}
-
-function updatePopupPosition(lngLat) {
-  if (!popupEl || popupEl.style.display === "none") return;
-  const pt = map.project(lngLat);
-  popupEl.style.left = pt.x + "px";
-  popupEl.style.top = (pt.y - popupEl.offsetHeight - 10) + "px";
+function hideDetail() {
+  if (detailEl) detailEl.style.display = "none";
 }
 
 // ── helpers ────────────────────────────────────────────────────
@@ -108,13 +122,6 @@ function initMap() {
     console.error("[map] error:", e.error);
   });
 
-  // reposition popup when map moves
-  map.on("move", () => {
-    if (popupEl && popupEl.style.display !== "none" && popupEl._lngLat) {
-      updatePopupPosition(popupEl._lngLat);
-    }
-  });
-
   styleSelect.value = currentStyle;
 }
 
@@ -140,7 +147,12 @@ function applyTimelineFilter() {
   }
 }
 
-// ── marker rendering (text-only, no circles) ───────────────────
+// ── DOM Markers ────────────────────────────────────────────────
+
+function clearMarkers() {
+  markers.forEach(m => m.remove());
+  markers = [];
+}
 
 function renderMarkers() {
   if (!map) return;
@@ -150,146 +162,38 @@ function renderMarkers() {
   console.log("[map] records:", currentRecords.length, "/", baseRecords.length);
   recordCountEl.textContent = `${currentRecords.length} 条记录`;
 
+  clearMarkers();
+  hideDetail();
+
   if (currentRecords.length === 0) return;
 
   const typeColorMap = buildColorMap(getUniqueTypes());
 
-  const geojson = {
-    type: "FeatureCollection",
-    features: currentRecords.map(r => ({
-      type: "Feature",
-      geometry: { type: "Point", coordinates: [r.lng, r.lat] },
-      properties: {
-        activity: r.activity,
-        place: r.place,
-        date: r.date,
-        arrival: r.arrival,
-        departure: r.departure,
-        textColor: typeColorMap[r.activity] || "#a9a9a9"
-      }
-    }))
-  };
+  requestAnimationFrame(() => {
+    for (const r of currentRecords) {
+      const color = typeColorMap[r.activity] || "#a9a9a9";
+      const el = document.createElement("div");
+      el.className = "marker-label";
+      el.textContent = r.activity;
+      el.style.color = color;
+      el.addEventListener("click", () => {
+        showDetail({ ...r, textColor: color });
+      });
 
-  cleanMapLayers();
+      const marker = new maplibregl.Marker({ element: el, anchor: "center" })
+        .setLngLat([r.lng, r.lat])
+        .addTo(map);
 
-  map.addSource("records", {
-    type: "geojson",
-    data: geojson,
-    cluster: true,
-    clusterMaxZoom: 17,
-    clusterRadius: 30
-  });
-
-  // cluster circles
-  map.addLayer({
-    id: "clusters",
-    type: "circle",
-    source: "records",
-    filter: ["has", "point_count"],
-    paint: {
-      "circle-color": [
-        "step", ["get", "point_count"],
-        "#51bbd6", 10, "#f1f075", 30, "#f28cb1"
-      ],
-      "circle-radius": [
-        "step", ["get", "point_count"],
-        20, 10, 28, 30, 38
-      ],
-      "circle-opacity": 0.88,
-      "circle-stroke-width": 2,
-      "circle-stroke-color": "rgba(255, 255, 255, 0.9)"
+      markers.push(marker);
     }
   });
-
-  // cluster count
-  map.addLayer({
-    id: "cluster-count",
-    type: "symbol",
-    source: "records",
-    filter: ["has", "point_count"],
-    layout: {
-      "text-field": "{point_count_abbreviated}",
-      "text-font": ["Open Sans Bold"],
-      "text-size": 13
-    },
-    paint: { "text-color": "#ffffff" }
-  });
-
-  // unclustered — activity text label (no circle)
-  map.addLayer({
-    id: "unclustered-label",
-    type: "symbol",
-    source: "records",
-    filter: ["!", ["has", "point_count"]],
-    layout: {
-      "text-field": ["get", "activity"],
-      "text-font": ["Open Sans Bold"],
-      "text-size": 12,
-      "text-anchor": "center"
-    },
-    paint: { "text-color": ["get", "textColor"] }
-  });
-
-  bindInteractions();
 
   const coords = currentRecords.map(r => [r.lng, r.lat]);
   const { center, zoom } = calculateDenseMapCenterAndZoom(coords);
   map.flyTo({ center, zoom });
 }
 
-// ── interaction handlers ───────────────────────────────────────
-
-function bindInteractions() {
-  if (!map) return;
-
-  map.off("click", "clusters", onClusterClick);
-  map.off("mouseenter", "unclustered-label", onPointEnter);
-  map.off("mouseleave", "unclustered-label", onPointLeave);
-  map.off("mousemove", "unclustered-label", onPointMove);
-  map.off("mouseenter", "clusters", onClusterEnter);
-  map.off("mouseleave", "clusters", onClusterLeave);
-
-  map.on("click", "clusters", onClusterClick);
-  map.on("mouseenter", "unclustered-label", onPointEnter);
-  map.on("mouseleave", "unclustered-label", onPointLeave);
-  map.on("mouseenter", "clusters", onClusterEnter);
-  map.on("mouseleave", "clusters", onClusterLeave);
-}
-
-function onClusterClick(e) {
-  const features = map.queryRenderedFeatures(e.point, { layers: ["clusters"] });
-  if (!features.length) return;
-  const clusterId = features[0].properties.cluster_id;
-  map.getSource("records").getClusterExpansionZoom(clusterId, (err, zoom) => {
-    if (err) return;
-    map.easeTo({ center: features[0].geometry.coordinates, zoom: zoom + 0.5 });
-  });
-}
-
-function onPointEnter(e) {
-  map.getCanvas().style.cursor = "pointer";
-  if (e.features.length > 0) {
-    const p = e.features[0].properties;
-    popupEl._lngLat = e.lngLat;
-    showPopup(e.lngLat, p);
-  }
-}
-
-function onPointLeave() {
-  map.getCanvas().style.cursor = "";
-  if (popupEl) popupEl._lngLat = null;
-  hidePopup();
-}
-
-function onPointMove(e) {
-  if (e.features.length > 0 && popupEl) {
-    popupEl._lngLat = e.lngLat;
-    updatePopupPosition(e.lngLat);
-  }
-}
-
-function onClusterEnter() { map.getCanvas().style.cursor = "pointer"; }
-function onClusterLeave() { map.getCanvas().style.cursor = ""; }
+// ── helpers ────────────────────────────────────────────────────
 
 function fmtTime(iso) {
   if (!iso) return "?";
@@ -307,20 +211,6 @@ function closePanel() {
 function reopenPanel() {
   mapControls.style.display = "";
   reopenPanelBtn.style.display = "none";
-}
-
-// ── cleanup ────────────────────────────────────────────────────
-
-function cleanMapLayers() {
-  if (!map) return;
-
-  ["unclustered-label", "cluster-count", "clusters"].forEach(id => {
-    if (map.getLayer(id)) map.removeLayer(id);
-  });
-
-  if (map.getSource("records")) {
-    map.removeSource("records");
-  }
 }
 
 // ── style switching ────────────────────────────────────────────

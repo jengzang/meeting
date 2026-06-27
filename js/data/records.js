@@ -1,17 +1,6 @@
 /* auto-generated — do not edit */
 export const records = [
   {
-    "activity": "宿舍",
-    "place": "哈尔滨工业大学深圳校区荔园7号学生公寓",
-    "arrival": "2026-06-22T15:09:29+0800",
-    "departure": "2026-06-23T02:24:43+0800",
-    "date": "2026-06-22",
-    "tz": "Asia/Shanghai",
-    "lat": 22.5881556,
-    "lng": 113.9651162,
-    "note": null
-  },
-  {
     "activity": "学校",
     "place": "L栋",
     "arrival": "2026-06-22T14:51:47+0800",
