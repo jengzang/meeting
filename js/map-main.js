@@ -9,9 +9,11 @@ const LS_STYLE_KEY = "map-style";
 
 const LS_LABEL_KEY = "map-label-mode";
 const LS_COLOR_KEY = "map-colors";
+const LS_UNIFORM_KEY = "map-uniform-size";
 
 let currentStyle = localStorage.getItem(LS_STYLE_KEY) || "tianditu";
 let labelMode = localStorage.getItem(LS_LABEL_KEY) || "activity";
+let uniformSize = localStorage.getItem(LS_UNIFORM_KEY) === "true";
 let map = null;
 let baseRecords = [];
 let currentRecords = [];
@@ -63,6 +65,8 @@ const dateFromEl = document.getElementById("dateFrom");
 const dateToEl = document.getElementById("dateTo");
 const labelModeBtns = document.querySelectorAll(".label-mode-btn");
 const colorConfigBtn = document.getElementById("colorConfigBtn");
+const uniformSizeCb = document.getElementById("uniformSizeCb");
+const showTrafficCb = document.getElementById("showTrafficCb");
 
 // ── detail popup ───────────────────────────────────────────────
 
@@ -355,18 +359,20 @@ function renderMarkers() {
       const el = document.createElement("div");
 
       if (labelMode === "dot") {
-        const size = 12 + Math.min(count - 1, 8) * 3;
-        el.className = count > 1 ? "marker-dot marker-dot-numbered" : "marker-dot";
+        const scaled = !uniformSize && count > 1;
+        const size = scaled ? 12 + Math.min(count - 1, 8) * 3 : 12;
+        el.className = scaled ? "marker-dot marker-dot-numbered" : "marker-dot";
         el.style.width = size + "px";
         el.style.height = size + "px";
         el.style.backgroundColor = color;
-        if (count > 1) {
+        if (scaled) {
           el.textContent = count;
           el.style.fontSize = Math.max(10, size * 0.42) + "px";
         }
       } else {
-        const fontSize = 11 + Math.min(count - 1, 6) * 1.5;
-        const stroke = 1.5 + Math.min(count - 1, 6) * 0.3;
+        const scaled = !uniformSize && count > 1;
+        const fontSize = scaled ? 11 + Math.min(count - 1, 6) * 1.5 : 11;
+        const stroke = scaled ? 1.5 + Math.min(count - 1, 6) * 0.3 : 2;
         el.className = "marker-label";
         el.style.fontSize = fontSize + "px";
         el.style.WebkitTextStroke = stroke + "px rgba(0,0,0,0.8)";
@@ -482,9 +488,15 @@ labelModeBtns.forEach(btn => {
   });
 });
 colorConfigBtn.addEventListener("click", showColorConfig);
+uniformSizeCb.addEventListener("change", () => {
+  uniformSize = uniformSizeCb.checked;
+  localStorage.setItem(LS_UNIFORM_KEY, uniformSize);
+  renderMarkers();
+});
 
 // ── bootstrap ──────────────────────────────────────────────────
 
 populateStyleOptions();
 labelModeBtns.forEach(b => b.classList.toggle("active", b.dataset.mode === labelMode));
+uniformSizeCb.checked = uniformSize;
 initMap();

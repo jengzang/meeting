@@ -167,6 +167,39 @@ body {
   border-color: rgba(255, 255, 255, 0.25);
 }
 
+.opts-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.opts-row .color-btn {
+  width: auto;
+  flex-shrink: 0;
+  padding: 5px 8px;
+  font-size: 11px;
+}
+
+.opt-check {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.opt-check input {
+  width: 12px;
+  height: 12px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  margin: 0;
+}
+
 /* close / toggle button in top-right of control panel */
 .control-close {
   position: absolute;

@@ -30,7 +30,11 @@
         <button class="label-mode-btn" data-mode="place">地点</button>
         <button class="label-mode-btn" data-mode="dot">圆点</button>
       </div>
-      <button class="color-btn" id="colorConfigBtn">🎨 配色</button>
+      <div class="opts-row">
+        <button class="color-btn" id="colorConfigBtn">🎨 配色</button>
+        <label class="opt-check"><input type="checkbox" id="uniformSizeCb" /> 固定大小</label>
+        <label class="opt-check"><input type="checkbox" id="showTrafficCb" /> 显示交通</label>
+      </div>
       <label for="dateFrom">时间范围</label>
       <div class="date-range-row">
         <input type="date" id="dateFrom" class="date-input" />
