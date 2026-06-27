@@ -69,6 +69,7 @@ ws = wb.active
 
 records = []
 skipped = 0
+rid = 0
 
 for r in range(2, ws.max_row + 1):
     activity = ws.cell(r, 1).value
@@ -97,7 +98,9 @@ for r in range(2, ws.max_row + 1):
         skipped += 1
         continue
 
+    rid += 1
     records.append({
+        "id": rid,
         "activity": str(activity).strip(),
         "place": str(place).strip(),
         "arrival": norm_dt(arrival),

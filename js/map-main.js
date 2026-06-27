@@ -1,6 +1,7 @@
 import { mapStyleConfig, mapStyle, calculateDenseMapCenterAndZoom } from "./map-source.js";
 import { getUniqueTypes, getDateExtent, filterByDateRange } from "./map-data.js";
 import { records } from "./data/records.js";
+import { traffic } from "./data/traffic.js";
 
 // ── localStorage key ────────────────────────────────────────────
 
@@ -22,6 +23,7 @@ let baseRecords = [];
 let currentRecords = [];
 let markers = [];
 let zoomDebounce = null;
+let trafficVisible = false;
 
 // range slider state
 let rangeMinDate = "";
@@ -55,6 +57,18 @@ const DEFAULT_COLOR_MAP = {
   "老家": "#DA5100",
   "工作": "#3EB489",
   // "杭州租房": "#FFA500"
+};
+
+const TRAFFIC_COLOR_MAP = {
+  "步行": "#00FF88",
+  "机动车": "#3388ff",
+  "地铁": "#FF4444",
+  "骑行": "#FFAB01",
+  "火车": "#8B4513",
+  "大巴": "#FF6B6B",
+  "船": "#00CED1",
+  "飞行": "#87CEEB",
+  "缆车": "#A0522D",
 };
 
 const FALLBACK_PALETTE = [
@@ -303,6 +317,47 @@ function initMap() {
   map.addControl(new maplibregl.NavigationControl(), "top-left");
 
   map.on("load", () => {
+    // traffic line layer
+    map.addSource("traffic-source", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    // small arrow icon for direction
+    const arrowCanvas = document.createElement("canvas");
+    arrowCanvas.width = 16; arrowCanvas.height = 16;
+    const actx = arrowCanvas.getContext("2d");
+    actx.fillStyle = "#fff";
+    actx.beginPath();
+    actx.moveTo(8, 0); actx.lineTo(16, 12); actx.lineTo(10, 12); actx.lineTo(10, 16);
+    actx.lineTo(6, 16); actx.lineTo(6, 12); actx.lineTo(0, 12); actx.closePath();
+    actx.fill();
+    map.addImage("arrow", actx.getImageData(0, 0, 16, 16), { width: 16, height: 16 });
+    map.addLayer({
+      id: "traffic-line",
+      type: "line",
+      source: "traffic-source",
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: {
+        "line-color": ["get", "color"],
+        "line-width": ["get", "width"],
+        "line-opacity": 0.75,
+      },
+    });
+    // arrow markers along traffic lines
+    map.addLayer({
+      id: "traffic-arrow",
+      type: "symbol",
+      source: "traffic-source",
+      layout: {
+        "symbol-placement": "line",
+        "symbol-spacing": 80,
+        "icon-image": "arrow",
+        "icon-size": 0.5,
+        "icon-rotate": 90,
+        "icon-rotation-alignment": "map",
+      },
+      paint: {
+        "icon-opacity": 0.7,
+      },
+    });
+
     initTimeline();
     renderMarkers({ fit: true });
   });
@@ -511,6 +566,87 @@ function renderMarkers({ fit = false } = {}) {
     const { center, zoom } = calculateDenseMapCenterAndZoom(coords);
     map.flyTo({ center, zoom });
   }
+
+  renderTraffic();
+}
+
+// ── traffic lines ──────────────────────────────────────────────
+
+function renderTraffic() {
+  const src = map.getSource("traffic-source");
+  if (!src) return;
+
+  if (!trafficVisible || autoCluster) {
+    src.setData({ type: "FeatureCollection", features: [] });
+    return;
+  }
+
+  // filter by timeline date range
+  const filtered = traffic.filter(t => t.date >= rangeFromDate && t.date <= rangeToDate);
+  if (!filtered.length) { src.setData({ type: "FeatureCollection", features: [] }); return; }
+
+  // group by OD pair
+  const odMap = new Map();
+  for (const t of filtered) {
+    const key = `${t.origin_lat},${t.origin_lng}->${t.dest_lat},${t.dest_lng}`;
+    if (!odMap.has(key)) odMap.set(key, []);
+    odMap.get(key).push(t);
+  }
+
+  // compute max duration for width scaling
+  let maxDur = 0;
+  for (const items of odMap.values()) {
+    const total = items.reduce((s, i) => s + i.duration_sec, 0);
+    if (total > maxDur) maxDur = total;
+  }
+
+  const features = [];
+  for (const items of odMap.values()) {
+    // sort by from_time, then split into segments by type
+    items.sort((a, b) => a.from_time.localeCompare(b.from_time));
+    const totalDur = items.reduce((s, i) => s + i.duration_sec, 0);
+    const lineWidth = Math.max(1.5, Math.log1p(totalDur) / Math.log1p(maxDur) * 6);
+
+    // merge consecutive same-type segments
+    const segments = [];
+    for (const item of items) {
+      const last = segments[segments.length - 1];
+      if (last && last.type === item.type) {
+        last.duration_sec += item.duration_sec;
+      } else {
+        segments.push({ type: item.type, duration_sec: item.duration_sec });
+      }
+    }
+
+    const segTotal = segments.reduce((s, seg) => s + seg.duration_sec, 0);
+    // compute cumulative proportions and split the line geometrically
+    let cumPct = 0;
+    const first = items[0];
+    const last = items[items.length - 1];
+    const oLng = first.origin_lng, oLat = first.origin_lat;
+    const dLng = last.dest_lng, dLat = last.dest_lat;
+
+    for (const seg of segments) {
+      const segPct = seg.duration_sec / segTotal;
+      const startPct = cumPct;
+      cumPct += segPct;
+      const endPct = cumPct;
+
+      const sLng = oLng + (dLng - oLng) * startPct;
+      const sLat = oLat + (dLat - oLat) * startPct;
+      const eLng = oLng + (dLng - oLng) * endPct;
+      const eLat = oLat + (dLat - oLat) * endPct;
+
+      const color = TRAFFIC_COLOR_MAP[seg.type] || "#a9a9a9";
+      features.push({
+        type: "Feature",
+        properties: { color, width: lineWidth },
+        geometry: { type: "LineString", coordinates: [[sLng, sLat], [eLng, eLat]] },
+      });
+    }
+  }
+
+  src.setData({ type: "FeatureCollection", features });
 }
 
 // ── helpers ────────────────────────────────────────────────────
@@ -643,6 +779,10 @@ sizeModeBtns.forEach(btn => {
     sizeModeBtns.forEach(b => b.classList.toggle("active", b.dataset.mode === sizeMode));
     renderMarkers();
   });
+});
+showTrafficCb.addEventListener("change", () => {
+  trafficVisible = showTrafficCb.checked;
+  renderTraffic();
 });
 autoClusterCb.addEventListener("change", () => {
   autoCluster = autoClusterCb.checked;
