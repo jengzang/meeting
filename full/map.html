@@ -6,11 +6,21 @@
   <title>🐑 全量地图</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
   <link rel="stylesheet" href="../css/map.css" />
-  <link rel="stylesheet" href="../css/intro.css?v=df7331c" />
-  <link rel="stylesheet" href="../css/sheep.css?v=df7331c" />
+  <link rel="stylesheet" href="../css/intro.css?v=de6f177" />
+  <link rel="stylesheet" href="../css/sheep.css?v=de6f177" />
   <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
   <link href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" rel="stylesheet" />
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f172a;
+      --panel: rgba(15, 23, 42, 0.88);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.08);
+      --hour-h: 64px;
+    }
+
     /* ── password overlay ──────────────────────────────── */
     .pw-overlay {
       position: fixed;
@@ -89,6 +99,7 @@
     }
     #viewTimeline .tl-scroll {
       flex: 1;
+      min-height: 0;
       overflow: auto;
       -webkit-overflow-scrolling: touch;
     }
@@ -207,27 +218,60 @@
       padding: 3px 12px;
       border-radius: 20px;
     }
-    #viewTimeline .tl-mode-toggle {
+    #viewTimeline .tl-mode-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+    #viewTimeline .tl-mode-switch input { display: none; }
+    #viewTimeline .tl-mode-label {
       font-size: 12px;
       font-weight: 600;
       color: var(--muted);
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      padding: 4px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s;
+      transition: color 0.2s;
     }
-    #viewTimeline .tl-mode-toggle:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
-    #viewTimeline .tl-mode-toggle.active { color: #fff; background: rgba(59,130,246,0.3); border-color: rgba(59,130,246,0.4); }
+    #viewTimeline .tl-mode-track {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 11px;
+      transition: all 0.25s;
+    }
+    #viewTimeline .tl-mode-track::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background: var(--muted);
+      border-radius: 50%;
+      transition: all 0.25s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    #viewTimeline .tl-mode-switch input:checked ~ .tl-mode-track {
+      background: rgba(59,130,246,0.35);
+      border-color: rgba(59,130,246,0.5);
+    }
+    #viewTimeline .tl-mode-switch input:checked ~ .tl-mode-track::after {
+      left: 20px;
+      background: #fff;
+    }
+    #viewTimeline .tl-mode-label--left { color: #fff; }
+    #viewTimeline .tl-mode-label--right { color: var(--muted); }
+    #viewTimeline .tl-mode-switch input:checked ~ .tl-mode-label--left { color: var(--muted); }
+    #viewTimeline .tl-mode-switch input:checked ~ .tl-mode-label--right { color: #fff; }
 
     /* compact mode */
     #viewTimeline .tl-compact .tl-day { border-right-color: transparent; }
     #viewTimeline .tl-compact .tl-date-hd {
       font-size: 8px; padding: 3px 1px; height: 28px; letter-spacing: 0;
     }
-    #viewTimeline .tl-compact .tl-wday { font-size: 7px; }
+    #viewTimeline .tl-compact .tl-wday { display: none; }
     #viewTimeline .tl-compact .tl-axis { padding-top: 28px; }
     #viewTimeline .tl-compact .tl-block {
       border-radius: 3px; padding: 0; border: none;
@@ -491,15 +535,20 @@
       <a href="../index.html" class="nav-link" style="text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;">基地</a>
       <span style="font-size:16px;font-weight:800;flex:1;">时间线</span>
       <span class="tl-record-badge" id="tlBadge"></span>
-      <button class="tl-mode-toggle" id="tlModeToggle" title="切换紧凑/完整模式">紧凑</button>
+      <label class="tl-mode-switch" title="切换紧凑/完整模式">
+        <input type="checkbox" id="tlModeToggle" />
+        <span class="tl-mode-label tl-mode-label--left">完整</span>
+        <span class="tl-mode-track"></span>
+        <span class="tl-mode-label tl-mode-label--right">紧凑</span>
+      </label>
     </div>
-    <div id="tlContainer" style="flex:1;overflow:hidden;"></div>
+    <div id="tlContainer" style="flex:1;min-height:0;display:flex;flex-direction:column;"></div>
   </div>
 
   <script type="module">
-    import { initFullData, startMap, records, traffic } from "../js/map-main-full.js?v=df7331c";
+    import { initFullData, startMap, records, traffic } from "../js/map-main-full.js?v=de6f177";
     import { Timeline, recordsToTimeline, trafficToTimeline } from "../js/timeline.js";
-    import { initCornerSheep, initTransitions, showLoadingSheep, hideLoadingSheep } from "../js/sheep.js?v=df7331c";
+    import { initCornerSheep, initTransitions, showLoadingSheep, hideLoadingSheep } from "../js/sheep.js?v=de6f177";
 
     var AUTH_KEY = "full-map-auth";
     var pwOverlay = document.getElementById("pwOverlay");
@@ -575,12 +624,10 @@
       });
 
       // Mode toggle
-      var modeBtn = document.getElementById('tlModeToggle');
-      modeBtn.addEventListener('click', function () {
-        compact = !compact;
+      var modeToggle = document.getElementById('tlModeToggle');
+      modeToggle.addEventListener('change', function () {
+        compact = modeToggle.checked;
         timeline.setCompact(compact);
-        modeBtn.textContent = compact ? '完整' : '紧凑';
-        modeBtn.classList.toggle('active', compact);
       });
 
       // Scroll to today
