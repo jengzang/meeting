@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🐑 时间线</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
+  <link rel="stylesheet" href="css/intro.css?v=df7331c" />
+  <link rel="stylesheet" href="css/sheep.css?v=df7331c" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f172a;
+      --panel: rgba(15, 23, 42, 0.88);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.08);
+      --hour-h: 64px;
+      --col-w: 100px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ─────────────────────────────── */
+    .header-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 16px;
+      background: var(--panel);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+    }
+    .header-bar .page-title {
+      font-size: 18px;
+      font-weight: 800;
+      flex: 1;
+    }
+    .header-bar .nav-link {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+    .header-bar .nav-link:hover { color: var(--text); }
+    .record-badge {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      background: rgba(59, 130, 246, 0.25);
+      padding: 3px 12px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .mode-toggle {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 4px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .mode-toggle:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+    .mode-toggle.active { color: #fff; background: rgba(59,130,246,0.3); border-color: rgba(59,130,246,0.4); }
+
+    /* ── Timeline wrapper ────────────────────── */
+    .tl-wrap {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Scroll container ────────────────────── */
+    .tl-scroll {
+      flex: 1;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tl-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
+    .tl-scroll::-webkit-scrollbar-track { background: transparent; }
+    .tl-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+
+    .tl-inner {
+      display: flex;
+    }
+
+    /* ── Time axis (sticky left) ─────────────── */
+    .tl-axis {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: var(--panel);
+      backdrop-filter: blur(14px);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      width: 52px;
+      padding-top: 38px;
+    }
+    .tl-hour {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding: 0 6px 0 0;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+    }
+
+    /* ── Canvas ──────────────────────────────── */
+    .tl-canvas {
+      display: flex;
+    }
+
+    /* ── Day column ──────────────────────────── */
+    .tl-day {
+      position: relative;
+      flex-shrink: 0;
+      border-right: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .tl-date-hd {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--panel);
+      backdrop-filter: blur(14px);
+      padding: 4px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      letter-spacing: 0.03em;
+      height: 38px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .tl-wday {
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* grid lines */
+    .tl-grid {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: rgba(255,255,255,0.03);
+      pointer-events: none;
+    }
+
+    /* ── Activity block ──────────────────────── */
+    .tl-block {
+      position: absolute;
+      border-radius: 7px;
+      padding: 3px 5px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  box-shadow 0.18s ease,
+                  filter 0.18s ease;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.1);
+      background: color-mix(in srgb, var(--c) 65%, transparent);
+      z-index: 0;
+    }
+    .tl-block::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 7px;
+      background: linear-gradient(135deg,
+        rgba(255,255,255,0.14) 0%,
+        transparent 55%,
+        rgba(0,0,0,0.08) 100%);
+      pointer-events: none;
+    }
+    .tl-block:hover {
+      transform: scale(1.04);
+      box-shadow: 0 6px 22px rgba(0,0,0,0.45);
+      z-index: 5;
+      filter: brightness(1.18);
+    }
+    .tl-block:active {
+      transform: scale(0.96);
+      filter: brightness(0.9);
+    }
+
+    .tl-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+      position: relative;
+      z-index: 1;
+    }
+    .tl-time {
+      font-size: 8.5px;
+      color: rgba(255,255,255,0.8);
+      white-space: nowrap;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Compact mode ─────────────────────────── */
+    .tl-compact .tl-day { border-right-color: transparent; }
+    .tl-compact .tl-date-hd {
+      font-size: 8px;
+      padding: 3px 1px;
+      height: 28px;
+      letter-spacing: 0;
+    }
+    .tl-compact .tl-wday { font-size: 7px; }
+    .tl-compact .tl-axis { padding-top: 28px; }
+    .tl-compact .tl-block {
+      border-radius: 3px;
+      padding: 0;
+      border: none;
+      box-shadow: none;
+      backdrop-filter: none;
+    }
+    .tl-compact .tl-block::after { display: none; }
+    .tl-compact .tl-block:hover {
+      transform: scaleX(2.5);
+      z-index: 5;
+      filter: brightness(1.25);
+      border-radius: 4px;
+    }
+
+    /* ── Hover tooltip ────────────────────────── */
+    .tl-ttp {
+      position: fixed;
+      z-index: 10001;
+      pointer-events: none;
+      background: rgba(20, 30, 50, 0.96);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 10px 14px;
+      max-width: 200px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      font-size: 12px;
+      color: var(--text);
+      animation: ttpIn 0.12s ease;
+    }
+    @keyframes ttpIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .tl-ttp-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .tl-ttp-title { font-size: 13px; font-weight: 700; }
+    .tl-ttp-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .tl-ttp-time { font-size: 10px; color: rgba(255,255,255,0.65); margin-top: 4px; }
+
+    /* ── Detail popup ────────────────────────── */
+    .dt-popup {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: dtFadeIn 0.2s ease;
+    }
+    @keyframes dtFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .dt-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+    }
+    .dt-card {
+      position: relative;
+      background: rgba(30, 41, 59, 0.94);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 28px 24px 24px;
+      min-width: 270px;
+      max-width: 340px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      animation: dtPopIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes dtPopIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .dt-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 28px;
+      height: 28px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .dt-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    .dt-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    .dt-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .dt-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .dt-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      padding: 6px 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      color: var(--text);
+    }
+    .dt-row .dt-label { color: var(--muted); }
+
+    /* ── Mobile ──────────────────────────────── */
+    @media (max-width: 768px) {
+      :root { --col-w: 80px; --hour-h: 56px; }
+      .tl-axis { width: 40px; padding-top: 36px; }
+      .tl-hour { font-size: 9px; padding-right: 4px; }
+      .tl-date-hd { font-size: 10px; }
+      .tl-lbl { font-size: 9px; }
+      .header-bar { padding: 6px 12px; gap: 10px; }
+      .header-bar .page-title { font-size: 16px; }
+      .tl-compact .tl-axis { padding-top: 26px; }
+      .tl-compact .tl-date-hd { height: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ── Intro Sheep ──────────────────────────── -->
+  <div class="intro-overlay" id="introOverlay">
+    <div class="intro-scene">
+      <div class="intro-sparkle intro-sparkle-1"></div>
+      <div class="intro-sparkle intro-sparkle-2"></div>
+      <div class="intro-sparkle intro-sparkle-3"></div>
+      <div class="intro-sparkle intro-sparkle-4"></div>
+      <div class="intro-sparkle intro-sparkle-5"></div>
+      <div class="intro-sparkle intro-sparkle-6"></div>
+      <div class="intro-shadow"></div>
+      <div class="intro-message" id="introMessage"></div>
+      <svg class="intro-sheep" viewBox="0 0 200 220" width="200" height="220" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="bodyGrad" cx="45%" cy="35%"><stop offset="0%" stop-color="#fffefb"/><stop offset="70%" stop-color="#f5f0e8"/><stop offset="100%" stop-color="#e8e0d4"/></radialGradient>
+          <radialGradient id="fluffGrad" cx="40%" cy="30%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#f2ede5"/></radialGradient>
+          <radialGradient id="headGrad" cx="40%" cy="35%"><stop offset="0%" stop-color="#5a4a3a"/><stop offset="100%" stop-color="#3d3026"/></radialGradient>
+          <radialGradient id="earInnerGrad" cx="50%" cy="50%"><stop offset="0%" stop-color="#f7c5c5"/><stop offset="100%" stop-color="#e8a0a0"/></radialGradient>
+        </defs>
+        <g class="sheep-body-cloud">
+          <circle cx="100" cy="130" r="42" fill="url(#bodyGrad)"/>
+          <circle cx="70" cy="118" r="26" fill="url(#fluffGrad)"/>
+          <circle cx="130" cy="118" r="26" fill="url(#fluffGrad)"/>
+          <circle cx="82" cy="100" r="24" fill="url(#fluffGrad)"/>
+          <circle cx="118" cy="100" r="24" fill="url(#fluffGrad)"/>
+          <circle cx="100" cy="96" r="28" fill="url(#fluffGrad)"/>
+          <circle cx="66" cy="130" r="20" fill="url(#fluffGrad)"/>
+          <circle cx="134" cy="130" r="20" fill="url(#fluffGrad)"/>
+          <circle cx="76" cy="142" r="18" fill="#ede6db"/>
+          <circle cx="124" cy="142" r="18" fill="#ede6db"/>
+          <circle cx="90" cy="148" r="16" fill="#e8e0d4"/>
+          <circle cx="110" cy="148" r="16" fill="#e8e0d4"/>
+        </g>
+        <g class="sheep-tail">
+          <circle cx="56" cy="124" r="14" fill="url(#fluffGrad)"/>
+          <circle cx="50" cy="118" r="9" fill="#ffffff"/>
+        </g>
+        <g class="sheep-head-group">
+          <g class="ear-left"><ellipse cx="78" cy="55" rx="15" ry="8" fill="url(#headGrad)" transform="rotate(-32 78 55)"/><ellipse cx="78" cy="55" rx="9" ry="5" fill="url(#earInnerGrad)" transform="rotate(-32 78 55)"/></g>
+          <g class="ear-right"><ellipse cx="122" cy="55" rx="15" ry="8" fill="url(#headGrad)" transform="rotate(32 122 55)"/><ellipse cx="122" cy="55" rx="9" ry="5" fill="url(#earInnerGrad)" transform="rotate(32 122 55)"/></g>
+          <ellipse cx="100" cy="72" rx="30" ry="28" fill="url(#headGrad)"/>
+          <circle cx="88" cy="50" r="11" fill="#5a4a3a"/><circle cx="100" cy="46" r="12" fill="#665544"/><circle cx="112" cy="50" r="11" fill="#5a4a3a"/>
+          <g class="eye-blink">
+            <circle cx="88" cy="70" r="7.5" fill="white"/><circle cx="112" cy="70" r="7.5" fill="white"/>
+            <circle cx="89" cy="69" r="4" fill="#1a1410"/><circle cx="113" cy="69" r="4" fill="#1a1410"/>
+            <circle cx="91.5" cy="67" r="1.8" fill="white"/><circle cx="87" cy="71" r="0.9" fill="white"/>
+            <circle cx="115.5" cy="67" r="1.8" fill="white"/><circle cx="111" cy="71" r="0.9" fill="white"/>
+          </g>
+          <ellipse cx="78" cy="78" rx="6" ry="4" fill="#e8a0a0" opacity="0.45"/><ellipse cx="122" cy="78" rx="6" ry="4" fill="#e8a0a0" opacity="0.45"/>
+          <ellipse cx="100" cy="76" rx="5" ry="3.5" fill="#2a2018"/>
+          <path d="M96 80.5 Q100 85 104 80.5" stroke="#2a2018" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        </g>
+        <rect class="leg-back-left" x="74" y="158" width="10" height="22" rx="5" fill="#4a3c30"/>
+        <rect class="leg-back-right" x="116" y="158" width="10" height="22" rx="5" fill="#4a3c30"/>
+        <rect class="leg-front-left" x="84" y="156" width="10" height="24" rx="5" fill="#3d3026"/>
+        <rect class="leg-front-right" x="106" y="156" width="10" height="24" rx="5" fill="#3d3026"/>
+        <ellipse class="leg-front-left" cx="89" cy="180" rx="5.5" ry="3" fill="#2a2018"/>
+        <ellipse class="leg-front-right" cx="111" cy="180" rx="5.5" ry="3" fill="#2a2018"/>
+        <ellipse class="leg-back-left" cx="79" cy="180" rx="5.5" ry="3" fill="#2a2018"/>
+        <ellipse class="leg-back-right" cx="121" cy="180" rx="5.5" ry="3" fill="#2a2018"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ── Header ───────────────────────────────── -->
+  <header class="header-bar">
+    <a href="index.html" class="nav-link">基地</a>
+    <a href="heat.html" class="nav-link">热力图</a>
+    <a href="map.html" class="nav-link">地图</a>
+    <span class="page-title">时间线</span>
+    <span class="record-badge" id="recordBadge"></span>
+    <button class="mode-toggle" id="modeToggle" title="切换紧凑/完整模式">紧凑</button>
+  </header>
+
+  <!-- ── Timeline container ────────────────────── -->
+  <div id="tlContainer" style="flex:1;overflow:hidden;"></div>
+
+  <!-- ── Detail popup ──────────────────────────── -->
+  <div class="dt-popup" id="dtPopup" style="display:none;">
+    <div class="dt-overlay"></div>
+    <div class="dt-card" id="dtCard"></div>
+  </div>
+
+  <!-- ── Intro sheep script ────────────────────── -->
+  <script>
+    (function() {
+      var overlay = document.getElementById('introOverlay');
+      var msgEl = document.getElementById('introMessage');
+      function hide() { overlay && overlay.classList.add('hide'); if (msgEl) msgEl.textContent = ''; }
+      setTimeout(hide, 2500);
+      overlay && overlay.addEventListener('click', hide);
+      window.showIntroSheep = function(msg, duration) {
+        if (!overlay) return;
+        if (msgEl && msg) msgEl.textContent = msg;
+        overlay.classList.remove('hide');
+        setTimeout(hide, duration || 2500);
+      };
+    })();
+  </script>
+
+  <!-- ── Module script ─────────────────────────── -->
+  <script type="module">
+    import { Timeline, recordsToTimeline, trafficToTimeline } from "./js/timeline.js?v=df7331c";
+    import { records } from "./js/data/records.js";
+    import { traffic } from "./js/data/traffic.js";
+    import { initCornerSheep, initTransitions } from "./js/sheep.js?v=df7331c";
+
+    initCornerSheep();
+    initTransitions();
+
+    // Merge records + traffic
+    const recItems = recordsToTimeline(records);
+    const trafItems = trafficToTimeline(traffic);
+    const allItems = [...recItems, ...trafItems];
+
+    const badge = document.getElementById('recordBadge');
+    badge.textContent = recItems.length + ' 活动 + ' + trafItems.length + ' 交通';
+
+    // Detail popup
+    const dtPopup = document.getElementById('dtPopup');
+    const dtCard = document.getElementById('dtCard');
+    const dtOverlay = dtPopup.querySelector('.dt-overlay');
+
+    function showDetail(item) {
+      const r = item._raw || {};
+      let rows = '';
+      if (item.source === 'record') {
+        rows += '<div class="dt-row"><span class="dt-label">时间</span><span>' + r.date + ' ' + item.startTime + ' ~ ' + item.endTime + '</span></div>';
+        if (r.place) rows += '<div class="dt-row"><span class="dt-label">地点</span><span>' + r.place + '</span></div>';
+        if (r.note) rows += '<div class="dt-row"><span class="dt-label">备注</span><span>' + r.note + '</span></div>';
+      } else {
+        rows += '<div class="dt-row"><span class="dt-label">时间</span><span>' + r.date + ' ' + item.startTime + ' ~ ' + item.endTime + '</span></div>';
+        if (r.origin) rows += '<div class="dt-row"><span class="dt-label">起点</span><span>' + r.origin + '</span></div>';
+        if (r.dest) rows += '<div class="dt-row"><span class="dt-label">终点</span><span>' + r.dest + '</span></div>';
+        if (r.duration_sec) rows += '<div class="dt-row"><span class="dt-label">耗时</span><span>' + Math.round(r.duration_sec / 60) + ' 分钟</span></div>';
+      }
+
+      dtCard.innerHTML =
+        '<button class="dt-close" id="dtClose">✕</button>' +
+        '<div class="dt-badge" style="background:' + item.color + ';">' + item.category + '</div>' +
+        '<div class="dt-title">' + item.title + '</div>' +
+        (item.subtitle ? '<div class="dt-sub">' + item.subtitle + '</div>' : '') +
+        rows;
+
+      dtPopup.style.display = 'flex';
+      document.getElementById('dtClose').addEventListener('click', hideDetail);
+    }
+
+    function hideDetail() { dtPopup.style.display = 'none'; }
+    dtOverlay.addEventListener('click', hideDetail);
+
+    // Init timeline
+    const container = document.getElementById('tlContainer');
+    let compact = false;
+    const timeline = new Timeline(container, {
+      data: allItems,
+      colWidth: 70,
+      onBlockClick: showDetail,
+    });
+
+    // Mode toggle
+    const modeBtn = document.getElementById('modeToggle');
+    modeBtn.addEventListener('click', function () {
+      compact = !compact;
+      timeline.setCompact(compact);
+      modeBtn.textContent = compact ? '完整' : '紧凑';
+      modeBtn.classList.toggle('active', compact);
+    });
+
+    // Scroll to today
+    const today = new Date();
+    setTimeout(() => {
+      const scrollEl = document.querySelector('.tl-scroll');
+      if (scrollEl) {
+        const cols = scrollEl.querySelectorAll('.tl-day');
+        for (const col of cols) {
+          const hd = col.querySelector('.tl-date-hd');
+          if (hd && hd.textContent.includes(
+            (today.getMonth() + 1) + '月' + today.getDate() + '日'
+          )) {
+            col.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+            break;
+          }
+        }
+      }
+    }, 300);
+  </script>
+</body>
+</html>

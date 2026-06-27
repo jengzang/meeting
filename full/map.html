@@ -6,8 +6,8 @@
   <title>🐑 全量地图</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
   <link rel="stylesheet" href="../css/map.css" />
-  <link rel="stylesheet" href="../css/intro.css?v=97b771a" />
-  <link rel="stylesheet" href="../css/sheep.css?v=97b771a" />
+  <link rel="stylesheet" href="../css/intro.css?v=df7331c" />
+  <link rel="stylesheet" href="../css/sheep.css?v=df7331c" />
   <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
   <link href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" rel="stylesheet" />
   <style>
@@ -69,6 +69,267 @@
       font-size: 12px;
       color: #ef4444;
       min-height: 18px;
+    }
+
+    /* ── timeline view (hidden by default, shown via #timeline hash) ── */
+    #viewMap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    #viewTimeline {
+      flex: 1;
+      min-height: 0;
+      display: none;
+      flex-direction: column;
+    }
+
+    /* timeline internal styles — scoped to #viewTimeline */
+    #viewTimeline .tl-wrap {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    #viewTimeline .tl-scroll {
+      flex: 1;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    #viewTimeline .tl-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
+    #viewTimeline .tl-scroll::-webkit-scrollbar-track { background: transparent; }
+    #viewTimeline .tl-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+    #viewTimeline .tl-inner { display: flex; }
+    #viewTimeline .tl-axis {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: var(--panel);
+      backdrop-filter: blur(14px);
+      border-right: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      width: 52px;
+      padding-top: 38px;
+    }
+    #viewTimeline .tl-hour {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding: 0 6px 0 0;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+    }
+    #viewTimeline .tl-canvas { display: flex; }
+    #viewTimeline .tl-day {
+      position: relative;
+      flex-shrink: 0;
+      border-right: 1px solid rgba(255,255,255,0.04);
+    }
+    #viewTimeline .tl-date-hd {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--panel);
+      backdrop-filter: blur(14px);
+      padding: 4px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      letter-spacing: 0.03em;
+      height: 38px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    #viewTimeline .tl-wday { font-size: 10px; color: var(--muted); font-weight: 500; }
+    #viewTimeline .tl-grid {
+      position: absolute;
+      left: 0; right: 0;
+      height: 1px;
+      background: rgba(255,255,255,0.03);
+      pointer-events: none;
+    }
+    #viewTimeline .tl-block {
+      position: absolute;
+      border-radius: 7px;
+      padding: 3px 5px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s ease, filter 0.18s ease;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.1);
+      background: color-mix(in srgb, var(--c) 65%, transparent);
+      z-index: 0;
+    }
+    #viewTimeline .tl-block::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 7px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, transparent 55%, rgba(0,0,0,0.08) 100%);
+      pointer-events: none;
+    }
+    #viewTimeline .tl-block:hover {
+      transform: scale(1.04);
+      box-shadow: 0 6px 22px rgba(0,0,0,0.45);
+      z-index: 5;
+      filter: brightness(1.18);
+    }
+    #viewTimeline .tl-block:active { transform: scale(0.96); filter: brightness(0.9); }
+    #viewTimeline .tl-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+      position: relative;
+      z-index: 1;
+    }
+    #viewTimeline .tl-time {
+      font-size: 8.5px;
+      color: rgba(255,255,255,0.8);
+      white-space: nowrap;
+      position: relative;
+      z-index: 1;
+    }
+    #viewTimeline .tl-record-badge {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      background: rgba(59,130,246,0.25);
+      padding: 3px 12px;
+      border-radius: 20px;
+    }
+    #viewTimeline .tl-mode-toggle {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 4px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    #viewTimeline .tl-mode-toggle:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+    #viewTimeline .tl-mode-toggle.active { color: #fff; background: rgba(59,130,246,0.3); border-color: rgba(59,130,246,0.4); }
+
+    /* compact mode */
+    #viewTimeline .tl-compact .tl-day { border-right-color: transparent; }
+    #viewTimeline .tl-compact .tl-date-hd {
+      font-size: 8px; padding: 3px 1px; height: 28px; letter-spacing: 0;
+    }
+    #viewTimeline .tl-compact .tl-wday { font-size: 7px; }
+    #viewTimeline .tl-compact .tl-axis { padding-top: 28px; }
+    #viewTimeline .tl-compact .tl-block {
+      border-radius: 3px; padding: 0; border: none;
+      box-shadow: none; backdrop-filter: none;
+    }
+    #viewTimeline .tl-compact .tl-block::after { display: none; }
+    #viewTimeline .tl-compact .tl-block:hover {
+      transform: scaleX(2.5); z-index: 5; filter: brightness(1.25); border-radius: 4px;
+    }
+
+    /* hover tooltip */
+    #viewTimeline .tl-ttp {
+      position: fixed;
+      z-index: 10002;
+      pointer-events: none;
+      background: rgba(20,30,50,0.96);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 10px 14px;
+      max-width: 200px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      font-size: 12px;
+      color: var(--text);
+    }
+    #viewTimeline .tl-ttp-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+    #viewTimeline .tl-ttp-title { font-size: 13px; font-weight: 700; }
+    #viewTimeline .tl-ttp-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    #viewTimeline .tl-ttp-time { font-size: 10px; color: rgba(255,255,255,0.65); margin-top: 4px; }
+
+    /* detail popup for timeline */
+    .tl-popup {
+      position: fixed;
+      inset: 0;
+      z-index: 10001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .tl-popup-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+    }
+    .tl-popup-card {
+      position: relative;
+      background: rgba(30,41,59,0.94);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 28px 24px 24px;
+      min-width: 270px;
+      max-width: 340px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      animation: tlPopIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes tlPopIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .tl-popup-close {
+      position: absolute;
+      top: 10px; right: 10px;
+      width: 28px; height: 28px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .tl-popup-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    .tl-popup-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    .tl-popup-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .tl-popup-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+    .tl-popup-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      padding: 6px 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      color: var(--text);
+    }
+    .tl-popup-row .tl-popup-lbl { color: var(--muted); }
+
+    @media (max-width: 768px) {
+      #viewTimeline .tl-axis { width: 40px; padding-top: 36px; }
+      #viewTimeline .tl-hour { font-size: 9px; padding-right: 4px; }
+      #viewTimeline .tl-date-hd { font-size: 10px; }
+      #viewTimeline .tl-lbl { font-size: 9px; }
+      #viewTimeline .tl-compact .tl-axis { padding-top: 26px; }
+      #viewTimeline .tl-compact .tl-date-hd { height: 26px; }
     }
   </style>
 </head>
@@ -184,10 +445,11 @@
     </div>
   </header>
 
-  <div class="map-wrap">
-    <div id="map"></div>
+  <div id="viewMap">
+    <div class="map-wrap">
+      <div id="map"></div>
 
-    <div class="map-controls" id="mapControls">
+      <div class="map-controls" id="mapControls">
       <button class="control-close" id="closePanelBtn" title="关闭控制区">✕</button>
       <label for="styleSelect">底图</label>
       <div class="style-row">
@@ -221,11 +483,23 @@
     </div>
 
     <button class="reopen-panel" id="reopenPanelBtn" title="打开控制区" style="display:none;">⚙</button>
+    </div>
+  </div>
+
+  <div id="viewTimeline">
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 16px;background:var(--panel);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);">
+      <a href="../index.html" class="nav-link" style="text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;">基地</a>
+      <span style="font-size:16px;font-weight:800;flex:1;">时间线</span>
+      <span class="tl-record-badge" id="tlBadge"></span>
+      <button class="tl-mode-toggle" id="tlModeToggle" title="切换紧凑/完整模式">紧凑</button>
+    </div>
+    <div id="tlContainer" style="flex:1;overflow:hidden;"></div>
   </div>
 
   <script type="module">
-    import { initFullData, startMap } from "../js/map-main-full.js?v=97b771a";
-    import { initCornerSheep, initTransitions, showLoadingSheep, hideLoadingSheep } from "../js/sheep.js";
+    import { initFullData, startMap, records, traffic } from "../js/map-main-full.js?v=df7331c";
+    import { Timeline, recordsToTimeline, trafficToTimeline } from "../js/timeline.js";
+    import { initCornerSheep, initTransitions, showLoadingSheep, hideLoadingSheep } from "../js/sheep.js?v=df7331c";
 
     var AUTH_KEY = "full-map-auth";
     var pwOverlay = document.getElementById("pwOverlay");
@@ -235,6 +509,96 @@
 
     initCornerSheep();
     initTransitions();
+
+    // Hash-based view routing
+    function isTimelineView() {
+      return window.location.hash === '#timeline';
+    }
+
+    // Listen for hash changes — reload to switch views cleanly
+    window.addEventListener('hashchange', function() {
+      window.location.reload();
+    });
+
+    function showTimeline() {
+      document.getElementById('viewMap').style.display = 'none';
+      document.getElementById('viewTimeline').style.display = 'flex';
+
+      var recItems = recordsToTimeline(records);
+      var trafItems = trafficToTimeline(traffic);
+      var allItems = recItems.concat(trafItems);
+
+      var badge = document.getElementById('tlBadge');
+      badge.textContent = recItems.length + ' 活动 + ' + trafItems.length + ' 交通';
+
+      // Detail popup
+      var popup = document.createElement('div');
+      popup.className = 'tl-popup';
+      popup.id = 'tlPopup';
+      popup.style.display = 'none';
+      popup.innerHTML = '<div class="tl-popup-overlay"></div><div class="tl-popup-card" id="tlPopupCard"></div>';
+      document.body.appendChild(popup);
+
+      function showDetail(item) {
+        var r = item._raw || {};
+        var rows = '';
+        if (item.source === 'record') {
+          rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">时间</span><span>' + r.date + ' ' + item.startTime + ' ~ ' + item.endTime + '</span></div>';
+          if (r.place) rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">地点</span><span>' + r.place + '</span></div>';
+          if (r.note) rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">备注</span><span>' + r.note + '</span></div>';
+        } else {
+          rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">时间</span><span>' + r.date + ' ' + item.startTime + ' ~ ' + item.endTime + '</span></div>';
+          if (r.origin) rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">起点</span><span>' + r.origin + '</span></div>';
+          if (r.dest) rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">终点</span><span>' + r.dest + '</span></div>';
+          if (r.duration_sec) rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">耗时</span><span>' + Math.round(r.duration_sec / 60) + ' 分钟</span></div>';
+        }
+        var card = document.getElementById('tlPopupCard');
+        card.innerHTML =
+          '<button class="tl-popup-close" id="tlPopupClose">✕</button>' +
+          '<div class="tl-popup-badge" style="background:' + item.color + ';">' + item.category + '</div>' +
+          '<div class="tl-popup-title">' + item.title + '</div>' +
+          (item.subtitle ? '<div class="tl-popup-sub">' + item.subtitle + '</div>' : '') +
+          rows;
+        popup.style.display = 'flex';
+        document.getElementById('tlPopupClose').addEventListener('click', function() { popup.style.display = 'none'; });
+      }
+
+      popup.querySelector('.tl-popup-overlay').addEventListener('click', function() { popup.style.display = 'none'; });
+
+      var container = document.getElementById('tlContainer');
+      var compact = false;
+      var timeline = new Timeline(container, {
+        data: allItems,
+        hourHeight: 64,
+        colWidth: 70,
+        onBlockClick: showDetail,
+      });
+
+      // Mode toggle
+      var modeBtn = document.getElementById('tlModeToggle');
+      modeBtn.addEventListener('click', function () {
+        compact = !compact;
+        timeline.setCompact(compact);
+        modeBtn.textContent = compact ? '完整' : '紧凑';
+        modeBtn.classList.toggle('active', compact);
+      });
+
+      // Scroll to today
+      var today = new Date();
+      setTimeout(function() {
+        var scrollEl = document.querySelector('#viewTimeline .tl-scroll');
+        if (!scrollEl) return;
+        var cols = scrollEl.querySelectorAll('.tl-day');
+        var target = (today.getMonth() + 1) + '月' + today.getDate() + '日';
+        for (var i = 0; i < cols.length; i++) {
+          var hd = cols[i].querySelector('.tl-date-hd');
+          if (hd && hd.textContent.indexOf(target) !== -1) {
+            cols[i].scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+            break;
+          }
+        }
+      }, 400);
+    }
 
     async function tryDecrypt(password) {
       if (verifying) return;
@@ -248,7 +612,11 @@
         hideLoadingSheep();
         sessionStorage.setItem(AUTH_KEY, password);
         pwOverlay.classList.add("hidden");
-        startMap();
+        if (isTimelineView()) {
+          showTimeline();
+        } else {
+          startMap();
+        }
       } catch (e) {
         hideLoadingSheep();
         sessionStorage.removeItem(AUTH_KEY);

@@ -5,8 +5,8 @@ import { trafficEnc } from "./data/full/traffic.enc.js";
 
 // ── mutable data (populated after decryption) ───────────────────
 
-let records = [];
-let traffic = [];
+export let records = [];
+export let traffic = [];
 
 function base64ToBuf(b64) {
   const bin = atob(b64);
