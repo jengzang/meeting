@@ -350,6 +350,19 @@ function initMap() {
   map.on("load", () => {
     // traffic line layer
     map.addSource("traffic-source", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    // shadow underneath
+    map.addLayer({
+      id: "traffic-shadow",
+      type: "line",
+      source: "traffic-source",
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: {
+        "line-color": "#000",
+        "line-width": ["+", ["get", "width"], 3],
+        "line-opacity": 0.35,
+        "line-blur": 2,
+      },
+    });
     // small arrow icon for direction
     const arrowCanvas = document.createElement("canvas");
     arrowCanvas.width = 16; arrowCanvas.height = 16;
