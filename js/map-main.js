@@ -226,11 +226,20 @@ function onPointEnter(e) {
   map.getCanvas().style.cursor = "pointer";
   if (e.features.length > 0) {
     const p = e.features[0].properties;
+    const arr = fmtTime(p.arrival);
+    const dep = fmtTime(p.departure);
     getPopup()
       .setLngLat(e.lngLat)
-      .setHTML(`<strong>${p.place}</strong><br>${p.activity} · ${p.date}`)
+      .setHTML(`<strong>${p.place}</strong><br>${p.activity}<br>${p.date} ${arr} — ${dep}`)
       .addTo(map);
   }
+}
+
+/** "2026-06-22T15:09:29+0800" → "15:09" */
+function fmtTime(iso) {
+  if (!iso) return "?";
+  const m = iso.match(/T(\d{2}:\d{2})/);
+  return m ? m[1] : "?";
 }
 
 function onPointLeave() {
@@ -273,10 +282,11 @@ function changeMapStyle(name) {
   if (!map) return;
   currentStyle = name;
   localStorage.setItem(LS_STYLE_KEY, name);
-  map.setStyle(mapStyle(name));
+  // register BEFORE setStyle — inline style objects may fire style.load synchronously
   map.once("style.load", () => {
     renderMarkers();
   });
+  map.setStyle(mapStyle(name));
 }
 
 function resetView() {

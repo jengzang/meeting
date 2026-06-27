@@ -1,5 +1,6 @@
 import { records } from "./data/records.js";
-import { START_DATE, END_DATE } from "./config.js";
+import { SHAPE_INPUT, YEAR } from "./config.js";
+import { mdToDateStr } from "./utils.js";
 
 // ── unique types ───────────────────────────────────────────────
 
@@ -12,11 +13,38 @@ export function getUniqueTypes() {
   return _typesCache;
 }
 
+// ── SHAPE_INPUT date set ───────────────────────────────────────
+
+let _shapeDateSet = null;
+
+/**
+ * All "YYYY-MM-DD" dates referenced in SHAPE_INPUT (union of all shapes).
+ */
+export function getShapeInputDateSet() {
+  if (!_shapeDateSet) {
+    const set = new Set();
+    for (const mds of Object.values(SHAPE_INPUT)) {
+      for (const md of mds) {
+        set.add(mdToDateStr(md, YEAR));
+      }
+    }
+    _shapeDateSet = set;
+  }
+  return _shapeDateSet;
+}
+
 // ── filters ────────────────────────────────────────────────────
 
 /**
+ * Filter records whose date appears in SHAPE_INPUT.
+ */
+export function getDefaultRecords() {
+  const dateSet = getShapeInputDateSet();
+  return records.filter(r => r.date && dateSet.has(r.date));
+}
+
+/**
  * Filter records that fall within [startDate, endDate] (inclusive).
- * `startDate`/`endDate` are "YYYY-MM-DD" strings.
  */
 export function filterByDateRange(recordsList, startDate, endDate) {
   return recordsList.filter(r => r.date && r.date >= startDate && r.date <= endDate);
@@ -32,18 +60,11 @@ export function filterByTypes(recordsList, types) {
 }
 
 /**
- * Convenience: records within the configured SHAPE_INPUT date range.
- */
-export function getDefaultRecords() {
-  return filterByDateRange(records, START_DATE, END_DATE);
-}
-
-/**
  * Get the date extent across all records as [min, max].
  */
 export function getDateExtent(recordsList) {
   const dates = recordsList.map(r => r.date).filter(Boolean).sort();
-  return dates.length ? [dates[0], dates[dates.length - 1]] : [START_DATE, END_DATE];
+  return dates.length ? [dates[0], dates[dates.length - 1]] : [];
 }
 
 // ── stats ──────────────────────────────────────────────────────
