@@ -56,7 +56,7 @@ const DEFAULT_COLOR_MAP = {
   "地铁": "#0000FF",
   "老家": "#DA5100",
   "工作": "#3EB489",
-  // "杭州租房": "#FFA500"
+  "杭州租房": "#FFA500"
 };
 
 const TRAFFIC_COLOR_MAP = {

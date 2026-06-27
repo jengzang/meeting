@@ -278,13 +278,14 @@ export class Timeline {
     }
   }
 
-  _getBlockStyle(item, colW) {
+  _getBlockStyle(item, colW, hourHeight) {
+    const hh = hourHeight || this.hourHeight;
     const laneInfo = this._lanesByItem.get(item.id) || { lane: 0, maxLanes: 1 };
     const startMin = timeToMinutes(item.startTime);
     const endMin = timeToMinutes(item.endTime);
     const duration = Math.max(endMin - startMin, 1);
-    const topPx = (startMin / 60) * this.hourHeight;
-    const heightPx = Math.max((duration / 60) * this.hourHeight, this.minDurationPx);
+    const topPx = (startMin / 60) * hh;
+    const heightPx = Math.max((duration / 60) * hh, this.minDurationPx);
     const laneW = colW / Math.max(laneInfo.maxLanes, 1);
     const leftPx = laneInfo.lane * laneW + 1;
     const widthPx = laneW - 2;
@@ -357,6 +358,10 @@ export class Timeline {
 
     const colW = this.compact ? 12 : this.colWidth;
     const hdHeight = this.compact ? 28 : 38;
+    // Compact mode: scale hourHeight so 24h fits within 95dvh
+    const hh = this.compact
+      ? Math.floor((window.innerHeight * 0.88) / 24)
+      : this.hourHeight;
 
     const wrap = document.createElement('div');
     wrap.className = 'tl-wrap';
@@ -396,7 +401,7 @@ export class Timeline {
     // ── Content ──
     const inner = document.createElement('div');
     inner.className = 'tl-inner';
-    inner.style.height = (24 * this.hourHeight) + 'px';
+    inner.style.height = (24 * hh) + 'px';
 
     // Time axis
     const axis = document.createElement('div');
@@ -404,7 +409,7 @@ export class Timeline {
     for (let h = 0; h <= 24; h++) {
       const lbl = document.createElement('div');
       lbl.className = 'tl-hour';
-      lbl.style.height = this.hourHeight + 'px';
+      lbl.style.height = hh + 'px';
       lbl.textContent = h === 24 ? '24:00' : String(h).padStart(2, '0') + ':00';
       axis.appendChild(lbl);
     }
@@ -429,10 +434,10 @@ export class Timeline {
       col.className = 'tl-day';
       col.style.width = colW + 'px';
       // Grid lines via CSS background instead of DOM nodes
-      col.style.setProperty('--hh', this.hourHeight + 'px');
+      col.style.setProperty('--hh', hh + 'px');
 
       for (const item of items) {
-        const s = this._getBlockStyle(item, colW);
+        const s = this._getBlockStyle(item, colW, hh);
         const block = document.createElement('div');
         block.className = 'tl-block';
         block.style.top = s.top + 'px';
