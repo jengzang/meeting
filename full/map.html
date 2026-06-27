@@ -178,7 +178,8 @@
     <div class="header-left">
       <span class="page-title">全量地图视图</span>
       <span class="record-count" id="recordCount"></span>
-      <a href="../index.html" class="nav-link">← 热力图</a>
+      <a href="../index.html" class="nav-link">🏠 基地</a>
+      <a href="../heat.html" class="nav-link">← 热力图</a>
       <a href="../map.html" class="nav-link">地图</a>
     </div>
   </header>
@@ -224,7 +225,7 @@
 
   <script type="module">
     import { initFullData, startMap } from "../js/map-main-full.js?v=97b771a";
-    import { initCornerSheep, showLoadingSheep, hideLoadingSheep } from "../js/sheep.js";
+    import { initCornerSheep, initTransitions, showLoadingSheep, hideLoadingSheep } from "../js/sheep.js";
 
     var AUTH_KEY = "full-map-auth";
     var pwOverlay = document.getElementById("pwOverlay");
@@ -233,6 +234,7 @@
     var verifying = false;
 
     initCornerSheep();
+    initTransitions();
 
     async function tryDecrypt(password) {
       if (verifying) return;

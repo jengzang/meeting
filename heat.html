@@ -3,13 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🐑 地图</title>
+  <title>🐑 热力图</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
-  <link rel="stylesheet" href="css/map.css" />
+  <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/intro.css?v=97b771a" />
   <link rel="stylesheet" href="css/sheep.css?v=97b771a" />
-  <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
-  <link href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" rel="stylesheet" />
 </head>
 
 <body>
@@ -47,6 +45,7 @@
 
         <!-- Body cloud -->
         <g class="sheep-body-cloud">
+          <!-- Fluff circles -->
           <circle cx="100" cy="130" r="42" fill="url(#bodyGrad)"/>
           <circle cx="70" cy="118" r="26" fill="url(#fluffGrad)"/>
           <circle cx="130" cy="118" r="26" fill="url(#fluffGrad)"/>
@@ -69,6 +68,7 @@
 
         <!-- Head -->
         <g class="sheep-head-group">
+          <!-- Ears -->
           <g class="ear-left">
             <ellipse cx="78" cy="55" rx="15" ry="8" fill="url(#headGrad)" transform="rotate(-32 78 55)"/>
             <ellipse cx="78" cy="55" rx="9" ry="5" fill="url(#earInnerGrad)" transform="rotate(-32 78 55)"/>
@@ -78,36 +78,45 @@
             <ellipse cx="122" cy="55" rx="9" ry="5" fill="url(#earInnerGrad)" transform="rotate(32 122 55)"/>
           </g>
 
+          <!-- Head shape -->
           <ellipse cx="100" cy="72" rx="30" ry="28" fill="url(#headGrad)"/>
 
+          <!-- Fluffy top of head -->
           <circle cx="88" cy="50" r="11" fill="#5a4a3a"/>
           <circle cx="100" cy="46" r="12" fill="#665544"/>
           <circle cx="112" cy="50" r="11" fill="#5a4a3a"/>
 
+          <!-- Eyes -->
           <g class="eye-blink">
             <circle cx="88" cy="70" r="7.5" fill="white"/>
             <circle cx="112" cy="70" r="7.5" fill="white"/>
             <circle cx="89" cy="69" r="4" fill="#1a1410"/>
             <circle cx="113" cy="69" r="4" fill="#1a1410"/>
+            <!-- Catchlights -->
             <circle cx="91.5" cy="67" r="1.8" fill="white"/>
             <circle cx="87" cy="71" r="0.9" fill="white"/>
             <circle cx="115.5" cy="67" r="1.8" fill="white"/>
             <circle cx="111" cy="71" r="0.9" fill="white"/>
           </g>
 
+          <!-- Rosy cheeks -->
           <ellipse cx="78" cy="78" rx="6" ry="4" fill="#e8a0a0" opacity="0.45"/>
           <ellipse cx="122" cy="78" rx="6" ry="4" fill="#e8a0a0" opacity="0.45"/>
 
+          <!-- Nose -->
           <ellipse cx="100" cy="76" rx="5" ry="3.5" fill="#2a2018"/>
 
+          <!-- Mouth -->
           <path d="M96 80.5 Q100 85 104 80.5" stroke="#2a2018" stroke-width="1.2" fill="none" stroke-linecap="round"/>
         </g>
 
+        <!-- Legs -->
         <rect class="leg-back-left" x="74" y="158" width="10" height="22" rx="5" fill="#4a3c30"/>
         <rect class="leg-back-right" x="116" y="158" width="10" height="22" rx="5" fill="#4a3c30"/>
         <rect class="leg-front-left" x="84" y="156" width="10" height="24" rx="5" fill="#3d3026"/>
         <rect class="leg-front-right" x="106" y="156" width="10" height="24" rx="5" fill="#3d3026"/>
 
+        <!-- Tiny hooves -->
         <ellipse class="leg-front-left" cx="89" cy="180" rx="5.5" ry="3" fill="#2a2018"/>
         <ellipse class="leg-front-right" cx="111" cy="180" rx="5.5" ry="3" fill="#2a2018"/>
         <ellipse class="leg-back-left" cx="79" cy="180" rx="5.5" ry="3" fill="#2a2018"/>
@@ -116,52 +125,43 @@
     </div>
   </div>
 
-  <header class="header-bar">
-    <div class="header-left">
-      <a href="index.html" class="nav-link">🏠 基地</a>
-      <span class="page-title">地图视图</span>
-      <span class="record-count" id="recordCount"></span>
-      <a href="heat.html" class="nav-link">← 热力图</a>
-    </div>
-  </header>
+  <div class="card">
+    <div class="header">
+      <div>
+        <div class="title">热力图</div>
+        <div class="subtitle">2026.02.16 — 2026.06.21；一周一列，周一到周日。</div>
+        <a href="index.html" class="nav-link">🏠 基地</a>
+        <a href="map.html" class="nav-link">地图 →</a>
+      </div>
 
-  <div class="map-wrap">
-    <div id="map"></div>
+      <div class="controls">
+        <select id="modeSelect">
+          <option value="shape">模式 1：形状填充</option>
+          <option value="depth">模式 2：颜色深度</option>
+        </select>
 
-    <div class="map-controls" id="mapControls">
-      <button class="control-close" id="closePanelBtn" title="关闭控制区">✕</button>
-      <label for="styleSelect">底图</label>
-      <div class="style-row">
-        <select id="styleSelect"></select>
-        <button class="control-btn" id="resetBtn">🎯 复位</button>
-      </div>
-      <div class="label-mode-row">
-        <button class="label-mode-btn" data-mode="activity">活动</button>
-        <button class="label-mode-btn" data-mode="place">地点</button>
-        <button class="label-mode-btn" data-mode="dot">圆点</button>
-      </div>
-      <div class="opts-row">
-        <button class="color-btn" id="colorConfigBtn">🎨 配色</button>
-        <button class="size-mode-btn" data-mode="count">按次数</button>
-        <button class="size-mode-btn" data-mode="duration">按时间</button>
-        <label class="opt-check"><input type="checkbox" id="autoClusterCb" /> 聚合</label>
-      </div>
-      <label>时间范围 <span id="rangeDisplay"></span></label>
-      <div class="range-slider" id="rangeSlider">
-        <div class="range-track" id="rangeTrack">
-          <div class="range-fill" id="rangeFill"></div>
-          <div class="range-thumb" id="thumbFrom" data-thumb="from"></div>
-          <div class="range-thumb" id="thumbTo" data-thumb="to"></div>
-        </div>
-      </div>
-      <div class="reset-row">
-        <label class="opt-check"><input type="checkbox" id="showTrafficCb" /> 显示交通</label>
-        <label class="opt-check"><input type="checkbox" id="scenicCb" /> 景点</label>
-        <label class="opt-check"><input type="checkbox" id="photoCb" /> 合照</label>
+        <select id="themeSelect">
+          <option value="githubGreen">GitHub 绿</option>
+          <option value="oceanBlue">海洋蓝</option>
+          <option value="cyberCyan">炫酷青</option>
+          <option value="warmOrange">温暖橙</option>
+          <option value="rosePink">玫瑰粉</option>
+          <option value="violetPurple">紫罗兰</option>
+        </select>
       </div>
     </div>
 
-    <button class="reopen-panel" id="reopenPanelBtn" title="打开控制区" style="display:none;">⚙</button>
+    <div class="heatmap-wrap">
+      <div id="calendar" class="calendar"></div>
+    </div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="month-ratio" id="monthRatio"></div>
+
+    <div class="total-pie-section" id="totalPieSection"></div>
+
+    <div class="monthly-pie-section" id="monthlyPieSection"></div>
   </div>
 
   <script>
@@ -172,10 +172,8 @@
         overlay && overlay.classList.add('hide');
         if (msgEl) msgEl.textContent = '';
       }
-      // auto-hide after dance
       setTimeout(hide, 2000);
       overlay && overlay.addEventListener('click', hide);
-      // expose for manual trigger with custom message
       window.showIntroSheep = function(msg, duration) {
         if (!overlay) return;
         if (msgEl && msg) msgEl.textContent = msg;
@@ -189,6 +187,6 @@
     initCornerSheep();
     initTransitions();
   </script>
-  <script type="module" src="js/map-main.js?v=97b771a"></script>
+  <script type="module" src="js/main.js?v=97b771a"></script>
 </body>
 </html>
