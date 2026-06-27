@@ -1,0 +1,185 @@
+/* ── Sheep shared styles & animations ─────────────────────────── */
+
+/* ── Corner Sheep Logo ────────────────────────────────────────── */
+
+.corner-sheep {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 9998;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.3s, transform 0.3s;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+  animation: cornerFloat 3s ease-in-out infinite;
+}
+
+.corner-sheep:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+.corner-sheep:active {
+  transform: scale(0.9);
+}
+
+@keyframes cornerFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* ── Loading Sheep ────────────────────────────────────────────── */
+
+.loading-sheep-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(10px);
+  flex-direction: column;
+  gap: 20px;
+}
+
+.loading-sheep-overlay.hidden { display: none; }
+
+.loading-sheep {
+  width: 120px;
+  height: 132px;
+  animation: sheepJump 0.5s ease-in-out infinite alternate;
+}
+
+.loading-sheep-text {
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  animation: loadingDots 1.5s steps(4, end) infinite;
+}
+
+.loading-sheep-dots {
+  display: inline-block;
+  width: 24px;
+  text-align: left;
+}
+
+@keyframes sheepJump {
+  0% { transform: translateY(0) scaleY(1); }
+  80% { transform: translateY(-24px) scaleY(0.95); }
+  100% { transform: translateY(-28px) scaleY(1.05); }
+}
+
+@keyframes loadingDots {
+  0% { opacity: 0.2; }
+  50% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+/* ── Password Sheep ───────────────────────────────────────────── */
+
+.pw-sheep {
+  width: 64px;
+  height: 70px;
+  margin: 0 auto 4px;
+  animation: pwSheepPeek 2.5s ease-in-out infinite;
+}
+
+@keyframes pwSheepPeek {
+  0%, 100% { transform: translateY(0); }
+  10% { transform: translateY(-14px); }
+  20% { transform: translateY(0); }
+  100% { transform: translateY(0); }
+}
+
+/* ── Herd animation (tiny sheep running across bottom) ────────── */
+
+.herd-container {
+  position: fixed;
+  bottom: 0;
+  left: -200px;
+  z-index: 9997;
+  pointer-events: none;
+  animation: herdRun 12s linear infinite;
+}
+
+.herd-container.paused { animation-play-state: paused; }
+
+@keyframes herdRun {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(100vw + 400px)); }
+}
+
+.herd-sheep {
+  display: inline-block;
+  width: 22px;
+  height: 24px;
+  margin-right: 2px;
+  animation: herdBounce 0.35s ease-in-out infinite alternate;
+}
+
+.herd-sheep:nth-child(2n) { animation-delay: 0.12s; }
+.herd-sheep:nth-child(3n) { animation-delay: 0.24s; }
+.herd-sheep:nth-child(5n) { animation-delay: 0.06s; }
+
+@keyframes herdBounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-5px); }
+}
+
+/* ── Empty state sheep ────────────────────────────────────────── */
+
+.empty-sheep {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.empty-sheep svg {
+  width: 80px;
+  height: 88px;
+  animation: emptySheepFloat 4s ease-in-out infinite;
+}
+
+.empty-sheep-text {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+@keyframes emptySheepFloat {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-6px); }
+  75% { transform: translateY(3px); }
+}
+
+/* ── Sparkle sheep (tiny decorative sheep bursting) ──────────── */
+
+.sheep-sparkle-burst {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9996;
+  animation: burstUp 1.2s ease-out forwards;
+}
+
+.sheep-sparkle-burst svg {
+  width: 28px;
+  height: 31px;
+}
+
+@keyframes burstUp {
+  0% { transform: translateY(0) scale(0); opacity: 1; }
+  30% { transform: translateY(-30px) scale(1.2); opacity: 1; }
+  100% { transform: translateY(-100px) scale(0.4); opacity: 0; }
+}
+
+/* ── Sheep favicon (inline in head) ───────────────────────────── */
