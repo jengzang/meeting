@@ -48,6 +48,16 @@ body {
   letter-spacing: 0.04em;
 }
 
+.record-count {
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--accent, #3b82f6);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .nav-link {
   color: var(--muted);
   text-decoration: none;
