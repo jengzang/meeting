@@ -149,6 +149,17 @@ body {
   background: #2563eb;
 }
 
+.reset-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reset-row .control-btn {
+  flex: 1;
+  width: auto;
+}
+
 .color-btn {
   width: 100%;
   padding: 6px 12px;

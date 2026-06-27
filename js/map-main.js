@@ -10,10 +10,12 @@ const LS_STYLE_KEY = "map-style";
 const LS_LABEL_KEY = "map-label-mode";
 const LS_COLOR_KEY = "map-colors";
 const LS_SIZE_KEY = "map-size-mode";
+const LS_CLUSTER_KEY = "map-auto-cluster";
 
 let currentStyle = localStorage.getItem(LS_STYLE_KEY) || "tianditu";
 let labelMode = localStorage.getItem(LS_LABEL_KEY) || "activity";
-let sizeMode = localStorage.getItem(LS_SIZE_KEY) || "count";  // "count" | "duration" | ""
+let sizeMode = localStorage.getItem(LS_SIZE_KEY) || "count";
+let autoCluster = localStorage.getItem(LS_CLUSTER_KEY) === "true";
 let map = null;
 let baseRecords = [];
 let currentRecords = [];
@@ -68,6 +70,7 @@ const labelModeBtns = document.querySelectorAll(".label-mode-btn");
 const colorConfigBtn = document.getElementById("colorConfigBtn");
 const sizeModeBtns = document.querySelectorAll(".size-mode-btn");
 const showTrafficCb = document.getElementById("showTrafficCb");
+const autoClusterCb = document.getElementById("autoClusterCb");
 
 // ── detail popup ───────────────────────────────────────────────
 
@@ -341,10 +344,11 @@ function renderMarkers() {
 
   if (currentRecords.length === 0) return;
 
-  // group by coordinate
+  // group by coordinate (autoCluster uses ~200m grid, else exact)
+  const precision = autoCluster ? 3 : 7;
   const groups = new Map();
   for (const r of currentRecords) {
-    const key = `${r.lng.toFixed(7)},${r.lat.toFixed(7)}`;
+    const key = `${r.lng.toFixed(precision)},${r.lat.toFixed(precision)}`;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(r);
   }
@@ -549,10 +553,16 @@ sizeModeBtns.forEach(btn => {
     renderMarkers();
   });
 });
+autoClusterCb.addEventListener("change", () => {
+  autoCluster = autoClusterCb.checked;
+  localStorage.setItem(LS_CLUSTER_KEY, autoCluster);
+  renderMarkers();
+});
 
 // ── bootstrap ──────────────────────────────────────────────────
 
 populateStyleOptions();
 labelModeBtns.forEach(b => b.classList.toggle("active", b.dataset.mode === labelMode));
 sizeModeBtns.forEach(b => b.classList.toggle("active", b.dataset.mode === sizeMode));
+autoClusterCb.checked = autoCluster;
 initMap();
