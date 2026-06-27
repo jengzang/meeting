@@ -34,7 +34,7 @@ let rangeToDate = "";
 // ── default color map ─────────────────────────────────────────
 
 const DEFAULT_COLOR_MAP = {
-  "学校": "#00FFFF",
+  "学校": "#19c6c6",
   "活动聚会": "#13a113",
   "汽车相关": "#0000FF",
   "办事": "#012F7B",
@@ -565,12 +565,18 @@ function renderMarkers({ fit = false } = {}) {
   const typeColorMap = getColorMap();
   const coords = [];
 
-  // pre-compute size scaling — sqrt compresses outliers, preserves value order
+  // pre-compute size scaling
   const maxScale = labelMode === "dot" ? 15 : 10;
-  const rawValues = sizeMode === "count"
-    ? recsList.map(recs => Math.log1p(recs.length - 1))             // n=1 → 0
-    : recsList.map(recs => Math.log1p(totalDurationHours(recs)));
-  const sizeScale = sqrtScale(rawValues, maxScale);
+  let sizeScale;
+  if (sizeMode === "count") {
+    const raw = recsList.map(recs => Math.log1p(recs.length - 1));
+    sizeScale = sqrtScale(raw, maxScale);
+  } else if (sizeMode === "duration") {
+    const raw = recsList.map(recs => Math.log1p(totalDurationHours(recs)));
+    sizeScale = sqrtScale(raw, maxScale);
+  } else {
+    sizeScale = new Map(); // uniform size
+  }
 
   for (let gi = 0; gi < groupList.length; gi++) {
     const { recs, lng, lat } = groupList[gi];
