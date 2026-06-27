@@ -313,11 +313,11 @@ function initMap() {
 
 function initTimeline() {
   const [min, max] = getShapeInputDateExtent();
-  dateFromEl.value = min;
+  dateFromEl.value = "2025-06-27";
   dateToEl.value = max;
-  dateFromEl.min = min;
+  dateFromEl.min = "2025-06-27";
   dateFromEl.max = max;
-  dateToEl.min = min;
+  dateToEl.min = "2025-06-27";
   dateToEl.max = max;
 }
 
