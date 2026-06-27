@@ -299,6 +299,10 @@ function initMap() {
     console.error("[map] error:", e.error);
   });
 
+  map.on("zoomend", () => {
+    if (autoCluster) renderMarkers();
+  });
+
   styleSelect.value = currentStyle;
 }
 
@@ -337,23 +341,30 @@ function renderMarkers() {
   baseRecords = getDefaultRecords();
   applyTimelineFilter();
   console.log("[map] records:", currentRecords.length, "/", baseRecords.length);
-  recordCountEl.textContent = `${currentRecords.length} 条记录`;
 
   clearMarkers();
   hideDetail();
 
   if (currentRecords.length === 0) return;
 
-  // group by coordinate (autoCluster uses ~200m grid, else exact)
-  const precision = autoCluster ? 3 : 7;
+  // group by coordinate: autoCluster scales grid with zoom, else exact
+  const precision = autoCluster ? clusterPrecision() : 7;
   const groups = new Map();
   for (const r of currentRecords) {
-    const key = `${r.lng.toFixed(precision)},${r.lat.toFixed(precision)}`;
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(r);
+    const gridLng = parseFloat(r.lng.toFixed(precision));
+    const gridLat = parseFloat(r.lat.toFixed(precision));
+    const key = `${gridLng},${gridLat}`;
+    if (!groups.has(key)) {
+      groups.set(key, { recs: [], lng: gridLng, lat: gridLat });
+    }
+    groups.get(key).recs.push(r);
   }
 
   const groupList = [...groups.values()];
+  recordCountEl.textContent = autoCluster
+    ? `${currentRecords.length} 条 → ${groupList.length} 标记`
+    : `${currentRecords.length} 条记录`;
+  const recsList = groupList.map(g => g.recs);
   const typeColorMap = getColorMap();
   const coords = [];
 
@@ -361,19 +372,18 @@ function renderMarkers() {
   let countSizes, durationSizes;
   if (sizeMode === "count") {
     countSizes = new Map();
-    for (let i = 0; i < groupList.length; i++) {
-      const n = groupList[i].length;
+    for (let i = 0; i < recsList.length; i++) {
+      const n = recsList[i].length;
       countSizes.set(i, n > 1 ? Math.min(n - 1, 8) : 0);
     }
   } else if (sizeMode === "duration") {
-    const base = labelMode === "dot" ? 0 : 0;
     const maxExtra = labelMode === "dot" ? 8 : 5;
-    durationSizes = scaleByDuration(groupList, base, maxExtra);
+    durationSizes = scaleByDuration(recsList, 0, maxExtra);
   }
 
   requestAnimationFrame(() => {
     for (let gi = 0; gi < groupList.length; gi++) {
-      const recs = groupList[gi];
+      const { recs, lng, lat } = groupList[gi];
       const count = recs.length;
       const r = recs[0];
       const color = typeColorMap[r.activity] || "#a9a9a9";
@@ -415,11 +425,11 @@ function renderMarkers() {
       });
 
       const marker = new maplibregl.Marker({ element: el, anchor: "center" })
-        .setLngLat([r.lng, r.lat])
+        .setLngLat([lng, lat])
         .addTo(map);
 
       markers.push(marker);
-      coords.push([r.lng, r.lat]);
+      coords.push([lng, lat]);
     }
 
     if (coords.length > 0) {
@@ -435,6 +445,14 @@ function fmtTime(iso) {
   if (!iso) return "?";
   const m = iso.match(/T(\d{2}:\d{2})/);
   return m ? m[1] : "?";
+}
+
+function clusterPrecision() {
+  // 40px target cluster distance, adapts to zoom
+  const metersPerPixel = 156543 / Math.pow(2, map.getZoom());
+  const targetMeters = 40 * metersPerPixel;
+  const gridDeg = targetMeters / 111320;
+  return Math.max(1, Math.min(5, Math.round(-Math.log10(gridDeg))));
 }
 
 function totalDurationHours(recs) {
