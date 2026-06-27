@@ -202,6 +202,35 @@ function hideDetail() {
   if (detailEl) detailEl.style.display = "none";
 }
 
+function showTrafficDetail(items, color) {
+  const el = ensureDetail();
+  const r = items[0];
+  const firstTime = fmtTime(r.from_time);
+  const lastTime = fmtTime(items[items.length - 1].to_time);
+  const totalSec = items.reduce((s, t) => s + t.duration_sec, 0);
+  const durMin = Math.round(totalSec / 60);
+  const durStr = durMin >= 60 ? `${Math.floor(durMin / 60)}h${durMin % 60}m` : `${durMin}m`;
+
+  el.querySelector(".detail-place").textContent = `${r.origin} → ${r.dest}`;
+  el.querySelector(".detail-meta").innerHTML = `<span class="detail-type-badge" style="background:${color}">交通</span>`;
+  el.querySelector(".detail-time").textContent = `${r.from_time.slice(0, 10)}  ${firstTime} — ${lastTime}  (${durStr})`;
+  el.querySelector(".detail-single").style.display = "";
+
+  const recordsEl = el.querySelector(".detail-records");
+  recordsEl.style.display = "";
+  recordsEl.innerHTML = items.map(t => {
+    const c = TRAFFIC_COLOR_MAP[t.type] || "#a9a9a9";
+    const m = Math.round(t.duration_sec / 60);
+    return `<div class="detail-record-row">
+      <span class="detail-type-badge" style="background:${c}">${t.type}</span>
+      <span class="detail-record-time">${m}min  ${t.origin} → ${t.dest}</span>
+    </div>`;
+  }).join("");
+
+  el.querySelector(".detail-note").style.display = "none";
+  el.style.display = "";
+}
+
 // ── color config panel ─────────────────────────────────────────
 
 let colorConfigEl = null;
@@ -359,6 +388,16 @@ function initMap() {
         "icon-opacity": 0.7,
       },
     });
+
+    // traffic line click
+    map.on("click", "traffic-line", (e) => {
+      if (!e.features || !e.features.length) return;
+      const props = e.features[0].properties;
+      const detail = JSON.parse(props.detail);
+      showTrafficDetail(detail, props.color);
+    });
+    map.on("mouseenter", "traffic-line", () => { map.getCanvas().style.cursor = "pointer"; });
+    map.on("mouseleave", "traffic-line", () => { map.getCanvas().style.cursor = ""; });
 
     initTimeline();
     renderMarkers({ fit: true });
@@ -640,9 +679,18 @@ function renderTraffic() {
       const eLat = oLat + (dLat - oLat) * endPct;
 
       const color = TRAFFIC_COLOR_MAP[seg.type] || "#a9a9a9";
+      // bundle all items for click detail
+      const detail = items.map(t => ({
+        type: t.type,
+        origin: t.origin,
+        dest: t.dest,
+        from_time: t.from_time,
+        to_time: t.to_time,
+        duration_sec: t.duration_sec,
+      }));
       features.push({
         type: "Feature",
-        properties: { color, width: lineWidth },
+        properties: { color, width: lineWidth, detail: JSON.stringify(detail) },
         geometry: { type: "LineString", coordinates: [[sLng, sLat], [eLng, eLat]] },
       });
     }
