@@ -10,7 +10,7 @@ const LS_STYLE_KEY = "map-style";
 const LS_LABEL_KEY = "map-label-mode";
 const LS_COLOR_KEY = "map-colors";
 
-let currentStyle = localStorage.getItem(LS_STYLE_KEY) || "gaode";
+let currentStyle = localStorage.getItem(LS_STYLE_KEY) || "tianditu";
 let labelMode = localStorage.getItem(LS_LABEL_KEY) || "activity";
 let map = null;
 let baseRecords = [];
@@ -89,19 +89,25 @@ function ensureDetail() {
     const placeEl = document.createElement("div");
     placeEl.className = "detail-place";
 
+    const singleWrap = document.createElement("div");
+    singleWrap.className = "detail-single";
     const metaEl = document.createElement("div");
     metaEl.className = "detail-meta";
-
     const timeEl = document.createElement("div");
     timeEl.className = "detail-time";
+    singleWrap.appendChild(metaEl);
+    singleWrap.appendChild(timeEl);
+
+    const recordsEl = document.createElement("div");
+    recordsEl.className = "detail-records";
 
     const noteEl = document.createElement("div");
     noteEl.className = "detail-note";
 
     card.appendChild(closeBtn);
     card.appendChild(placeEl);
-    card.appendChild(metaEl);
-    card.appendChild(timeEl);
+    card.appendChild(singleWrap);
+    card.appendChild(recordsEl);
     card.appendChild(noteEl);
     detailEl.appendChild(overlay);
     detailEl.appendChild(card);
@@ -110,20 +116,48 @@ function ensureDetail() {
   return detailEl;
 }
 
-function showDetail(props) {
+function showDetail(records, color) {
   const el = ensureDetail();
-  const arr = fmtTime(props.arrival);
-  const dep = fmtTime(props.departure);
-  el.querySelector(".detail-place").textContent = props.place;
-  el.querySelector(".detail-meta").innerHTML =
-    `<span class="detail-type-badge" style="background:${props.textColor}">${props.activity}</span>`;
-  el.querySelector(".detail-time").textContent = `${props.date}  ${arr} — ${dep}`;
+  const place = records[0].place;
+  el.querySelector(".detail-place").textContent = place;
+
+  const singleWrap = el.querySelector(".detail-single");
+  const recordsEl = el.querySelector(".detail-records");
   const noteEl = el.querySelector(".detail-note");
-  if (props.note) {
-    noteEl.textContent = props.note;
-    noteEl.style.display = "";
+
+  if (records.length === 1) {
+    const r = records[0];
+    const arr = fmtTime(r.arrival);
+    const dep = fmtTime(r.departure);
+    el.querySelector(".detail-meta").innerHTML =
+      `<span class="detail-type-badge" style="background:${color}">${r.activity}</span>`;
+    el.querySelector(".detail-time").textContent = `${r.date}  ${arr} — ${dep}`;
+    singleWrap.style.display = "";
+    recordsEl.style.display = "none";
+    if (r.note) {
+      noteEl.textContent = r.note;
+      noteEl.style.display = "";
+    } else {
+      noteEl.style.display = "none";
+    }
   } else {
-    noteEl.style.display = "none";
+    singleWrap.style.display = "none";
+    recordsEl.style.display = "";
+    recordsEl.innerHTML = records.map(r => {
+      const arr = fmtTime(r.arrival);
+      const dep = fmtTime(r.departure);
+      return `<div class="detail-record-row">
+        <span class="detail-type-badge" style="background:${color}">${r.activity}</span>
+        <span class="detail-record-time">${r.date} ${arr} — ${dep}</span>
+      </div>`;
+    }).join("");
+    const notes = records.map(r => r.note).filter(Boolean);
+    if (notes.length) {
+      noteEl.textContent = notes.join("；");
+      noteEl.style.display = "";
+    } else {
+      noteEl.style.display = "none";
+    }
   }
   el.style.display = "";
 }
@@ -302,24 +336,48 @@ function renderMarkers() {
 
   if (currentRecords.length === 0) return;
 
+  // group by coordinate
+  const groups = new Map();
+  for (const r of currentRecords) {
+    const key = `${r.lng.toFixed(7)},${r.lat.toFixed(7)}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  }
+
   const typeColorMap = getColorMap();
+  const coords = [];
 
   requestAnimationFrame(() => {
-    for (const r of currentRecords) {
+    for (const [key, recs] of groups) {
+      const count = recs.length;
+      const r = recs[0];
       const color = typeColorMap[r.activity] || "#a9a9a9";
       const el = document.createElement("div");
+
       if (labelMode === "dot") {
-        el.className = "marker-dot";
+        const size = 12 + Math.min(count - 1, 8) * 3;
+        el.className = count > 1 ? "marker-dot marker-dot-numbered" : "marker-dot";
+        el.style.width = size + "px";
+        el.style.height = size + "px";
         el.style.backgroundColor = color;
+        if (count > 1) {
+          el.textContent = count;
+          el.style.fontSize = Math.max(10, size * 0.42) + "px";
+        }
       } else {
+        const fontSize = 11 + Math.min(count - 1, 6) * 1.5;
+        const stroke = 1.5 + Math.min(count - 1, 6) * 0.3;
         el.className = "marker-label";
+        el.style.fontSize = fontSize + "px";
+        el.style.WebkitTextStroke = stroke + "px rgba(0,0,0,0.8)";
         el.style.color = color;
         el.textContent = labelMode === "place"
           ? (r.place.length > 5 ? r.place.slice(0, 5) + "…" : r.place)
           : r.activity;
       }
+
       el.addEventListener("click", () => {
-        showDetail({ ...r, textColor: color });
+        showDetail(recs, color);
       });
 
       const marker = new maplibregl.Marker({ element: el, anchor: "center" })
@@ -327,12 +385,14 @@ function renderMarkers() {
         .addTo(map);
 
       markers.push(marker);
+      coords.push([r.lng, r.lat]);
+    }
+
+    if (coords.length > 0) {
+      const { center, zoom } = calculateDenseMapCenterAndZoom(coords);
+      map.flyTo({ center, zoom });
     }
   });
-
-  const coords = currentRecords.map(r => [r.lng, r.lat]);
-  const { center, zoom } = calculateDenseMapCenterAndZoom(coords);
-  map.flyTo({ center, zoom });
 }
 
 // ── helpers ────────────────────────────────────────────────────
