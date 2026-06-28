@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>全量排行榜</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
-  <link rel="stylesheet" href="../css/intro.css?v=d7bcac8" />
-  <link rel="stylesheet" href="../css/sheep.css?v=d7bcac8" />
-  <link rel="stylesheet" href="../css/pw-overlay.css?v=d7bcac8" />
-  <link rel="stylesheet" href="../css/leaderboard.css?v=d7bcac8" />
+  <link rel="stylesheet" href="../css/intro.css?v=08f7251" />
+  <link rel="stylesheet" href="../css/sheep.css?v=08f7251" />
+  <link rel="stylesheet" href="../css/pw-overlay.css?v=08f7251" />
+  <link rel="stylesheet" href="../css/leaderboard.css?v=08f7251" />
 </head>
 
 <body>
@@ -128,13 +128,13 @@
   <div class="main" id="mainContent"></div>
 
   <script type="module">
-    import { initAll } from "../js/init.js?v=d7bcac8";
+    import { initAll } from "../js/init.js?v=08f7251";
     import { initFullData, records, traffic, recordLocations, recordWeather } from "../js/full/map-main.js";
-    import { showLoadingSheep, hideLoadingSheep } from "../js/sheep.js?v=d7bcac8";
-    import { finishLoading } from "../js/loading.js?v=d7bcac8";
+    import { showLoadingSheep, hideLoadingSheep } from "../js/sheep.js?v=08f7251";
+    import { finishLoading } from "../js/loading.js?v=08f7251";
     import {
       buildCityStats, buildDistrictStats,
-      buildWeatherRankings, buildTrafficRankings, buildSummary,
+      buildWeatherRankings, buildTrafficRankings, buildTrafficSegmentRankings, buildSummary,
       buildGeoExtremes, buildJourneyStats,
       CONDITION_LABELS
     } from "../js/leaderboard.js";
@@ -195,6 +195,7 @@
       const weatherRankings = buildWeatherRankings(cityStats);
       const districtWeatherRankings = buildWeatherRankings(districtStats);
       const trafficRankings = buildTrafficRankings(cityStats);
+      const trafficSegmentRankings = buildTrafficSegmentRankings(traffic, recordLocations, records);
       const geoExtremes = buildGeoExtremes(records, recordLocations);
       const journeyStats = buildJourneyStats(traffic, recordLocations, records);
       const summary = buildSummary(cityStats);
@@ -208,6 +209,7 @@
       let citySort = { field: 'recordCount', asc: false };
       let districtSort = { field: 'recordCount', asc: false };
       let wxMode = 'city';
+      let trafficMode = 'city';
 
       function rankClass(i) { if (i===0) return 'rank-1'; if (i===1) return 'rank-2'; if (i===2) return 'rank-3'; return ''; }
       function rankDotClass(i) { if (i===0) return 'gold'; if (i===1) return 'silver'; if (i===2) return 'bronze'; return ''; }
@@ -384,18 +386,29 @@
       }
 
       function renderTrafficTab() {
-        const types = Object.keys(trafficRankings).sort((a, b) => {
-          const tA = trafficRankings[a].reduce((s, e) => s + e.count, 0);
-          const tB = trafficRankings[b].reduce((s, e) => s + e.count, 0);
+        const rankings = trafficMode === 'segment' ? trafficSegmentRankings : trafficRankings;
+        const types = Object.keys(rankings).sort((a, b) => {
+          const tA = trafficMode === 'segment'
+            ? rankings[a].reduce((s, e) => s + e.durationSec, 0)
+            : rankings[a].reduce((s, e) => s + e.count, 0);
+          const tB = trafficMode === 'segment'
+            ? rankings[b].reduce((s, e) => s + e.durationSec, 0)
+            : rankings[b].reduce((s, e) => s + e.count, 0);
           return tB - tA;
         });
-        let html = '<div class="traffic-grid">';
+        let html = `<div class="wx-toggle-bar"><button class="wx-toggle ${trafficMode==='city'?'active':''}" data-tm="city">🏙 城市</button><button class="wx-toggle ${trafficMode==='segment'?'active':''}" data-tm="segment">📏 单段</button></div>`;
+        html += '<div class="traffic-grid">';
         for (const type of types) {
-          const list = trafficRankings[type];
+          const list = rankings[type];
           html += `<div class="traffic-card"><h3>${type}</h3><ol>`;
           list.slice(0, 8).forEach((e, i) => {
-            html += `<li><span class="rank-dot ${rankDotClass(i)}">${i+1}</span><span class="city-label">${e.city}</span><span class="city-val">${e.count}<span class="city-unit">次</span></span>` +
-              `${e.totalHours ? `<span class="traffic-dur">⏱${fmtHours(e.totalHours)} · 均${fmtHours(e.avgHours)}/次 · 最长${fmtHours(e.maxHours)}/次${e.maxHoursPerDay ? ' · '+'最长' + fmtHours(e.maxHoursPerDay)+'/天' : ''} · ${e.dayCount||0}天</span>` : ''}</li>`;
+            if (trafficMode === 'segment') {
+              html += `<li><span class="rank-dot ${rankDotClass(i)}">${i+1}</span><span class="city-label">${e.origin} → ${e.dest}</span><span class="city-val">${fmtHours(e.durationMin/60)}<span class="city-unit"></span></span>` +
+                `<span class="traffic-dur">${e.odPct<100 ? '占'+e.odPct+'% · ' : ''}${[e.originCity,e.destCity].filter(Boolean).join(' · ')}${e.date ? ' · '+e.date : ''}</span></li>`;
+            } else {
+              html += `<li><span class="rank-dot ${rankDotClass(i)}">${i+1}</span><span class="city-label">${e.city}</span><span class="city-val">${e.count}<span class="city-unit">次</span></span>` +
+                `${e.totalHours ? `<span class="traffic-dur">⏱${fmtHours(e.totalHours)} · 均${fmtHours(e.avgHours)}/次 · 最长${fmtHours(e.maxHours)}/次${e.maxHoursPerDay ? ' · '+'最长' + fmtHours(e.maxHoursPerDay)+'/天' : ''} · ${e.dayCount||0}天</span>` : ''}</li>`;
+            }
           });
           html += '</ol></div>';
         }
@@ -403,7 +416,7 @@
         return html;
       }
 
-      function renderGeoCard(icon, label, r) {
+      function renderGeoCard(icon, label, r, extra) {
         if (!r) return '';
         const loc = [r.city, r.district].filter(Boolean).join(' ');
         return `<div class="geo-card">
@@ -413,6 +426,7 @@
           <div class="geo-loc">${loc}${r.admin ? ' · '+r.admin : ''}</div>
           <div class="geo-coord">${r.lat.toFixed(4)}°, ${r.lng.toFixed(4)}°</div>
           <div class="geo-date">${r.date || ''}</div>
+          ${extra ? `<div class="geo-extra">${extra}</div>` : ''}
         </div>`;
       }
 
@@ -423,6 +437,7 @@
           ${renderGeoCard('⬇️', '最南点', g.south)}
           ${renderGeoCard('➡️', '最东点', g.east)}
           ${renderGeoCard('⬅️', '最西点', g.west)}
+          ${renderGeoCard('📍', '最远点', g.farthest, g.farthestKm + ' km')}
           <div class="geo-card geo-span">
             <div class="geo-icon">📏</div>
             <div class="geo-label">经纬跨度</div>
@@ -504,10 +519,15 @@
       });
 
       mainContent.addEventListener('click', (e) => {
-        const btn = e.target.closest('.wx-toggle');
-        if (!btn) return;
-        wxMode = btn.dataset.wx;
-        renderCurrent();
+        const wxBtn = e.target.closest('.wx-toggle');
+        if (wxBtn) {
+          if (wxBtn.dataset.wx) {
+            wxMode = wxBtn.dataset.wx;
+          } else if (wxBtn.dataset.tm) {
+            trafficMode = wxBtn.dataset.tm;
+          }
+          renderCurrent();
+        }
       });
 
       renderSummary();

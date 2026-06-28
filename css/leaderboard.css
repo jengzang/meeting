@@ -437,6 +437,7 @@ body {
 .geo-card .geo-date { font-size: 11px; color: var(--muted); }
 .geo-card.geo-span { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .geo-card .geo-span-row { font-size: 14px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.geo-card .geo-extra { font-size: 13px; font-weight: 700; color: #fbbf24; margin-top: 4px; }
 
 /* ── Journey tab ─────────────────────────────────────────── */
 
@@ -547,4 +548,14 @@ body {
   .geo-grid { grid-template-columns: 1fr 1fr; }
   .summary-bar { gap: 8px; padding: 8px 10px; }
     .summary-item{ padding:4px;}
+  .heatmap-bars {
+    min-width: 300px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .heatmap-block {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .heatmap-tick { font-size: 7px; }
 }

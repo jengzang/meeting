@@ -42,6 +42,9 @@ function mergeTrafficByOD(traffic) {
       }
     }
 
+    const odTotal = segments.reduce((s, seg) => s + seg.duration_sec, 0);
+    for (const seg of segments) seg._odTotalSec = odTotal;
+
     merged.push(...segments);
   }
 
@@ -517,6 +520,46 @@ export function buildTrafficRankings(cityStats) {
   return typeMap;
 }
 
+export function buildTrafficSegmentRankings(traffic, locations, records) {
+  const knownPoints = [];
+  for (const r of records) {
+    const loc = locations[String(r.id)];
+    if (loc && loc.city && r.lat != null && r.lng != null) {
+      knownPoints.push({ lat: r.lat, lng: r.lng, city: loc.city, district: loc.district });
+    }
+  }
+
+  const merged = mergeTrafficByOD(traffic);
+  const typeMap = {};
+
+  for (const t of merged) {
+    if (!t.duration_sec) continue;
+    const o = resolveTrafficCity(t, 'origin', knownPoints, locations);
+    const d = resolveTrafficCity(t, 'dest', knownPoints, locations);
+    if (!o || !o.city || !d || !d.city) continue;
+
+    if (!typeMap[t.type]) typeMap[t.type] = [];
+    const odTotal = t._odTotalSec || t.duration_sec;
+    typeMap[t.type].push({
+      origin: t.origin,
+      dest: t.dest,
+      originCity: o.city,
+      destCity: d.city,
+      durationSec: t.duration_sec,
+      durationMin: Math.round(t.duration_sec / 60 * 10) / 10,
+      odPct: Math.round(t.duration_sec / odTotal * 100),
+      date: t.date,
+      from_time: t.from_time,
+      to_time: t.to_time,
+    });
+  }
+
+  for (const type of Object.keys(typeMap)) {
+    typeMap[type].sort((a, b) => b.durationSec - a.durationSec);
+  }
+  return typeMap;
+}
+
 // ── Summary ─────────────────────────────────────────────────────────
 
 export function buildSummary(cityStats) {
@@ -547,8 +590,19 @@ export function buildSummary(cityStats) {
 
 // ── Geography extremes ─────────────────────────────────────────────
 
+const GEO_ORIGIN = { lat: 22.813132, lng: 113.589222 };
+
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 export function buildGeoExtremes(records, locations) {
-  let north = null, south = null, east = null, west = null;
+  let north = null, south = null, east = null, west = null, farthest = null;
+  let farthestDist = 0;
 
   for (const r of records) {
     if (r.lat == null || r.lng == null) continue;
@@ -558,12 +612,16 @@ export function buildGeoExtremes(records, locations) {
     if (!south || r.lat < south.lat) south = { ...r, city: loc.city, district: loc.district, admin: loc.admin };
     if (!east || r.lng > east.lng) east = { ...r, city: loc.city, district: loc.district, admin: loc.admin };
     if (!west || r.lng < west.lng) west = { ...r, city: loc.city, district: loc.district, admin: loc.admin };
+
+    const d = haversineKm(GEO_ORIGIN.lat, GEO_ORIGIN.lng, r.lat, r.lng);
+    if (d > farthestDist) { farthestDist = d; farthest = { ...r, city: loc.city, district: loc.district, admin: loc.admin }; }
   }
 
   const latSpan = north && south ? Math.round((north.lat - south.lat) * 100) / 100 : 0;
   const lngSpan = east && west ? Math.round((east.lng - west.lng) * 100) / 100 : 0;
+  const farthestKm = farthest ? Math.round(farthestDist * 10) / 10 : 0;
 
-  return { north, south, east, west, latSpan, lngSpan };
+  return { north, south, east, west, farthest, farthestKm, latSpan, lngSpan };
 }
 
 // ── Journey stats ──────────────────────────────────────────────────

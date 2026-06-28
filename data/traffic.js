@@ -2289,38 +2289,6 @@ export const traffic = [
     "date": "2026-04-20"
   },
   {
-    "type": "火车",
-    "from_time": "2026-04-20T21:56:49+0800",
-    "to_time": "2026-04-20T22:48:46+0800",
-    "tz": "Asia/Shanghai",
-    "duration_sec": 3117,
-    "origin": "宁波站(8B-9B检票口)",
-    "origin_lat": 29.8642756,
-    "origin_lng": 121.5330142,
-    "origin_record_id": 162,
-    "dest": "东宁路",
-    "dest_lat": 30.2969248,
-    "dest_lng": 120.2107755,
-    "dest_record_id": 163,
-    "date": "2026-04-20"
-  },
-  {
-    "type": "步行",
-    "from_time": "2026-04-20T22:48:46+0800",
-    "to_time": "2026-04-20T22:59:55+0800",
-    "tz": "Asia/Shanghai",
-    "duration_sec": 668,
-    "origin": "宁波站(8B-9B检票口)",
-    "origin_lat": 29.8642756,
-    "origin_lng": 121.5330142,
-    "origin_record_id": 162,
-    "dest": "东宁路",
-    "dest_lat": 30.2969248,
-    "dest_lng": 120.2107755,
-    "dest_record_id": 163,
-    "date": "2026-04-20"
-  },
-  {
     "type": "步行",
     "from_time": "2026-05-01T17:59:08+0800",
     "to_time": "2026-05-01T18:12:26+0800",
