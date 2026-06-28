@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>全量数据中心</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%236366f1'/><stop offset='100%25' stop-color='%238b5cf6'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><path d='M10 12h12M10 16h12M10 20h8' stroke='white' stroke-width='2.5' stroke-linecap='round'/></svg>" />
+  <link rel="stylesheet" href="../css/pw-overlay.css?v=291062b" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep: #06080d;
+      --bg-card: rgba(15, 19, 31, 0.75);
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --accent-1: #6366f1;
+      --accent-2: #8b5cf6;
+      --accent-3: #06b6d4;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg-deep);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #bgCanvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.10;
+      animation: orbPulse 8s ease-in-out infinite;
+    }
+    .orb-1 { width: 600px; height: 600px; background: #6366f1; top: -250px; left: -150px; animation-delay: 0s; }
+    .orb-2 { width: 500px; height: 500px; background: #06b6d4; bottom: -200px; right: -120px; animation-delay: -3s; }
+    .orb-3 { width: 400px; height: 400px; background: #8b5cf6; top: 40%; left: 60%; animation-delay: -6s; }
+    @keyframes orbPulse {
+      0%, 100% { opacity: 0.08; transform: scale(1); }
+      50% { opacity: 0.16; transform: scale(1.15); }
+    }
+
+    .grid-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+    }
+
+    .main {
+      position: relative;
+      z-index: 1;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 36px;
+      padding: 40px 28px;
+    }
+    .main.visible { display: flex; }
+
+    /* ── Logo ──────────────────────────────────── */
+    .logo-mark {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo-hex {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      animation: logoRotate 20s linear infinite;
+    }
+    .logo-hex-inner {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      background: var(--bg-deep);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    }
+    .logo-ring {
+      position: absolute;
+      width: 72px;
+      height: 72px;
+      border: 1.5px solid rgba(99, 102, 241, 0.3);
+      border-radius: 50%;
+      animation: logoRingPulse 3s ease-in-out infinite;
+    }
+    .logo-ring:nth-child(2) {
+      width: 88px;
+      height: 88px;
+      border-color: rgba(139, 92, 246, 0.15);
+      animation-delay: -1.5s;
+    }
+    @keyframes logoRotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes logoRingPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.15); opacity: 0.4; }
+    }
+
+    /* ── Title ────────────────────────────────── */
+    .title-group { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .title-main {
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, #e2e8f0 0%, #a5b4fc 40%, #67e8f9 70%, #c4b5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.3));
+    }
+    .title-sub {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .title-accent {
+      display: inline-block;
+      width: 40px;
+      height: 1.5px;
+      background: linear-gradient(90deg, transparent, var(--accent-1), transparent);
+      margin-top: 4px;
+    }
+
+    /* ── Nav cards ────────────────────────────── */
+    .nav-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+    .nav-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 24px 20px;
+      border-radius: 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      text-decoration: none;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      overflow: hidden;
+    }
+    .nav-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+    .nav-card::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: 18px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.06), transparent 50%, var(--glow));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+    .nav-card:hover {
+      transform: translateY(-4px) scale(1.04);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    }
+    .nav-card:hover::before { opacity: 1; }
+    .nav-card:hover::after { opacity: 1; }
+    .nav-card:active { transform: scale(0.97); transition: transform 0.1s; }
+
+    .nav-card .icon-box {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      position: relative;
+      z-index: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .nav-card .label-sub {
+      font-size: 10.5px;
+      font-weight: 400;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+    }
+
+    .nav-card.accent-map { --glow: rgba(6, 182, 212, 0.2); }
+    .nav-card.accent-map:hover { border-color: rgba(6, 182, 212, 0.3); box-shadow: 0 0 40px rgba(6, 182, 212, 0.1), 0 16px 48px rgba(0,0,0,0.5); }
+    .nav-card.accent-map:hover::before { background: radial-gradient(ellipse at 50% 30%, rgba(6,182,212,0.08) 0%, transparent 60%); }
+
+    .nav-card.accent-timeline { --glow: rgba(139, 92, 246, 0.2); }
+    .nav-card.accent-timeline:hover { border-color: rgba(139, 92, 246, 0.3); box-shadow: 0 0 40px rgba(139, 92, 246, 0.1), 0 16px 48px rgba(0,0,0,0.5); }
+    .nav-card.accent-timeline:hover::before { background: radial-gradient(ellipse at 50% 30%, rgba(139,92,246,0.08) 0%, transparent 60%); }
+
+    .nav-card.accent-leader { --glow: rgba(34, 211, 238, 0.2); }
+    .nav-card.accent-leader:hover { border-color: rgba(34, 211, 238, 0.3); box-shadow: 0 0 40px rgba(34, 211, 238, 0.1), 0 16px 48px rgba(0,0,0,0.5); }
+    .nav-card.accent-leader:hover::before { background: radial-gradient(ellipse at 50% 30%, rgba(34,211,238,0.08) 0%, transparent 60%); }
+
+    /* ── Stats bar ────────────────────────────── */
+    .stats-bar {
+      display: flex;
+      gap: 32px;
+      padding: 14px 28px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .stat-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .stat-value {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, #e2e8f0, #a5b4fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .stat-divider { width: 1px; background: rgba(255,255,255,0.06); align-self: stretch; }
+
+    @media (max-width: 768px) {
+      .main { gap: 28px; padding: 24px 18px; }
+      .title-main { font-size: 28px; }
+      .nav-grid { gap: 10px; grid-template-columns: 1fr 1fr 1fr; }
+      .nav-card { padding: 16px 10px; font-size: 13px; gap: 8px; border-radius: 14px; }
+      .nav-card .icon-box { width: 40px; height: 40px; border-radius: 10px; font-size: 20px; }
+      .stats-bar { gap: 18px; padding: 10px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="grid-overlay"></div>
+  <canvas id="bgCanvas"></canvas>
+
+  <!-- Password overlay -->
+  <div class="pw-overlay" id="pwOverlay">
+    <div class="pw-card">
+      <h2>全量数据中心</h2>
+      <p>输入密码以查看完整数据</p>
+      <input type="password" class="pw-input" id="pwInput" placeholder="••••••" autofocus />
+      <button class="pw-btn" id="pwBtn">确认</button>
+      <div class="pw-error" id="pwError"></div>
+    </div>
+  </div>
+
+  <!-- Main content (hidden until auth) -->
+  <div class="main" id="mainContent">
+    <div class="logo-mark">
+      <div class="logo-ring"></div>
+      <div class="logo-ring"></div>
+      <div class="logo-hex"><div class="logo-hex-inner"></div></div>
+    </div>
+    <div class="title-group">
+      <h1 class="title-main">全量数据中心</h1>
+      <p class="title-sub">Full Data Suite</p>
+      <span class="title-accent"></span>
+    </div>
+    <div class="nav-grid">
+      <a href="map.html" class="nav-card accent-map">
+        <div class="icon-box">🗺️</div>
+        <span>地图</span>
+        <span class="label-sub">Map</span>
+      </a>
+      <a href="timeline.html" class="nav-card accent-timeline">
+        <div class="icon-box">⏰</div>
+        <span>时间线</span>
+        <span class="label-sub">Timeline</span>
+      </a>
+      <a href="leaderboard.html" class="nav-card accent-leader">
+        <div class="icon-box">🏆</div>
+        <span>排行榜</span>
+        <span class="label-sub">Leaderboard</span>
+      </a>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-value" id="statMeetings">--</span>
+        <span class="stat-label">Records</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value" id="statHours">--</span>
+        <span class="stat-label">Hours</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value" id="statDays">--</span>
+        <span class="stat-label">Days</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── Particle network canvas ──────────────────────
+    (function() {
+      var canvas = document.getElementById('bgCanvas');
+      var ctx = canvas.getContext('2d');
+      var w, h, particles;
+      var PARTICLE_COUNT = 70;
+      var CONNECT_DIST = 120;
+      var MOUSE_RADIUS = 180;
+      var mouse = { x: -1000, y: -1000 };
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      }
+
+      function initParticles() {
+        particles = [];
+        for (var i = 0; i < PARTICLE_COUNT; i++) {
+          particles.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            vx: (Math.random() - 0.5) * 0.35,
+            vy: (Math.random() - 0.5) * 0.35,
+            r: Math.random() * 1.5 + 0.8,
+          });
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, w, h);
+        for (var i = 0; i < particles.length; i++) {
+          var p = particles[i];
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+          if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.35)';
+          ctx.fill();
+
+          for (var j = i + 1; j < particles.length; j++) {
+            var q = particles[j];
+            var dx = p.x - q.x, dy = p.y - q.y;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < CONNECT_DIST) {
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(q.x, q.y);
+              ctx.strokeStyle = 'rgba(99, 102, 241, ' + (0.06 * (1 - dist / CONNECT_DIST)) + ')';
+              ctx.lineWidth = 0.5;
+              ctx.stroke();
+            }
+          }
+
+          var mdx = p.x - mouse.x, mdy = p.y - mouse.y;
+          var mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+          if (mdist < MOUSE_RADIUS) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.strokeStyle = 'rgba(139, 92, 246, ' + (0.14 * (1 - mdist / MOUSE_RADIUS)) + ')';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            var force = (1 - mdist / MOUSE_RADIUS) * 0.02;
+            p.vx += mdx * force;
+            p.vy += mdy * force;
+          }
+        }
+        for (var k = 0; k < particles.length; k++) {
+          var pk = particles[k];
+          pk.vx *= 0.999; pk.vy *= 0.999;
+          var speed = Math.sqrt(pk.vx * pk.vx + pk.vy * pk.vy);
+          if (speed > 1.2) { pk.vx = (pk.vx / speed) * 1.2; pk.vy = (pk.vy / speed) * 1.2; }
+        }
+        requestAnimationFrame(draw);
+      }
+
+      window.addEventListener('resize', function() { resize(); initParticles(); });
+      window.addEventListener('mousemove', function(e) { mouse.x = e.clientX; mouse.y = e.clientY; });
+      window.addEventListener('touchmove', function(e) { mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; }, { passive: true });
+
+      resize();
+      initParticles();
+      draw();
+    })();
+  </script>
+  <script type="module">
+    import { initFullData, records } from "../js/full/map-main.js";
+
+    var AUTH_KEY = 'full-map-auth';
+    var pwOverlay = document.getElementById('pwOverlay');
+    var pwInput = document.getElementById('pwInput');
+    var pwBtn = document.getElementById('pwBtn');
+    var pwError = document.getElementById('pwError');
+    var mainContent = document.getElementById('mainContent');
+    var verifying = false;
+
+    async function tryDecrypt(password) {
+      if (verifying) return;
+      verifying = true;
+      pwBtn.disabled = true;
+      pwError.textContent = '';
+
+      try {
+        await initFullData(password);
+        sessionStorage.setItem(AUTH_KEY, password);
+        pwOverlay.classList.add('hidden');
+        mainContent.classList.add('visible');
+        renderStats();
+      } catch (e) {
+        sessionStorage.removeItem(AUTH_KEY);
+        pwInput.classList.add('error');
+        pwError.textContent = '密码错误';
+        setTimeout(function() { pwInput.classList.remove('error'); }, 300);
+        pwInput.value = '';
+        pwBtn.disabled = false;
+        pwInput.focus();
+      } finally {
+        verifying = false;
+      }
+    }
+
+    pwBtn.addEventListener('click', function() {
+      tryDecrypt(pwInput.value.trim());
+    });
+
+    pwInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') tryDecrypt(pwInput.value.trim());
+    });
+
+    pwInput.addEventListener('input', function() {
+      pwError.textContent = '';
+      if (pwInput.value.trim().length >= 6) tryDecrypt(pwInput.value.trim());
+    });
+
+    var savedPw = sessionStorage.getItem(AUTH_KEY);
+    if (savedPw) tryDecrypt(savedPw);
+
+    function renderStats() {
+      var count = records.length;
+      var days = new Set();
+      var totalMinutes = 0;
+      records.forEach(function(r) {
+        if (r.date) days.add(r.date);
+        if (r.arrival && r.departure) {
+          var a = new Date(r.arrival), d = new Date(r.departure);
+          if (!isNaN(a) && !isNaN(d)) totalMinutes += (d - a) / 60000;
+        }
+      });
+
+      function animate(el, target, suffix) {
+        if (!el) return;
+        var duration = 1800;
+        var start = performance.now();
+        function tick(now) {
+          var progress = Math.min((now - start) / duration, 1);
+          var eased = 1 - Math.pow(1 - progress, 3);
+          el.textContent = Math.round(eased * target).toLocaleString() + suffix;
+          if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+
+      animate(document.getElementById('statMeetings'), count, '');
+      animate(document.getElementById('statHours'), Math.round(totalMinutes / 60), 'h');
+      animate(document.getElementById('statDays'), days.size, '');
+    }
+  </script>
+</body>
+</html>

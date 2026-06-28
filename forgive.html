@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>绵羊小互动</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
-  <link rel="stylesheet" href="css/intro.css?v=88d394b" />
+  <link rel="stylesheet" href="css/intro.css?v=291062b" />
   <style>
     * {
       box-sizing: border-box;
@@ -69,6 +69,20 @@
       text-align: center;
     }
 
+    .sheep-dancer {
+      width: 72px;
+      height: 82px;
+      margin: 0 auto 4px;
+      animation: sheepDance 0.7s ease-in-out infinite alternate;
+    }
+
+    @keyframes sheepDance {
+      0% { transform: translateY(0) rotate(-6deg) scaleX(1); }
+      30% { transform: translateY(-14px) rotate(-3deg) scaleX(1.04); }
+      60% { transform: translateY(-6px) rotate(3deg) scaleX(0.96); }
+      100% { transform: translateY(-22px) rotate(6deg) scaleX(1.02); }
+    }
+
     .emoji {
       font-size: 58px;
       line-height: 1;
@@ -116,6 +130,7 @@
       cursor: pointer;
       transition: all 0.25s;
       white-space: nowrap;
+      touch-action: manipulation;
     }
     .scene-pill:hover {
       background: rgba(255, 95, 135, 0.12);
@@ -150,6 +165,8 @@
         box-shadow 0.28s ease;
       user-select: none;
       white-space: nowrap;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .btn:active {
@@ -163,6 +180,7 @@
       background: rgba(255, 255, 255, 0.7);
       border: 1px solid rgba(255, 95, 135, 0.28);
       box-shadow: 0 12px 26px rgba(255, 95, 135, 0.18);
+      transform-origin: left center;
     }
 
     #yesBtn {
@@ -172,6 +190,7 @@
       background: linear-gradient(135deg, #ff5f8f, #ff8bb0);
       box-shadow: 0 14px 34px rgba(255, 80, 135, 0.38);
       z-index: 2;
+      transform-origin: right center;
     }
 
     .tip {
@@ -244,12 +263,13 @@
       background: linear-gradient(135deg, #ff5f8f, #ff8bb0);
       box-shadow: 0 12px 28px rgba(255, 80, 135, 0.34);
       cursor: pointer;
+      touch-action: manipulation;
     }
 
     .corner-home {
       position: fixed;
-      bottom: 16px;
-      right: 16px;
+      bottom: max(16px, env(safe-area-inset-bottom, 16px));
+      right: max(16px, env(safe-area-inset-right, 16px));
       z-index: 5;
       width: 40px;
       height: 40px;
@@ -261,6 +281,7 @@
       align-items: center;
       justify-content: center;
       border-radius: 50%;
+      touch-action: manipulation;
     }
     .corner-home:hover {
       opacity: 0.85;
@@ -273,6 +294,7 @@
 
     @media (max-width: 420px) {
       .card { min-height: 440px; padding: 28px 16px 22px; }
+      .sheep-dancer { width: 56px; height: 64px; }
       h1 { font-size: 23px; }
       .subtitle { font-size: 14px; max-width: 280px; }
       .btn { font-size: 16px; padding: 12px 18px; }
@@ -283,11 +305,13 @@
       .success-box { padding: 28px 18px; }
       .success-box .big { font-size: 52px; }
       .success-box h2 { font-size: 22px; }
+      .corner-home { width: 36px; height: 36px; bottom: max(12px, env(safe-area-inset-bottom, 12px)); right: max(12px, env(safe-area-inset-right, 12px)); }
     }
 
     @media (max-width: 360px) {
-      body { overflow-y: auto; align-items: flex-start; padding-top: 12px; }
+      body { overflow-y: auto; align-items: flex-start; padding-top: 12px; padding-bottom: env(safe-area-inset-bottom, 12px); }
       .card { min-height: 420px; padding: 24px 12px 18px; border-radius: 24px; }
+      .sheep-dancer { width: 48px; height: 56px; margin-bottom: 2px; }
       h1 { font-size: 21px; }
       .subtitle { font-size: 13px; }
       .emoji { font-size: 48px; margin-bottom: 10px; }
@@ -298,6 +322,7 @@
       #noBtn { left: 6px; top: 36px; }
       #yesBtn { right: 6px; top: 36px; }
       .tip { font-size: 12px; bottom: 2px; }
+      .corner-home { width: 32px; height: 32px; bottom: max(8px, env(safe-area-inset-bottom, 8px)); right: max(8px, env(safe-area-inset-right, 8px)); }
       .success-mask { padding: 16px; }
       .success-box { padding: 24px 14px; border-radius: 24px; }
       .success-box .big { font-size: 44px; margin-bottom: 10px; }
@@ -321,6 +346,38 @@
   <div class="heart-bg" id="heartBg"></div>
 
   <main class="card">
+    <svg class="sheep-dancer" viewBox="0 0 120 145" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="sdBody" cx="45%" cy="35%"><stop offset="0%" stop-color="#fffefb"/><stop offset="70%" stop-color="#f5f0e8"/><stop offset="100%" stop-color="#e8e0d4"/></radialGradient>
+        <radialGradient id="sdFluff" cx="40%" cy="30%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#f2ede5"/></radialGradient>
+        <radialGradient id="sdHead" cx="40%" cy="35%"><stop offset="0%" stop-color="#5a4a3a"/><stop offset="100%" stop-color="#3d3026"/></radialGradient>
+        <radialGradient id="sdEar" cx="50%" cy="50%"><stop offset="0%" stop-color="#f7c5c5"/><stop offset="100%" stop-color="#e8a0a0"/></radialGradient>
+      </defs>
+      <g>
+        <ellipse cx="60" cy="100" rx="38" ry="30" fill="url(#sdBody)"/>
+        <circle cx="38" cy="88" r="20" fill="url(#sdFluff)"/><circle cx="82" cy="88" r="20" fill="url(#sdFluff)"/>
+        <circle cx="48" cy="74" r="18" fill="url(#sdFluff)"/><circle cx="72" cy="74" r="18" fill="url(#sdFluff)"/>
+        <circle cx="60" cy="70" r="22" fill="url(#sdFluff)"/>
+        <circle cx="35" cy="98" r="15" fill="url(#sdFluff)"/><circle cx="85" cy="98" r="15" fill="url(#sdFluff)"/>
+      </g>
+      <g>
+        <ellipse cx="48" cy="42" rx="12" ry="7" fill="url(#sdHead)" transform="rotate(-28 48 42)"/>
+        <ellipse cx="48" cy="42" rx="7" ry="4" fill="url(#sdEar)" transform="rotate(-28 48 42)"/>
+        <ellipse cx="72" cy="42" rx="12" ry="7" fill="url(#sdHead)" transform="rotate(28 72 42)"/>
+        <ellipse cx="72" cy="42" rx="7" ry="4" fill="url(#sdEar)" transform="rotate(28 72 42)"/>
+        <ellipse cx="60" cy="56" rx="24" ry="22" fill="url(#sdHead)"/>
+        <circle cx="52" cy="42" r="9" fill="#5a4a3a"/><circle cx="60" cy="39" r="10" fill="#665544"/><circle cx="68" cy="42" r="9" fill="#5a4a3a"/>
+        <circle cx="52" cy="56" r="6" fill="white"/><circle cx="68" cy="56" r="6" fill="white"/>
+        <circle cx="53" cy="55" r="3.2" fill="#1a1410"/><circle cx="69" cy="55" r="3.2" fill="#1a1410"/>
+        <circle cx="54.5" cy="53.5" r="1.4" fill="white"/><circle cx="70.5" cy="53.5" r="1.4" fill="white"/>
+        <ellipse cx="48" cy="62" rx="5" ry="3.5" fill="#e8a0a0" opacity=".45"/>
+        <ellipse cx="72" cy="62" rx="5" ry="3.5" fill="#e8a0a0" opacity=".45"/>
+        <ellipse cx="60" cy="60" rx="4" ry="2.8" fill="#2a2018"/>
+        <path d="M57 63.5 Q60 67 63 63.5" stroke="#2a2018" stroke-width="1" fill="none" stroke-linecap="round"/>
+      </g>
+      <rect x="44" y="114" width="8" height="18" rx="4" fill="#4a3c30"/><rect x="68" y="114" width="8" height="18" rx="4" fill="#4a3c30"/>
+      <rect x="52" y="112" width="8" height="20" rx="4" fill="#3d3026"/><rect x="60" y="112" width="8" height="20" rx="4" fill="#3d3026"/>
+    </svg>
     <div class="emoji" id="emoji">🥺</div>
     <h1 id="question">绵羊吃了没？</h1>
     <p class="subtitle" id="subtitle">
@@ -627,7 +684,7 @@
     createFloatingHearts();
   </script>
   <script type="module">
-    import { finishLoading } from "./js/loading.js?v=88d394b";
+    import { finishLoading } from "./js/loading.js?v=291062b";
     finishLoading();
   </script>
 </body>
