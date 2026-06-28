@@ -80,6 +80,7 @@ let currentRecords = [];
 let markers = [];
 let zoomDebounce = null;
 let trafficVisible = false;
+let heatmapVisible = false;
 
 // range slider state
 let rangeMinDate = "";
@@ -154,6 +155,7 @@ const colorConfigBtn = document.getElementById("colorConfigBtn");
 const sizeModeBtns = document.querySelectorAll(".size-mode-btn");
 const showTrafficCb = document.getElementById("showTrafficCb");
 const autoClusterCb = document.getElementById("autoClusterCb");
+const heatmapCb = document.getElementById("heatmapCb");
 const scenicCb = document.getElementById("scenicCb");
 const photoCb = document.getElementById("photoCb");
 
@@ -495,6 +497,7 @@ function initMap() {
 
   map.on("load", () => {
     initTrafficLayers();
+    initHeatmapLayer();
     initTimeline();
     renderMarkers({ fit: true });
   });
@@ -721,6 +724,7 @@ function renderMarkers({ fit = false } = {}) {
   }
 
   renderTraffic();
+  renderHeatmap();
 }
 
 function initTrafficLayers() {
@@ -786,6 +790,103 @@ function initTrafficLayers() {
       "icon-opacity": 0.7,
     },
   });
+}
+
+// ── heatmap layer ──────────────────────────────────────────────
+
+function initHeatmapLayer() {
+  if (!map) return;
+
+  if (map.getLayer("heatmap-layer")) map.removeLayer("heatmap-layer");
+  if (map.getSource("heatmap-source")) map.removeSource("heatmap-source");
+
+  map.addSource("heatmap-source", {
+    type: "geojson",
+    data: { type: "FeatureCollection", features: [] }
+  });
+
+  map.addLayer({
+    id: "heatmap-layer",
+    type: "heatmap",
+    source: "heatmap-source",
+    maxzoom: 18,
+    paint: {
+      "heatmap-weight": ["get", "weight"],
+      "heatmap-intensity": [
+        "interpolate", ["linear"], ["zoom"],
+        3, 0.08,
+        7, 0.07,
+        12, 0.06,
+        16, 0.05
+      ],
+      "heatmap-radius": [
+        "interpolate", ["linear"], ["zoom"],
+        3, 70,
+        7, 110,
+        12, 150,
+        16, 200
+      ],
+      "heatmap-color": [
+        "interpolate", ["linear"], ["heatmap-density"],
+        0.00, "rgba(0, 0, 128, 0)",
+        0.10, "rgba(0, 0, 255, 0.30)",
+        0.25, "rgba(0, 255, 255, 0.50)",
+        0.50, "rgba(0, 255, 0, 0.65)",
+        0.70, "rgba(255, 255, 0, 0.80)",
+        0.90, "rgba(255, 0, 0, 0.90)",
+        1.00, "rgba(128, 0, 0, 0.95)"
+      ],
+      "heatmap-opacity": 0.80
+    }
+  });
+}
+
+function renderHeatmap() {
+  const src = map.getSource("heatmap-source");
+  if (!src) return;
+
+  if (!heatmapVisible || !currentRecords.length) {
+    src.setData({ type: "FeatureCollection", features: [] });
+    return;
+  }
+
+  let features;
+
+  if (!sizeMode) {
+    // 都不选: 每条记录独立为一个点，等权
+    features = currentRecords.map(r => ({
+      type: "Feature",
+      properties: { weight: 1 },
+      geometry: { type: "Point", coordinates: [r.lng, r.lat] }
+    }));
+  } else {
+    // aggregate by fine grid
+    const gridDeg = 0.0005;
+    const groups = new Map();
+    for (const r of currentRecords) {
+      const gLng = Math.round(r.lng / gridDeg) * gridDeg;
+      const gLat = Math.round(r.lat / gridDeg) * gridDeg;
+      const key = `${gLng.toFixed(6)},${gLat.toFixed(6)}`;
+      if (!groups.has(key)) {
+        groups.set(key, { lng: gLng, lat: gLat, recs: [] });
+      }
+      groups.get(key).recs.push(r);
+    }
+
+    const groupList = [...groups.values()];
+    const raw = groupList.map(g =>
+      Math.log1p(sizeMode === "duration" ? totalDurationHours(g.recs) : g.recs.length)
+    );
+    const weightScale = sqrtScale(raw, 19); // 1-20
+
+    features = groupList.map((g, i) => ({
+      type: "Feature",
+      properties: { weight: (weightScale.get(i) || 0) + 1 },
+      geometry: { type: "Point", coordinates: [g.lng, g.lat] }
+    }));
+  }
+
+  src.setData({ type: "FeatureCollection", features });
 }
 
 // ── traffic lines ──────────────────────────────────────────────
@@ -1021,7 +1122,9 @@ function changeMapStyle(name) {
     if (done) return;
     done = true;
     initTrafficLayers();
+    initHeatmapLayer();
     if (trafficVisible) renderTraffic();
+    if (heatmapVisible) renderHeatmap();
     renderMarkers();
   };
 
@@ -1079,12 +1182,28 @@ function bindEvents() {
   });
   showTrafficCb.addEventListener("change", () => {
     trafficVisible = showTrafficCb.checked;
+    if (trafficVisible && autoClusterCb.checked) {
+      autoClusterCb.checked = false;
+      autoCluster = false;
+      localStorage.setItem(LS_CLUSTER_KEY, false);
+      renderMarkers();
+    }
     renderTraffic();
   });
   autoClusterCb.addEventListener("change", () => {
     autoCluster = autoClusterCb.checked;
     localStorage.setItem(LS_CLUSTER_KEY, autoCluster);
+    if (autoCluster && showTrafficCb.checked) {
+      showTrafficCb.checked = false;
+      trafficVisible = false;
+      renderTraffic();
+    }
     renderMarkers();
+  });
+
+  heatmapCb.addEventListener("change", () => {
+    heatmapVisible = heatmapCb.checked;
+    renderHeatmap();
   });
 
   scenicCb.addEventListener("change", (e) => {
