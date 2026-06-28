@@ -41,59 +41,61 @@ function showBadgePop(el) {
   }, 0);
 }
 
-function showDetail(item, popup) {
+function showDetail(item) {
   var r = item._raw || {};
+  var sTime = item._origStartTime || item.startTime;
+  var eTime = item._origEndTime || item.endTime;
   var rows = "";
   if (item.source === "record") {
-    rows +=
-      '<div class="tl-popup-row"><span class="tl-popup-lbl">时间</span><span>' +
-      r.date + " " + item.startTime + " ~ " + item.endTime + "</span></div>";
-    if (r.place) rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">地点</span><span>' + r.place + "</span></div>";
-    if (r.note) rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">备注</span><span>' + r.note + "</span></div>";
+    rows += '<div class="dt-row"><span class="dt-label">时间</span><span>' + r.date + " " + sTime + " ~ " + eTime + "</span></div>";
+    if (r.place) rows += '<div class="dt-row"><span class="dt-label">地点</span><span>' + r.place + "</span></div>";
+    if (r.note) rows += '<div class="dt-row"><span class="dt-label">备注</span><span>' + r.note + "</span></div>";
 
     // Location
     var loc = recordLocations[r.id];
     if (loc) {
       var addr = [countryFlag(loc.country), loc.admin, loc.city, loc.district, loc.street, loc.houseNumber].filter(Boolean).join(' ');
-      if (addr) rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">地址</span><span>' + addr + "</span></div>";
+      if (addr) rows += '<div class="dt-row"><span class="dt-label">地址</span><span>' + addr + "</span></div>";
     }
 
     // Weather
     var wx = recordWeather[r.id];
     if (wx && wx.length) {
-      var wxHtml = '<div class="tl-popup-wx-list">';
+      var wxHtml = '<div class="dt-wx-list">';
       for (var i = 0; i < wx.length; i++) {
         var w = wx[i];
         var feels = w.feelsLikeC != null ? '(体感' + w.feelsLikeC + '°) ' : '';
         var precip = w.precipType && w.precipType !== 'none' ? ' ' + w.precipType + w.precipMm + 'mm(' + Math.round(w.precipProb*100) + '%)' : '';
         var uv = w.uvLevel ? ' UV' + w.uvIndex + ' ' + w.uvLevel : '';
-        wxHtml += '<span class="tl-popup-wx-chip">' + weatherIcon(w.condition) + ' ' + w.time + ' ' + w.tempC + '°C' + feels + w.windDir + w.windKmh + 'km/h 湿' + Math.round(w.humidity*100) + '% 见' + (w.visibilityM/1000).toFixed(1) + 'km' + uv + precip + '</span>';
+        wxHtml += '<span class="dt-wx-chip">' + weatherIcon(w.condition) + ' ' + w.time + ' ' + w.tempC + '°C' + feels + w.windDir + w.windKmh + 'km/h 湿' + Math.round(w.humidity*100) + '% 见' + (w.visibilityM/1000).toFixed(1) + 'km' + uv + precip + '</span>';
       }
       wxHtml += '</div>';
-      rows += '<div class="tl-popup-row tl-popup-row-wx"><span class="tl-popup-lbl">天气</span>' + wxHtml + "</div>";
+      rows += '<div class="dt-row dt-row-wx"><span class="dt-label">天气</span>' + wxHtml + "</div>";
     }
   } else {
-    rows +=
-      '<div class="tl-popup-row"><span class="tl-popup-lbl">时间</span><span>' +
-      r.date + " " + item.startTime + " ~ " + item.endTime + "</span></div>";
-    if (r.origin) rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">起点</span><span>' + r.origin + "</span></div>";
-    if (r.dest) rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">终点</span><span>' + r.dest + "</span></div>";
+    rows += '<div class="dt-row"><span class="dt-label">时间</span><span>' + r.date + " " + sTime + " ~ " + eTime + "</span></div>";
+    if (r.origin) rows += '<div class="dt-row"><span class="dt-label">起点</span><span>' + r.origin + "</span></div>";
+    if (r.dest) rows += '<div class="dt-row"><span class="dt-label">终点</span><span>' + r.dest + "</span></div>";
     if (r.duration_sec)
       rows +=
-        '<div class="tl-popup-row"><span class="tl-popup-lbl">耗时</span><span>' +
+        '<div class="dt-row"><span class="dt-label">耗时</span><span>' +
         Math.round(r.duration_sec / 60) + " 分钟</span></div>";
   }
-  var card = document.getElementById("tlPopupCard");
-  card.innerHTML =
-    '<button class="tl-popup-close" id="tlPopupClose">✕</button>' +
-    '<div class="tl-popup-badge" style="background:' + item.color + ';">' + item.category + "</div>" +
-    '<div class="tl-popup-title">' + item.title + "</div>" +
-    (item.subtitle ? '<div class="tl-popup-sub">' + item.subtitle + "</div>" : "") +
+
+  var dtCard = document.getElementById("dtCard");
+  dtCard.innerHTML =
+    '<button class="dt-close" id="dtClose">✕</button>' +
+    '<div class="dt-badge" style="background:' + item.color + ';">' + item.category + "</div>" +
+    '<div class="dt-title">' + item.title + "</div>" +
+    (item.subtitle ? '<div class="dt-sub">' + item.subtitle + "</div>" : "") +
     rows;
-  popup.style.display = "flex";
-  document.getElementById("tlPopupClose").addEventListener("click", function () {
-    popup.style.display = "none";
-  });
+
+  document.getElementById("dtPopup").style.display = "flex";
+  document.getElementById("dtClose").addEventListener("click", hideDetail);
+}
+
+function hideDetail() {
+  document.getElementById("dtPopup").style.display = "none";
 }
 
 export function setupTimeline(records, traffic) {
@@ -110,17 +112,9 @@ export function setupTimeline(records, traffic) {
     showBadgePop(badge);
   });
 
-  // Detail popup
-  var popup = document.createElement("div");
-  popup.className = "tl-popup";
-  popup.id = "tlPopup";
-  popup.style.display = "none";
-  popup.innerHTML = '<div class="tl-popup-overlay"></div><div class="tl-popup-card" id="tlPopupCard"></div>';
-  document.body.appendChild(popup);
-
-  popup.querySelector(".tl-popup-overlay").addEventListener("click", function () {
-    popup.style.display = "none";
-  });
+  // Detail popup overlay close
+  var dtOverlay = document.querySelector("#dtPopup .dt-overlay");
+  dtOverlay.addEventListener("click", hideDetail);
 
   var container = document.getElementById("tlContainer");
   var compact = false;
@@ -128,7 +122,7 @@ export function setupTimeline(records, traffic) {
     data: allItems,
     hourHeight: 64,
     colWidth: 70,
-    onBlockClick: function (item) { showDetail(item, popup); },
+    onBlockClick: showDetail,
   });
 
   // Mode toggle
@@ -142,7 +136,7 @@ export function setupTimeline(records, traffic) {
   var today = new Date();
   var target = (today.getMonth() + 1) + "月" + today.getDate() + "日";
   setTimeout(function () {
-    var scrollEl = document.querySelector("#viewTimeline .tl-scroll");
+    var scrollEl = document.querySelector(".tl-scroll");
     if (!scrollEl) return;
     var hds = scrollEl.querySelectorAll(".tl-hd-canvas .tl-date-hd");
     var cols = scrollEl.querySelectorAll(".tl-canvas .tl-day");
