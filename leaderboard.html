@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>排行榜</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
-  <link rel="stylesheet" href="css/intro.css?v=c1def5a" />
-  <link rel="stylesheet" href="css/sheep.css?v=c1def5a" />
-  <link rel="stylesheet" href="css/leaderboard.css?v=c1def5a" />
+  <link rel="stylesheet" href="css/intro.css?v=62fb723" />
+  <link rel="stylesheet" href="css/sheep.css?v=62fb723" />
+  <link rel="stylesheet" href="css/leaderboard.css?v=62fb723" />
 </head>
 
 <body>
@@ -114,7 +114,7 @@
   <div class="main" id="mainContent"></div>
 
   <script type="module">
-    import { initAll } from "./js/init.js?v=c1def5a";
+    import { initAll } from "./js/init.js?v=62fb723";
     import { records } from "./data/records.js";
     import { recordLocations } from "./data/record_locations.js";
     import { recordWeather } from "./data/record_weather.js";
@@ -308,13 +308,19 @@
       const panels = [
         { key:'hottest', title:`🔥 最热${label}`, fmt:v=>fmtTemp(v), get:s=>s.weather.tempMax, getTime:s=>s.weather.tempMaxTime },
         { key:'coldest', title:`❄ 最冷${label}`, fmt:v=>fmtTemp(v), get:s=>s.weather.tempMin, getTime:s=>s.weather.tempMinTime },
-        { key:'highestFeelsLike', title:`🥵 最高体感温度`, fmt:v=>fmtTemp(v), get:s=>s.weather.feelsLikeMax, getTime:s=>s.weather.feelsLikeMaxTime },
-        { key:'windiest', title:`💨 最大风速`, fmt:v=>fmtKmh(v), get:s=>s.weather.windMaxKmh, getTime:s=>s.weather.windMaxTime },
-        { key:'rainiest', title:`🌧 累计最多降雨`, fmt:v=>fmtMm(v), get:s=>s.weather.precipTotalMm, getTime:null },
-        { key:'maxPrecip', title:`🌧 单次最大降雨`, fmt:v=>fmtMm(v), get:s=>s.weather.precipMaxMm, getTime:s=>s.weather.precipMaxTime },
-        { key:'lowestVisibility', title:`🌫 最低能见度`, fmt:v=>fmtM(v), get:s=>s.weather.visibilityMinM, getTime:s=>s.weather.visibilityMinTime },
-        { key:'highestUV', title:`☀ 最高紫外线`, fmt:v=>v!=null?Math.round(v):'--', get:s=>s.weather.uvMax, getTime:s=>s.weather.uvMaxTime },
-        { key:'mostHumid', title:`💧 最潮湿`, fmt:v=>fmtPct(v), get:s=>s.weather.humidityAvg, getTime:null },
+        { key:'highestFeelsLike', title:`🥵 最高体感${label}`, fmt:v=>fmtTemp(v), get:s=>s.weather.feelsLikeMax, getTime:s=>s.weather.feelsLikeMaxTime },
+        { key:'lowestFeelsLike', title:`🥶 最低体感${label}`, fmt:v=>fmtTemp(v), get:s=>s.weather.feelsLikeMin, getTime:s=>s.weather.feelsLikeMinTime },
+        { key:'windiest', title:`💨 最大风速${label}`, fmt:v=>fmtKmh(v), get:s=>s.weather.windMaxKmh, getTime:s=>s.weather.windMaxTime },
+        { key:'calmest', title:`🍃 最平静${label}`, fmt:v=>fmtKmh(v), get:s=>s.weather.windAvgKmh, getTime:null },
+        { key:'rainiest', title:`🌧 最多降雨${label}`, fmt:v=>fmtMm(v), get:s=>s.weather.precipTotalMm, getTime:null },
+        { key:'driest', title:`🏜 最少降雨${label}`, fmt:v=>fmtMm(v), get:s=>s.weather.precipAvgMm, getTime:null },
+        { key:'maxPrecip', title:`⛈ 单次最大降雨${label}`, fmt:v=>fmtMm(v), get:s=>s.weather.precipMaxMm, getTime:s=>s.weather.precipMaxTime },
+        { key:'lowestVisibility', title:`🌫 最低能见度${label}`, fmt:v=>fmtM(v), get:s=>s.weather.visibilityMinM, getTime:s=>s.weather.visibilityMinTime },
+        { key:'highestVisibility', title:`🔭 最高能见度${label}`, fmt:v=>fmtM(v), get:s=>s.weather.visibilityMaxM, getTime:s=>s.weather.visibilityMaxTime },
+        { key:'highestUV', title:`☀ 最高紫外线${label}`, fmt:v=>v!=null?Math.round(v):'--', get:s=>s.weather.uvMax, getTime:s=>s.weather.uvMaxTime },
+        { key:'lowestUV', title:`🌥 最低紫外线${label}`, fmt:v=>v!=null?Math.round(v):'--', get:s=>s.weather.uvMin, getTime:s=>s.weather.uvMinTime },
+        { key:'mostHumid', title:`💧 最潮湿${label}`, fmt:v=>fmtPct(v), get:s=>s.weather.humidityAvg, getTime:null },
+        { key:'driestHumid', title:`🌵 最干燥${label}`, fmt:v=>fmtPct(v), get:s=>s.weather.humidityAvg, getTime:null },
       ];
       let html = `<div class="wx-toggle-bar"><button class="wx-toggle ${wxMode==='city'?'active':''}" data-wx="city">🏙 城市</button><button class="wx-toggle ${wxMode==='district'?'active':''}" data-wx="district">📍 区县</button></div>`;
       html += '<div class="weather-grid">';

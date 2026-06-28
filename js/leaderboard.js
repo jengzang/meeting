@@ -497,12 +497,18 @@ export function buildWeatherRankings(stats) {
     hottest: rankBy(stats, 'weather.tempMax', 10),
     coldest: rankByAsc(stats, 'weather.tempMin', 10),
     highestFeelsLike: rankBy(stats, 'weather.feelsLikeMax', 10),
+    lowestFeelsLike: rankByAsc(stats, 'weather.feelsLikeMin', 10),
     windiest: rankBy(stats, 'weather.windMaxKmh', 10),
+    calmest: rankByAsc(stats, 'weather.windAvgKmh', 10),
     rainiest: rankBy(stats, 'weather.precipTotalMm', 10),
+    driest: rankByAsc(stats, 'weather.precipAvgMm', 10),
     maxPrecip: rankBy(stats, 'weather.precipMaxMm', 10),
     lowestVisibility: rankByAsc(stats, 'weather.visibilityMinM', 10),
+    highestVisibility: rankBy(stats, 'weather.visibilityMaxM', 10),
     highestUV: rankBy(stats, 'weather.uvMax', 10),
+    lowestUV: rankByAsc(stats, 'weather.uvMin', 10),
     mostHumid: rankBy(stats, 'weather.humidityAvg', 10),
+    driestHumid: rankByAsc(stats, 'weather.humidityAvg', 10),
   };
 }
 

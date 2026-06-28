@@ -342,19 +342,25 @@ data/records.js              ←── js_xlsx.py ─────────→
 
 #### 天气排名 `buildWeatherRankings()`
 
-从 cityStats 或 districtStats 中生成 9 个维度的 Top 10：
+从 cityStats 或 districtStats 中生成 15 个维度的 Top 10：
 
 | 排名 | 字段 | 排序 |
 |------|------|------|
 | 最热 | `weather.tempMax` | 降序 |
 | 最冷 | `weather.tempMin` | 升序 |
 | 最高体感 | `weather.feelsLikeMax` | 降序 |
+| 最低体感 | `weather.feelsLikeMin` | 升序 |
 | 最大风速 | `weather.windMaxKmh` | 降序 |
-| 累计降雨 | `weather.precipTotalMm` | 降序 |
+| 最平静 | `weather.windAvgKmh` | 升序 |
+| 最多降雨 | `weather.precipTotalMm` | 降序 |
+| 最少降雨 | `weather.precipAvgMm` | 升序 |
 | 单次最大降雨 | `weather.precipMaxMm` | 降序 |
 | 最低能见度 | `weather.visibilityMinM` | 升序 |
+| 最高能见度 | `weather.visibilityMaxM` | 降序 |
 | 最高紫外线 | `weather.uvMax` | 降序 |
+| 最低紫外线 | `weather.uvMin` | 升序 |
 | 最潮湿 | `weather.humidityAvg` | 降序 |
+| 最干燥 | `weather.humidityAvg` | 升序 |
 
 #### 交通排名
 
