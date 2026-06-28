@@ -1,12 +1,14 @@
 """
 Convert 到访记录.csv → data/full/records.enc.js (AES-256-GCM encrypted)
 Convert 交通.csv → data/full/traffic.enc.js (AES-256-GCM encrypted)
+Convert 地点.csv → data/full/record_locations.enc.js (AES-256-GCM encrypted)
+Convert 天气.csv → data/full/record_weather.enc.js (AES-256-GCM encrypted)
 
-Encryption: PBKDF2-SHA256 (600k iter) → AES-256-GCM with random salt & IV.
+Encryption: PBKDF2-SHA256 (1.2M iter) → AES-256-GCM with shared random salt & IV.
 
 Usage:
   source /tmp/xlsxenv/bin/activate
-  python3 scripts/convert_full.py
+  FULL_MAP_PASSWORD=your-secret python3 scripts/convert_full.py
 """
 import base64, csv, json, os
 from datetime import datetime, timedelta
@@ -22,9 +24,13 @@ PBKDF2_ITERATIONS = 1_200_000
 
 SRC_RECORDS = os.path.join(os.path.dirname(__file__), "..", "raw_data/到访记录.csv")
 SRC_TRAFFIC = os.path.join(os.path.dirname(__file__), "..", "raw_data/交通.csv")
+SRC_PLACES  = os.path.join(os.path.dirname(__file__), "..", "raw_data/地点.csv")
+SRC_WEATHER = os.path.join(os.path.dirname(__file__), "..", "raw_data/天气.csv")
 DST_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "full")
 DST_RECORDS = os.path.join(DST_DIR, "records.enc.js")
 DST_TRAFFIC = os.path.join(DST_DIR, "traffic.enc.js")
+DST_LOCATIONS = os.path.join(DST_DIR, "record_locations.enc.js")
+DST_WEATHER   = os.path.join(DST_DIR, "record_weather.enc.js")
 
 TOLERANCE = timedelta(minutes=2)
 MAX_GAP = timedelta(hours=24)
@@ -34,6 +40,104 @@ def parse_dt(s):
     """Parse ISO 8601 string like '2026-06-23T02:24:43+0800'."""
     s_clean = s[:19]
     return datetime.strptime(s_clean, "%Y-%m-%dT%H:%M:%S")
+
+
+def norm_str(val):
+    return str(val).strip() if val else ""
+
+
+def fmt_temp(k):
+    """Kelvin → Celsius, 1 decimal."""
+    try:
+        return round(float(k) - 273.15, 1)
+    except (ValueError, TypeError):
+        return None
+
+
+def load_places():
+    """Return dict: place_name → {country, admin, subAdmin, city, district, street, houseNumber}."""
+    places = {}
+    with open(SRC_PLACES, "r", encoding="utf-8-sig") as f:
+        reader = csv.reader(f)
+        next(reader)
+        for row in reader:
+            if not row or len(row) < 6:
+                continue
+            name = norm_str(row[0])
+            if not name:
+                continue
+            places[name] = {
+                "country": norm_str(row[5]),
+                "admin": norm_str(row[6]),
+                "subAdmin": norm_str(row[7]),
+                "city": norm_str(row[8]),
+                "district": norm_str(row[9]),
+                "street": norm_str(row[10]),
+                "houseNumber": norm_str(row[11]),
+            }
+    return places
+
+
+def load_weather():
+    """Return dict: place_name → [(dt, entry_dict), ...] sorted by time."""
+    weather_by_place = {}
+    with open(SRC_WEATHER, "r", encoding="utf-8-sig") as f:
+        reader = csv.reader(f)
+        next(reader)
+        for row in reader:
+            if not row or len(row) < 15:
+                continue
+            place = norm_str(row[14])
+            if not place:
+                continue
+            dt = parse_dt(row[0])
+            entry = {
+                "time": row[0].strip(),
+                "condition": norm_str(row[1]),
+                "tempC": fmt_temp(row[2]),
+                "feelsLikeC": fmt_temp(row[3]),
+                "humidity": round(float(row[5]), 2) if row[5] else None,
+                "precipType": norm_str(row[6]) or None,
+                "precipMm": round(float(row[7]) * 1000, 4) if row[7] else 0,
+                "precipProb": round(float(row[8]), 2) if row[8] else 0,
+                "uvIndex": int(float(row[9])) if row[9] else 0,
+                "uvLevel": norm_str(row[10]),
+                "windDir": norm_str(row[11]),
+                "windKmh": round(float(row[12]), 1) if row[12] else 0,
+                "visibilityM": round(float(row[13])) if row[13] else 0,
+            }
+            weather_by_place.setdefault(place, []).append((dt, entry))
+    for place in weather_by_place:
+        weather_by_place[place].sort(key=lambda x: x[0])
+    return weather_by_place
+
+
+def build_enriched(records, places, weather_by_place):
+    """Match records → places (exact name) and → weather (name + time range)."""
+    record_locations = {}
+    record_weather = {}
+
+    for r in records:
+        rid = str(r["id"])
+        place_name = r.get("place", "")
+
+        if place_name in places:
+            record_locations[rid] = places[place_name]
+
+        if place_name in places and r.get("arrival") and r.get("departure"):
+            arrival_dt = parse_dt(r["arrival"])
+            departure_dt = parse_dt(r["departure"])
+            entries = weather_by_place.get(place_name, [])
+            matched = []
+            for wdt, wentry in entries:
+                if arrival_dt <= wdt <= departure_dt:
+                    compact_entry = dict(wentry)
+                    compact_entry["time"] = wdt.strftime("%H:%M")
+                    matched.append(compact_entry)
+            if matched:
+                record_weather[rid] = matched
+
+    return record_locations, record_weather
 
 
 # ── read records CSV ─────────────────────────────────────────────
@@ -85,6 +189,15 @@ with open(SRC_RECORDS, "r", encoding="utf-8-sig") as f:
         })
 
 print(f"Read {len(records)} records from CSV")
+
+# ── location & weather matching ─────────────────────────────────
+
+places = load_places()
+weather_by_place = load_weather()
+print(f"  {len(places)} places, {sum(len(v) for v in weather_by_place.values())} weather entries")
+
+record_locations, record_weather = build_enriched(records, places, weather_by_place)
+print(f"  {len(record_locations)} location entries, {len(record_weather)} weather entries")
 
 # ── encrypt helper ───────────────────────────────────────────────
 
@@ -230,3 +343,24 @@ with open(DST_TRAFFIC, "w") as f:
 
 print(f"Written {len(traffic)} encrypted traffic records to {os.path.relpath(DST_TRAFFIC)}")
 print(f"  skipped {skipped_date} outside record dates, {skipped_gap} not in any gap, {skipped_large} gaps >24h ignored")
+
+# ── encrypt & write location & weather ES modules ────────────────
+
+enc_locations = encrypt_json(record_locations, PASSWORD, shared_salt)
+js = (
+    "/* auto-generated — do not edit */\n"
+    f"export const recordLocationsEnc = {json.dumps(enc_locations, ensure_ascii=False)};\n"
+)
+with open(DST_LOCATIONS, "w") as f:
+    f.write(js)
+print(f"Written {len(record_locations)} encrypted locations to {os.path.relpath(DST_LOCATIONS)}")
+
+enc_weather = encrypt_json(record_weather, PASSWORD, shared_salt)
+js = (
+    "/* auto-generated — do not edit */\n"
+    f"export const recordWeatherEnc = {json.dumps(enc_weather, ensure_ascii=False)};\n"
+)
+with open(DST_WEATHER, "w") as f:
+    f.write(js)
+weather_count = sum(len(v) for v in record_weather.values())
+print(f"Written {len(record_weather)} encrypted weather lists ({weather_count} total entries) to {os.path.relpath(DST_WEATHER)}")

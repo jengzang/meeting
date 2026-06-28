@@ -1,4 +1,14 @@
 import { Timeline, recordsToTimeline, trafficToTimeline } from "../timeline.js";
+import { recordLocations, recordWeather } from "./map-main.js";
+
+function weatherIcon(condition) {
+  var map = {
+    "clear": "☀️", "mostlyClear": "🌤️", "partlyCloudy": "⛅",
+    "cloudy": "☁️", "mostlyCloudy": "☁️", "overcast": "☁️",
+    "rain": "🌧️", "snow": "❄️", "fog": "🌫️", "windy": "💨",
+  };
+  return map[condition] || "🌡️";
+}
 
 function showBadgePop(el) {
   var exist = document.getElementById("badgePop");
@@ -34,6 +44,25 @@ function showDetail(item, popup) {
       r.date + " " + item.startTime + " ~ " + item.endTime + "</span></div>";
     if (r.place) rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">地点</span><span>' + r.place + "</span></div>";
     if (r.note) rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">备注</span><span>' + r.note + "</span></div>";
+
+    // Location
+    var loc = recordLocations[r.id];
+    if (loc) {
+      var addr = [loc.country, loc.admin, loc.city, loc.district, loc.street, loc.houseNumber].filter(Boolean).join(' ');
+      if (addr) rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">地址</span><span>' + addr + "</span></div>";
+    }
+
+    // Weather
+    var wx = recordWeather[r.id];
+    if (wx && wx.length) {
+      var wxHtml = '<div class="tl-popup-wx-list">';
+      for (var i = 0; i < wx.length; i++) {
+        var w = wx[i];
+        wxHtml += '<span class="tl-popup-wx-chip">' + weatherIcon(w.condition) + ' ' + w.time + ' ' + w.tempC + '°C ' + w.condition + '</span>';
+      }
+      wxHtml += '</div>';
+      rows += '<div class="tl-popup-row tl-popup-row-wx"><span class="tl-popup-lbl">天气</span>' + wxHtml + "</div>";
+    }
   } else {
     rows +=
       '<div class="tl-popup-row"><span class="tl-popup-lbl">时间</span><span>' +

@@ -2,6 +2,8 @@ import { mapStyleConfig, mapStyle, calculateDenseMapCenterAndZoom } from "./map-
 import { getUniqueTypes, getDateExtent, filterByDateRange } from "./map-data.js";
 import { records } from "../data/records.js";
 import { traffic } from "../data/traffic.js";
+import { recordLocations } from "../data/record_locations.js";
+import { recordWeather } from "../data/record_weather.js";
 
 // ── localStorage key ────────────────────────────────────────────
 
@@ -140,11 +142,19 @@ function ensureDetail() {
     const noteEl = document.createElement("div");
     noteEl.className = "detail-note";
 
+    const locationEl = document.createElement("div");
+    locationEl.className = "detail-location";
+
+    const weatherEl = document.createElement("div");
+    weatherEl.className = "detail-weather";
+
     card.appendChild(closeBtn);
     card.appendChild(placeEl);
     card.appendChild(singleWrap);
     card.appendChild(recordsEl);
     card.appendChild(noteEl);
+    card.appendChild(locationEl);
+    card.appendChild(weatherEl);
     detailEl.appendChild(overlay);
     detailEl.appendChild(card);
     document.querySelector(".map-wrap").appendChild(detailEl);
@@ -160,6 +170,8 @@ function showDetail(records, color) {
   const singleWrap = el.querySelector(".detail-single");
   const recordsEl = el.querySelector(".detail-records");
   const noteEl = el.querySelector(".detail-note");
+  const locationEl = el.querySelector(".detail-location");
+  const weatherEl = el.querySelector(".detail-weather");
 
   if (records.length === 1) {
     const r = records[0];
@@ -175,6 +187,27 @@ function showDetail(records, color) {
       noteEl.style.display = "";
     } else {
       noteEl.style.display = "none";
+    }
+
+    // Location
+    const loc = recordLocations[r.id];
+    if (loc) {
+      locationEl.textContent = [loc.country, loc.admin, loc.city, loc.district, loc.street, loc.houseNumber].filter(Boolean).join(" ");
+      locationEl.style.display = "";
+    } else {
+      locationEl.style.display = "none";
+    }
+
+    // Weather
+    const wx = recordWeather[r.id];
+    if (wx && wx.length) {
+      weatherEl.innerHTML = wx.map(w => {
+        const icon = weatherIcon(w.condition);
+        return `<span class="detail-wx-chip">${icon} ${w.time} ${w.tempC}°C ${w.condition}</span>`;
+      }).join("");
+      weatherEl.style.display = "";
+    } else {
+      weatherEl.style.display = "none";
     }
   } else {
     singleWrap.style.display = "none";
@@ -194,6 +227,15 @@ function showDetail(records, color) {
     } else {
       noteEl.style.display = "none";
     }
+    // Multiple records: show location of first
+    const loc = recordLocations[records[0].id];
+    if (loc) {
+      locationEl.textContent = [loc.country, loc.admin, loc.city, loc.district, loc.street, loc.houseNumber].filter(Boolean).join(" ");
+      locationEl.style.display = "";
+    } else {
+      locationEl.style.display = "none";
+    }
+    weatherEl.style.display = "none";
   }
   el.style.display = "";
 }
@@ -771,6 +813,15 @@ function fmtTime(iso) {
   if (!iso) return "?";
   const m = iso.match(/T(\d{2}:\d{2})/);
   return m ? m[1] : "?";
+}
+
+function weatherIcon(condition) {
+  const map = {
+    "clear": "☀️", "mostlyClear": "🌤️", "partlyCloudy": "⛅",
+    "cloudy": "☁️", "mostlyCloudy": "☁️", "overcast": "☁️",
+    "rain": "🌧️", "snow": "❄️", "fog": "🌫️", "windy": "💨",
+  };
+  return map[condition] || "🌡️";
 }
 
 function dominantActivity(recs) {

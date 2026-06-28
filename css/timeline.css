@@ -316,6 +316,24 @@
   color: var(--text);
 }
 .tl-popup-row .tl-popup-lbl { color: var(--muted); }
+.tl-popup-row-wx { flex-direction: column; gap: 4px; }
+.tl-popup-wx-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 100px;
+  overflow-y: auto;
+}
+.tl-popup-wx-chip {
+  display: inline-block;
+  padding: 2px 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+}
 
 @media (max-width: 768px) {
   :root { --panel: rgba(18, 26, 46, 0.96); }

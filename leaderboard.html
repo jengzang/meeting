@@ -3,12 +3,95 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🐑 热力图</title>
+  <title>排行榜</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
-  <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/intro.css?v=e982d27" />
   <link rel="stylesheet" href="css/sheep.css?v=e982d27" />
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f172a;
+      --panel: rgba(15, 23, 42, 0.88);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ─────────────────────────────── */
+    .header-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      background: var(--panel);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+    .page-title {
+      font-size: 17px;
+      font-weight: 800;
+    }
+    .nav-link {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: color 0.2s;
+    }
+    .nav-link:hover { color: var(--text); }
+
+    /* ── Main content ────────────────────────── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .placeholder-icon {
+      font-size: 64px;
+      animation: floatTrophy 3s ease-in-out infinite;
+    }
+    @keyframes floatTrophy {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    .placeholder-title {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+    }
+    .placeholder-sub {
+      font-size: 14px;
+      color: var(--muted);
+      max-width: 320px;
+      line-height: 1.6;
+    }
+
+    /* ── Loading overlay ─────────────────────── */
     .page-loading-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#0f172a;opacity:1;transition:opacity .35s ease-out}
     .page-loading-overlay.hidden{opacity:0;pointer-events:none}
     .page-loading-overlay.removed{display:none}
@@ -16,12 +99,22 @@
     .page-loading-text{color:#94a3b8;font-size:13px;font-weight:600;letter-spacing:.05em}
     .page-loading-dots{display:inline-block;width:20px;text-align:left}
     @keyframes ld-bounce{0%{transform:translateY(0) scaleY(1)}80%{transform:translateY(-18px) scaleY(.92)}100%{transform:translateY(-22px) scaleY(1.06)}}
+
+    @media (max-width: 768px) {
+      .header-bar { gap: 8px; padding: 6px 10px; }
+      .header-left { gap: 8px; }
+      .nav-link { font-size: 11px; }
+      .page-title { font-size: 15px; }
+      .placeholder-icon { font-size: 48px; }
+      .placeholder-title { font-size: 22px; }
+    }
   </style>
 </head>
 
 <body>
   <div class="page-loading-overlay hidden" id="pageLoadingOverlay"><svg class="page-loading-sheep" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="ldBody" cx="45%" cy="35%"><stop offset="0%" stop-color="#fffefb"/><stop offset="70%" stop-color="#f5f0e8"/><stop offset="100%" stop-color="#e8e0d4"/></radialGradient><radialGradient id="ldFluff" cx="40%" cy="30%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#f2ede5"/></radialGradient><radialGradient id="ldHead" cx="40%" cy="35%"><stop offset="0%" stop-color="#5a4a3a"/><stop offset="100%" stop-color="#3d3026"/></radialGradient><radialGradient id="ldEar" cx="50%" cy="50%"><stop offset="0%" stop-color="#f7c5c5"/><stop offset="100%" stop-color="#e8a0a0"/></radialGradient></defs><g><circle cx="100" cy="130" r="42" fill="url(#ldBody)"/><circle cx="70" cy="118" r="26" fill="url(#ldFluff)"/><circle cx="130" cy="118" r="26" fill="url(#ldFluff)"/><circle cx="82" cy="100" r="24" fill="url(#ldFluff)"/><circle cx="118" cy="100" r="24" fill="url(#ldFluff)"/><circle cx="100" cy="96" r="28" fill="url(#ldFluff)"/><circle cx="66" cy="130" r="20" fill="url(#ldFluff)"/><circle cx="134" cy="130" r="20" fill="url(#ldFluff)"/><circle cx="76" cy="142" r="18" fill="#ede6db"/><circle cx="124" cy="142" r="18" fill="#ede6db"/><circle cx="90" cy="148" r="16" fill="#e8e0d4"/><circle cx="110" cy="148" r="16" fill="#e8e0d4"/></g><g><circle cx="56" cy="124" r="14" fill="url(#ldFluff)"/><circle cx="50" cy="118" r="9" fill="#ffffff"/></g><g><g><ellipse cx="78" cy="55" rx="15" ry="8" fill="url(#ldHead)" transform="rotate(-32 78 55)"/><ellipse cx="78" cy="55" rx="9" ry="5" fill="url(#ldEar)" transform="rotate(-32 78 55)"/></g><g><ellipse cx="122" cy="55" rx="15" ry="8" fill="url(#ldHead)" transform="rotate(32 122 55)"/><ellipse cx="122" cy="55" rx="9" ry="5" fill="url(#ldEar)" transform="rotate(32 122 55)"/></g><ellipse cx="100" cy="72" rx="30" ry="28" fill="url(#ldHead)"/><circle cx="88" cy="50" r="11" fill="#5a4a3a"/><circle cx="100" cy="46" r="12" fill="#665544"/><circle cx="112" cy="50" r="11" fill="#5a4a3a"/><circle cx="88" cy="70" r="7.5" fill="white"/><circle cx="112" cy="70" r="7.5" fill="white"/><circle cx="89" cy="69" r="4" fill="#1a1410"/><circle cx="113" cy="69" r="4" fill="#1a1410"/><circle cx="91.5" cy="67" r="1.8" fill="white"/><circle cx="87" cy="71" r="0.9" fill="white"/><circle cx="115.5" cy="67" r="1.8" fill="white"/><circle cx="111" cy="71" r="0.9" fill="white"/><ellipse cx="78" cy="78" rx="6" ry="4" fill="#e8a0a0" opacity=".45"/><ellipse cx="122" cy="78" rx="6" ry="4" fill="#e8a0a0" opacity=".45"/><ellipse cx="100" cy="76" rx="5" ry="3.5" fill="#2a2018"/><path d="M96 80.5 Q100 85 104 80.5" stroke="#2a2018" stroke-width="1.2" fill="none" stroke-linecap="round"/></g><rect x="74" y="158" width="10" height="22" rx="5" fill="#4a3c30"/><rect x="116" y="158" width="10" height="22" rx="5" fill="#4a3c30"/><rect x="84" y="156" width="10" height="24" rx="5" fill="#3d3026"/><rect x="106" y="156" width="10" height="24" rx="5" fill="#3d3026"/><ellipse cx="89" cy="180" rx="5.5" ry="3" fill="#2a2018"/><ellipse cx="111" cy="180" rx="5.5" ry="3" fill="#2a2018"/><ellipse cx="79" cy="180" rx="5.5" ry="3" fill="#2a2018"/><ellipse cx="121" cy="180" rx="5.5" ry="3" fill="#2a2018"/></svg><div class="page-loading-text">小羊奔跑中<span class="page-loading-dots"></span></div></div>
   <script>(function(){var o=document.getElementById('pageLoadingOverlay');if(!o)return;var s=false;try{s=sessionStorage.getItem('__sheep_nav_loading')==='1';sessionStorage.removeItem('__sheep_nav_loading');}catch(e){}if(s){o.classList.remove('hidden');var d=o.querySelector('.page-loading-dots');if(d){var c=0;o._dt=setInterval(function(){c=(c+1)%4;d.textContent='.'.repeat(c);},400);}}else{o.classList.add('hidden');setTimeout(function(){o.parentNode&&o.classList.add('removed');},400);}})();</script>
+
   <!-- ── Intro Sheep ──────────────────────────────── -->
   <div class="intro-overlay" id="introOverlay">
     <div class="intro-scene">
@@ -53,10 +146,7 @@
             <stop offset="100%" stop-color="#e8a0a0"/>
           </radialGradient>
         </defs>
-
-        <!-- Body cloud -->
         <g class="sheep-body-cloud">
-          <!-- Fluff circles -->
           <circle cx="100" cy="130" r="42" fill="url(#bodyGrad)"/>
           <circle cx="70" cy="118" r="26" fill="url(#fluffGrad)"/>
           <circle cx="130" cy="118" r="26" fill="url(#fluffGrad)"/>
@@ -70,16 +160,11 @@
           <circle cx="90" cy="148" r="16" fill="#e8e0d4"/>
           <circle cx="110" cy="148" r="16" fill="#e8e0d4"/>
         </g>
-
-        <!-- Tail -->
         <g class="sheep-tail">
           <circle cx="56" cy="124" r="14" fill="url(#fluffGrad)"/>
           <circle cx="50" cy="118" r="9" fill="#ffffff"/>
         </g>
-
-        <!-- Head -->
         <g class="sheep-head-group">
-          <!-- Ears -->
           <g class="ear-left">
             <ellipse cx="78" cy="55" rx="15" ry="8" fill="url(#headGrad)" transform="rotate(-32 78 55)"/>
             <ellipse cx="78" cy="55" rx="9" ry="5" fill="url(#earInnerGrad)" transform="rotate(-32 78 55)"/>
@@ -88,46 +173,29 @@
             <ellipse cx="122" cy="55" rx="15" ry="8" fill="url(#headGrad)" transform="rotate(32 122 55)"/>
             <ellipse cx="122" cy="55" rx="9" ry="5" fill="url(#earInnerGrad)" transform="rotate(32 122 55)"/>
           </g>
-
-          <!-- Head shape -->
           <ellipse cx="100" cy="72" rx="30" ry="28" fill="url(#headGrad)"/>
-
-          <!-- Fluffy top of head -->
           <circle cx="88" cy="50" r="11" fill="#5a4a3a"/>
           <circle cx="100" cy="46" r="12" fill="#665544"/>
           <circle cx="112" cy="50" r="11" fill="#5a4a3a"/>
-
-          <!-- Eyes -->
           <g class="eye-blink">
             <circle cx="88" cy="70" r="7.5" fill="white"/>
             <circle cx="112" cy="70" r="7.5" fill="white"/>
             <circle cx="89" cy="69" r="4" fill="#1a1410"/>
             <circle cx="113" cy="69" r="4" fill="#1a1410"/>
-            <!-- Catchlights -->
             <circle cx="91.5" cy="67" r="1.8" fill="white"/>
             <circle cx="87" cy="71" r="0.9" fill="white"/>
             <circle cx="115.5" cy="67" r="1.8" fill="white"/>
             <circle cx="111" cy="71" r="0.9" fill="white"/>
           </g>
-
-          <!-- Rosy cheeks -->
           <ellipse cx="78" cy="78" rx="6" ry="4" fill="#e8a0a0" opacity="0.45"/>
           <ellipse cx="122" cy="78" rx="6" ry="4" fill="#e8a0a0" opacity="0.45"/>
-
-          <!-- Nose -->
           <ellipse cx="100" cy="76" rx="5" ry="3.5" fill="#2a2018"/>
-
-          <!-- Mouth -->
           <path d="M96 80.5 Q100 85 104 80.5" stroke="#2a2018" stroke-width="1.2" fill="none" stroke-linecap="round"/>
         </g>
-
-        <!-- Legs -->
         <rect class="leg-back-left" x="74" y="158" width="10" height="22" rx="5" fill="#4a3c30"/>
         <rect class="leg-back-right" x="116" y="158" width="10" height="22" rx="5" fill="#4a3c30"/>
         <rect class="leg-front-left" x="84" y="156" width="10" height="24" rx="5" fill="#3d3026"/>
         <rect class="leg-front-right" x="106" y="156" width="10" height="24" rx="5" fill="#3d3026"/>
-
-        <!-- Tiny hooves -->
         <ellipse class="leg-front-left" cx="89" cy="180" rx="5.5" ry="3" fill="#2a2018"/>
         <ellipse class="leg-front-right" cx="111" cy="180" rx="5.5" ry="3" fill="#2a2018"/>
         <ellipse class="leg-back-left" cx="79" cy="180" rx="5.5" ry="3" fill="#2a2018"/>
@@ -136,72 +204,25 @@
     </div>
   </div>
 
-  <div class="card">
-    <div class="header">
-      <div>
-        <div class="title">热力图</div>
-        <div class="subtitle">2026.02.16 — 2026.06.21；一周一列，周一到周日。</div>
-        <a href="index.html" class="nav-link">🏠 基地</a>
-        <a href="map.html" class="nav-link">地图</a>
-        <a href="timeline.html" class="nav-link">时间线</a>
-        <a href="leaderboard.html" class="nav-link">排行</a>
-      </div>
-
-      <div class="controls">
-        <select id="modeSelect">
-          <option value="shape">模式 1：形状填充</option>
-          <option value="depth">模式 2：颜色深度</option>
-        </select>
-
-        <select id="themeSelect">
-          <option value="githubGreen">GitHub 绿</option>
-          <option value="oceanBlue">海洋蓝</option>
-          <option value="cyberCyan">炫酷青</option>
-          <option value="warmOrange">温暖橙</option>
-          <option value="rosePink">玫瑰粉</option>
-          <option value="violetPurple">紫罗兰</option>
-        </select>
-      </div>
+  <header class="header-bar">
+    <div class="header-left">
+      <a href="index.html" class="nav-link">🏠 基地</a>
+      <span class="page-title">🏆 排行榜</span>
+      <a href="heat.html" class="nav-link">热力图</a>
+      <a href="map.html" class="nav-link">地图</a>
+      <a href="timeline.html" class="nav-link">时间线</a>
     </div>
+  </header>
 
-    <div class="heatmap-wrap">
-      <div id="calendar" class="calendar"></div>
-    </div>
-
-    <div class="legend" id="legend"></div>
-
-    <div class="month-ratio" id="monthRatio"></div>
-
-    <div class="total-pie-section" id="totalPieSection"></div>
-
-    <div class="monthly-pie-section" id="monthlyPieSection"></div>
+  <div class="main">
+    <div class="placeholder-icon">🏆</div>
+    <div class="placeholder-title">排行榜即将上线</div>
+    <div class="placeholder-sub">数据统计中，敬请期待…</div>
   </div>
 
-  <script>
-    (function() {
-      var overlay = document.getElementById('introOverlay');
-      var msgEl = document.getElementById('introMessage');
-      function hide() {
-        overlay && overlay.classList.add('hide');
-        if (msgEl) msgEl.textContent = '';
-      }
-      setTimeout(hide, 2000);
-      overlay && overlay.addEventListener('click', hide);
-      window.showIntroSheep = function(msg, duration) {
-        if (!overlay) return;
-        if (msgEl && msg) msgEl.textContent = msg;
-        overlay.classList.remove('hide');
-        setTimeout(hide, duration || 2500);
-      };
-    })();
-  </script>
   <script type="module">
-    import { initCornerSheep, initTransitions } from "./js/sheep.js?v=e982d27";
-    import { finishLoading } from "./js/loading.js?v=e982d27";
-    initCornerSheep();
-    initTransitions();
-    finishLoading();
+    import { initAll } from "./js/init.js?v=e982d27";
+    initAll({ introTimeout: 2000 });
   </script>
-  <script type="module" src="js/main.js?v=e982d27"></script>
 </body>
 </html>
