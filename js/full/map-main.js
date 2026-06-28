@@ -246,7 +246,7 @@ function showDetail(records, color) {
 
     const loc = recordLocations[r.id];
     if (loc) {
-      locationEl.textContent = [loc.country, loc.admin, loc.city, loc.district, loc.street, loc.houseNumber].filter(Boolean).join(" ");
+      locationEl.textContent = [countryFlag(loc.country), loc.admin, loc.city, loc.district, loc.street, loc.houseNumber].filter(Boolean).join(" ");
       locationEl.style.display = "";
     } else {
       locationEl.style.display = "none";
@@ -277,9 +277,16 @@ function showDetail(records, color) {
     } else {
       noteEl.style.display = "none";
     }
-    const loc = recordLocations[records[0].id];
-    if (loc) {
-      locationEl.textContent = [loc.country, loc.admin, loc.city, loc.district, loc.street, loc.houseNumber].filter(Boolean).join(" ");
+    // Multiple records: show each unique location
+    const locSet = new Set();
+    for (const rec of records) {
+      const l = recordLocations[rec.id];
+      if (l) {
+        locSet.add([countryFlag(l.country), l.admin, l.city, l.district, l.street, l.houseNumber].filter(Boolean).join(" "));
+      }
+    }
+    if (locSet.size) {
+      locationEl.innerHTML = [...locSet].join("<br>");
       locationEl.style.display = "";
     } else {
       locationEl.style.display = "none";
@@ -891,11 +898,20 @@ function weatherIcon(condition) {
   return map[condition] || "🌡️";
 }
 
+function countryFlag(code) {
+  if (!code || code.length !== 2) return "";
+  const A = "A".charCodeAt(0);
+  return String.fromCodePoint(0x1F1E6 + code.charCodeAt(0) - A, 0x1F1E6 + code.charCodeAt(1) - A);
+}
+
 function formatWxChip(w) {
   const icon = weatherIcon(w.condition);
   const visKm = (w.visibilityM / 1000).toFixed(1);
   const humPct = Math.round(w.humidity * 100);
-  return `<span class="detail-wx-chip">${icon} ${w.time} ${w.tempC}°C 风${w.windKmh}km/h 见${visKm}km 湿${humPct}%</span>`;
+  const feels = w.feelsLikeC != null ? `(体感${w.feelsLikeC}°)` : "";
+  const precip = w.precipType && w.precipType !== "none" ? ` ${w.precipType}${w.precipMm}mm(${Math.round(w.precipProb * 100)}%)` : "";
+  const uv = w.uvLevel ? ` UV${w.uvIndex} ${w.uvLevel}` : "";
+  return `<span class="detail-wx-chip">${icon} ${w.time} ${w.tempC}°C${feels} ${w.windDir}${w.windKmh}km/h 湿${humPct}% 见${visKm}km${uv}${precip}</span>`;
 }
 
 function dominantActivity(recs) {

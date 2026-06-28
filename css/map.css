@@ -511,7 +511,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: 40dvh;
+  max-height: 35dvh;
   overflow-y: auto;
 }
 
@@ -544,6 +544,8 @@ body {
   font-size: 11px;
   color: var(--muted);
   line-height: 1.5;
+  max-height: 80px;
+  overflow-y: auto;
 }
 
 .detail-weather {

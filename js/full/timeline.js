@@ -10,6 +10,12 @@ function weatherIcon(condition) {
   return map[condition] || "🌡️";
 }
 
+function countryFlag(code) {
+  if (!code || code.length !== 2) return "";
+  var A = "A".charCodeAt(0);
+  return String.fromCodePoint(0x1F1E6 + code.charCodeAt(0) - A, 0x1F1E6 + code.charCodeAt(1) - A);
+}
+
 function showBadgePop(el) {
   var exist = document.getElementById("badgePop");
   if (exist) { exist.remove(); return; }
@@ -48,7 +54,7 @@ function showDetail(item, popup) {
     // Location
     var loc = recordLocations[r.id];
     if (loc) {
-      var addr = [loc.country, loc.admin, loc.city, loc.district, loc.street, loc.houseNumber].filter(Boolean).join(' ');
+      var addr = [countryFlag(loc.country), loc.admin, loc.city, loc.district, loc.street, loc.houseNumber].filter(Boolean).join(' ');
       if (addr) rows += '<div class="tl-popup-row"><span class="tl-popup-lbl">地址</span><span>' + addr + "</span></div>";
     }
 
@@ -58,7 +64,10 @@ function showDetail(item, popup) {
       var wxHtml = '<div class="tl-popup-wx-list">';
       for (var i = 0; i < wx.length; i++) {
         var w = wx[i];
-        wxHtml += '<span class="tl-popup-wx-chip">' + weatherIcon(w.condition) + ' ' + w.time + ' ' + w.tempC + '°C ' + ' 风' + w.windKmh + 'km/h 见' + (w.visibilityM/1000).toFixed(1) + 'km 湿' + Math.round(w.humidity*100) + '%</span>';
+        var feels = w.feelsLikeC != null ? '(体感' + w.feelsLikeC + '°) ' : '';
+        var precip = w.precipType && w.precipType !== 'none' ? ' ' + w.precipType + w.precipMm + 'mm(' + Math.round(w.precipProb*100) + '%)' : '';
+        var uv = w.uvLevel ? ' UV' + w.uvIndex + ' ' + w.uvLevel : '';
+        wxHtml += '<span class="tl-popup-wx-chip">' + weatherIcon(w.condition) + ' ' + w.time + ' ' + w.tempC + '°C' + feels + w.windDir + w.windKmh + 'km/h 湿' + Math.round(w.humidity*100) + '% 见' + (w.visibilityM/1000).toFixed(1) + 'km' + uv + precip + '</span>';
       }
       wxHtml += '</div>';
       rows += '<div class="tl-popup-row tl-popup-row-wx"><span class="tl-popup-lbl">天气</span>' + wxHtml + "</div>";

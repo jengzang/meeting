@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🐑 时间线</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
-  <link rel="stylesheet" href="css/intro.css?v=5d205a9" />
-  <link rel="stylesheet" href="css/sheep.css?v=5d205a9" />
+  <link rel="stylesheet" href="css/intro.css?v=7761f4b" />
+  <link rel="stylesheet" href="css/sheep.css?v=7761f4b" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -579,13 +579,13 @@
 
   <!-- ── Module script ─────────────────────────── -->
   <script type="module">
-    import { Timeline, recordsToTimeline, trafficToTimeline } from "./js/timeline.js?v=5d205a9";
+    import { Timeline, recordsToTimeline, trafficToTimeline } from "./js/timeline.js?v=7761f4b";
     import { records } from "./data/records.js";
     import { traffic } from "./data/traffic.js";
     import { recordLocations } from "./data/record_locations.js";
     import { recordWeather } from "./data/record_weather.js";
-    import { initCornerSheep, initTransitions } from "./js/sheep.js?v=5d205a9";
-    import { finishLoading } from "./js/loading.js?v=5d205a9";
+    import { initCornerSheep, initTransitions } from "./js/sheep.js?v=7761f4b";
+    import { finishLoading } from "./js/loading.js?v=7761f4b";
 
     initCornerSheep();
     initTransitions();
@@ -597,6 +597,12 @@
         "rain": "🌧️", "snow": "❄️", "fog": "🌫️", "windy": "💨",
       };
       return map[condition] || "🌡️";
+    }
+
+    function countryFlag(code) {
+      if (!code || code.length !== 2) return "";
+      var A = "A".charCodeAt(0);
+      return String.fromCodePoint(0x1F1E6 + code.charCodeAt(0) - A, 0x1F1E6 + code.charCodeAt(1) - A);
     }
 
     function showBadgePop(el) {
@@ -654,7 +660,7 @@
         // Location
         var loc = recordLocations[r.id];
         if (loc) {
-          var addr = [loc.country, loc.admin, loc.city, loc.district, loc.street, loc.houseNumber].filter(Boolean).join(' ');
+          var addr = [countryFlag(loc.country), loc.admin, loc.city, loc.district, loc.street, loc.houseNumber].filter(Boolean).join(' ');
           if (addr) rows += '<div class="dt-row"><span class="dt-label">地址</span><span>' + addr + '</span></div>';
         }
 
@@ -664,7 +670,10 @@
           var wxHtml = '<div class="dt-wx-list">';
           for (var i = 0; i < wx.length; i++) {
             var w = wx[i];
-            wxHtml += '<span class="dt-wx-chip">' + weatherIcon(w.condition) + ' ' + w.time + ' ' + w.tempC + '°C ' + ' 风' + w.windKmh + 'km/h 见' + (w.visibilityM/1000).toFixed(1) + 'km 湿' + Math.round(w.humidity*100) + '%</span>';
+            var feels = w.feelsLikeC != null ? '(体感' + w.feelsLikeC + '°) ' : '';
+            var precip = w.precipType && w.precipType !== 'none' ? ' ' + w.precipType + w.precipMm + 'mm(' + Math.round(w.precipProb*100) + '%)' : '';
+            var uv = w.uvLevel ? ' UV' + w.uvIndex + ' ' + w.uvLevel : '';
+            wxHtml += '<span class="dt-wx-chip">' + weatherIcon(w.condition) + ' ' + w.time + ' ' + w.tempC + '°C' + feels + w.windDir + w.windKmh + 'km/h 湿' + Math.round(w.humidity*100) + '% 见' + (w.visibilityM/1000).toFixed(1) + 'km' + uv + precip + '</span>';
           }
           wxHtml += '</div>';
           rows += '<div class="dt-row dt-row-wx"><span class="dt-label">天气</span>' + wxHtml + '</div>';
