@@ -636,6 +636,7 @@ body {
 /* ── responsive ──────────────────────────────────────────────── */
 
 @media (max-width: 600px) {
+  :root { --panel: rgba(18, 26, 46, 0.96); }
   .header-bar {
     padding: 4px 6px;
   }

@@ -420,6 +420,7 @@ select {
   :root {
     --cell-size: 15px;
     --cell-gap: 4px;
+    --panel: rgba(18, 26, 46, 0.96);
   }
 
   .card {
