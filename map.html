@@ -6,13 +6,24 @@
   <title>🐑 地图</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
   <link rel="stylesheet" href="css/map.css" />
-  <link rel="stylesheet" href="css/intro.css?v=d3284cc" />
-  <link rel="stylesheet" href="css/sheep.css?v=d3284cc" />
+  <link rel="stylesheet" href="css/intro.css?v=41caeb5" />
+  <link rel="stylesheet" href="css/sheep.css?v=41caeb5" />
+  <style>
+    .page-loading-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#0f172a;opacity:1;transition:opacity .35s ease-out}
+    .page-loading-overlay.hidden{opacity:0;pointer-events:none}
+    .page-loading-overlay.removed{display:none}
+    .page-loading-sheep{width:100px;height:110px;animation:ld-bounce .55s ease-in-out infinite alternate}
+    .page-loading-text{color:#94a3b8;font-size:13px;font-weight:600;letter-spacing:.05em}
+    .page-loading-dots{display:inline-block;width:20px;text-align:left}
+    @keyframes ld-bounce{0%{transform:translateY(0) scaleY(1)}80%{transform:translateY(-18px) scaleY(.92)}100%{transform:translateY(-22px) scaleY(1.06)}}
+  </style>
   <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
   <link href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" rel="stylesheet" />
 </head>
 
 <body>
+  <div class="page-loading-overlay hidden" id="pageLoadingOverlay"><svg class="page-loading-sheep" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="ldBody" cx="45%" cy="35%"><stop offset="0%" stop-color="#fffefb"/><stop offset="70%" stop-color="#f5f0e8"/><stop offset="100%" stop-color="#e8e0d4"/></radialGradient><radialGradient id="ldFluff" cx="40%" cy="30%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#f2ede5"/></radialGradient><radialGradient id="ldHead" cx="40%" cy="35%"><stop offset="0%" stop-color="#5a4a3a"/><stop offset="100%" stop-color="#3d3026"/></radialGradient><radialGradient id="ldEar" cx="50%" cy="50%"><stop offset="0%" stop-color="#f7c5c5"/><stop offset="100%" stop-color="#e8a0a0"/></radialGradient></defs><g><circle cx="100" cy="130" r="42" fill="url(#ldBody)"/><circle cx="70" cy="118" r="26" fill="url(#ldFluff)"/><circle cx="130" cy="118" r="26" fill="url(#ldFluff)"/><circle cx="82" cy="100" r="24" fill="url(#ldFluff)"/><circle cx="118" cy="100" r="24" fill="url(#ldFluff)"/><circle cx="100" cy="96" r="28" fill="url(#ldFluff)"/><circle cx="66" cy="130" r="20" fill="url(#ldFluff)"/><circle cx="134" cy="130" r="20" fill="url(#ldFluff)"/><circle cx="76" cy="142" r="18" fill="#ede6db"/><circle cx="124" cy="142" r="18" fill="#ede6db"/><circle cx="90" cy="148" r="16" fill="#e8e0d4"/><circle cx="110" cy="148" r="16" fill="#e8e0d4"/></g><g><circle cx="56" cy="124" r="14" fill="url(#ldFluff)"/><circle cx="50" cy="118" r="9" fill="#ffffff"/></g><g><g><ellipse cx="78" cy="55" rx="15" ry="8" fill="url(#ldHead)" transform="rotate(-32 78 55)"/><ellipse cx="78" cy="55" rx="9" ry="5" fill="url(#ldEar)" transform="rotate(-32 78 55)"/></g><g><ellipse cx="122" cy="55" rx="15" ry="8" fill="url(#ldHead)" transform="rotate(32 122 55)"/><ellipse cx="122" cy="55" rx="9" ry="5" fill="url(#ldEar)" transform="rotate(32 122 55)"/></g><ellipse cx="100" cy="72" rx="30" ry="28" fill="url(#ldHead)"/><circle cx="88" cy="50" r="11" fill="#5a4a3a"/><circle cx="100" cy="46" r="12" fill="#665544"/><circle cx="112" cy="50" r="11" fill="#5a4a3a"/><circle cx="88" cy="70" r="7.5" fill="white"/><circle cx="112" cy="70" r="7.5" fill="white"/><circle cx="89" cy="69" r="4" fill="#1a1410"/><circle cx="113" cy="69" r="4" fill="#1a1410"/><circle cx="91.5" cy="67" r="1.8" fill="white"/><circle cx="87" cy="71" r="0.9" fill="white"/><circle cx="115.5" cy="67" r="1.8" fill="white"/><circle cx="111" cy="71" r="0.9" fill="white"/><ellipse cx="78" cy="78" rx="6" ry="4" fill="#e8a0a0" opacity=".45"/><ellipse cx="122" cy="78" rx="6" ry="4" fill="#e8a0a0" opacity=".45"/><ellipse cx="100" cy="76" rx="5" ry="3.5" fill="#2a2018"/><path d="M96 80.5 Q100 85 104 80.5" stroke="#2a2018" stroke-width="1.2" fill="none" stroke-linecap="round"/></g><rect x="74" y="158" width="10" height="22" rx="5" fill="#4a3c30"/><rect x="116" y="158" width="10" height="22" rx="5" fill="#4a3c30"/><rect x="84" y="156" width="10" height="24" rx="5" fill="#3d3026"/><rect x="106" y="156" width="10" height="24" rx="5" fill="#3d3026"/><ellipse cx="89" cy="180" rx="5.5" ry="3" fill="#2a2018"/><ellipse cx="111" cy="180" rx="5.5" ry="3" fill="#2a2018"/><ellipse cx="79" cy="180" rx="5.5" ry="3" fill="#2a2018"/><ellipse cx="121" cy="180" rx="5.5" ry="3" fill="#2a2018"/></svg><div class="page-loading-text">小羊奔跑中<span class="page-loading-dots"></span></div></div>
+  <script>(function(){var o=document.getElementById('pageLoadingOverlay');if(!o)return;var s=false;try{s=sessionStorage.getItem('__sheep_nav_loading')==='1';sessionStorage.removeItem('__sheep_nav_loading');}catch(e){}if(s){o.classList.remove('hidden');var d=o.querySelector('.page-loading-dots');if(d){var c=0;o._dt=setInterval(function(){c=(c+1)%4;d.textContent='.'.repeat(c);},400);}}else{o.classList.add('hidden');setTimeout(function(){o.parentNode&&o.classList.add('removed');},400);}})();</script>
   <!-- ── Intro Sheep ──────────────────────────────── -->
   <div class="intro-overlay" id="introOverlay">
     <div class="intro-scene">
@@ -186,10 +197,12 @@
     })();
   </script>
   <script type="module">
-    import { initCornerSheep, initTransitions } from "./js/sheep.js?v=d3284cc";
+    import { initCornerSheep, initTransitions } from "./js/sheep.js?v=41caeb5";
+    import { finishLoading } from "./js/loading.js?v=41caeb5";
     initCornerSheep();
     initTransitions();
+    finishLoading();
   </script>
-  <script type="module" src="js/map-main.js?v=d3284cc"></script>
+  <script type="module" src="js/map-main.js?v=41caeb5"></script>
 </body>
 </html>

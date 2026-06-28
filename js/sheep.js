@@ -1,5 +1,7 @@
 // ── Sheep SVG library & utilities ──────────────────────────────
 
+import { signalNavLoading } from "./loading.js";
+
 // Unique ID counter for SVG gradients (avoid collisions)
 let _uid = 0;
 const uid = () => ++_uid;
@@ -399,7 +401,7 @@ export function heartBurstSheep(sourceEl) {
 
 export function initTransitions() {
   document.addEventListener("click", (e) => {
-    const link = e.target.closest("a.nav-link");
+    const link = e.target.closest("a.nav-link, a.nav-card, a.corner-home");
     if (!link || link.hostname !== location.hostname) return;
     const href = link.getAttribute("href");
     if (!href || href.startsWith("#")) return;
@@ -415,6 +417,7 @@ export function initTransitions() {
     // When mid-screen, navigate
     sheep.addEventListener("animationend", () => {
       sheep.remove();
+      signalNavLoading();
       window.location.href = href;
     });
   });

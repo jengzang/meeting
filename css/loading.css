@@ -1,0 +1,51 @@
+/* ── Page Navigation Loading Screen ────────────────── */
+/* Critical styles are inlined in each page for instant render. */
+/* This file is the canonical source for maintenance.      */
+
+.page-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  background: #0f172a;
+  opacity: 1;
+  transition: opacity 0.35s ease-out;
+}
+
+.page-loading-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.page-loading-overlay.removed {
+  display: none;
+}
+
+.page-loading-sheep {
+  width: 100px;
+  height: 110px;
+  animation: ld-bounce 0.55s ease-in-out infinite alternate;
+}
+
+.page-loading-text {
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.page-loading-dots {
+  display: inline-block;
+  width: 20px;
+  text-align: left;
+}
+
+@keyframes ld-bounce {
+  0%   { transform: translateY(0) scaleY(1); }
+  80%  { transform: translateY(-18px) scaleY(0.92); }
+  100% { transform: translateY(-22px) scaleY(1.06); }
+}
