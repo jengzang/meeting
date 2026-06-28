@@ -72,7 +72,7 @@ function resolveTrafficCity(t, key, knownPoints, locations) {
   const loc = t[ridKey] ? locations[String(t[ridKey])] : null;
   if (loc && loc.city) return { city: loc.city, district: loc.district };
 
-  const nearest = findNearestCity(t[latKey], t[lngKey], knownPoints);
+  const nearest = findNearestCity(Math.abs(t[latKey]), Math.abs(t[lngKey]), knownPoints);
   return nearest ? { city: nearest.city, district: nearest.district } : null;
 }
 
@@ -144,7 +144,7 @@ export function buildCityStats(records, locations, weather, traffic) {
   for (const r of records) {
     const loc = locations[String(r.id)];
     if (loc && loc.city && r.lat != null && r.lng != null) {
-      knownPoints.push({ lat: r.lat, lng: r.lng, city: loc.city, district: loc.district });
+      knownPoints.push({ lat: Math.abs(r.lat), lng: Math.abs(r.lng), city: loc.city, district: loc.district });
     }
   }
 
@@ -316,7 +316,7 @@ export function buildDistrictStats(records, locations, weather, traffic) {
   for (const r of records) {
     const loc = locations[String(r.id)];
     if (loc && loc.city && r.lat != null && r.lng != null) {
-      knownPoints.push({ lat: r.lat, lng: r.lng, city: loc.city, district: loc.district });
+      knownPoints.push({ lat: Math.abs(r.lat), lng: Math.abs(r.lng), city: loc.city, district: loc.district });
     }
   }
 
@@ -525,7 +525,7 @@ export function buildTrafficSegmentRankings(traffic, locations, records) {
   for (const r of records) {
     const loc = locations[String(r.id)];
     if (loc && loc.city && r.lat != null && r.lng != null) {
-      knownPoints.push({ lat: r.lat, lng: r.lng, city: loc.city, district: loc.district });
+      knownPoints.push({ lat: Math.abs(r.lat), lng: Math.abs(r.lng), city: loc.city, district: loc.district });
     }
   }
 
@@ -607,18 +607,20 @@ export function buildGeoExtremes(records, locations) {
   for (const r of records) {
     if (r.lat == null || r.lng == null) continue;
     const loc = locations[String(r.id)] || {};
+    const alat = Math.abs(r.lat);
+    const alng = Math.abs(r.lng);
 
-    if (!north || r.lat > north.lat) north = { ...r, city: loc.city, district: loc.district, admin: loc.admin };
-    if (!south || r.lat < south.lat) south = { ...r, city: loc.city, district: loc.district, admin: loc.admin };
-    if (!east || r.lng > east.lng) east = { ...r, city: loc.city, district: loc.district, admin: loc.admin };
-    if (!west || r.lng < west.lng) west = { ...r, city: loc.city, district: loc.district, admin: loc.admin };
+    if (!north || alat > north.lat) north = { ...r, lat: alat, lng: alng, city: loc.city, district: loc.district, admin: loc.admin };
+    if (!south || alat < south.lat) south = { ...r, lat: alat, lng: alng, city: loc.city, district: loc.district, admin: loc.admin };
+    if (!east || alng > east.lng) east = { ...r, lat: alat, lng: alng, city: loc.city, district: loc.district, admin: loc.admin };
+    if (!west || alng < west.lng) west = { ...r, lat: alat, lng: alng, city: loc.city, district: loc.district, admin: loc.admin };
 
-    const d = haversineKm(GEO_ORIGIN.lat, GEO_ORIGIN.lng, r.lat, r.lng);
-    if (d > farthestDist) { farthestDist = d; farthest = { ...r, city: loc.city, district: loc.district, admin: loc.admin }; }
+    const d = haversineKm(GEO_ORIGIN.lat, GEO_ORIGIN.lng, alat, alng);
+    if (d > farthestDist) { farthestDist = d; farthest = { ...r, lat: alat, lng: alng, city: loc.city, district: loc.district, admin: loc.admin }; }
   }
 
-  const latSpan = north && south ? Math.round((north.lat - south.lat) * 100) / 100 : 0;
-  const lngSpan = east && west ? Math.round((east.lng - west.lng) * 100) / 100 : 0;
+  const latSpan = north && south ? Math.round(Math.abs(north.lat - south.lat) * 100) / 100 : 0;
+  const lngSpan = east && west ? Math.round(Math.abs(east.lng - west.lng) * 100) / 100 : 0;
   const farthestKm = farthest ? Math.round(farthestDist * 10) / 10 : 0;
 
   return { north, south, east, west, farthest, farthestKm, latSpan, lngSpan };
@@ -645,7 +647,7 @@ export function buildJourneyStats(traffic, locations, records) {
     for (const r of records) {
       const loc = locations[String(r.id)];
       if (loc && loc.city && r.lat != null && r.lng != null) {
-        knownPoints.push({ lat: r.lat, lng: r.lng, city: loc.city, district: loc.district });
+        knownPoints.push({ lat: Math.abs(r.lat), lng: Math.abs(r.lng), city: loc.city, district: loc.district });
       }
     }
   }
@@ -679,7 +681,7 @@ export function buildJourneyStats(traffic, locations, records) {
     const lngKey = key === 'origin' ? 'origin_lng' : 'dest_lng';
     const loc = t[ridKey] ? locations[String(t[ridKey])] : null;
     if (loc && loc.city) return (loc.city || '') + (loc.district ? ' ' + loc.district : '');
-    const nearest = findNearestCity(t[latKey], t[lngKey], knownPoints);
+    const nearest = findNearestCity(Math.abs(t[latKey]), Math.abs(t[lngKey]), knownPoints);
     return nearest ? (nearest.city || '') + (nearest.district ? ' ' + nearest.district : '') : '';
   };
 

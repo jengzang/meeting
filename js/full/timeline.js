@@ -97,9 +97,6 @@ function showDetail(item, popup) {
 }
 
 export function setupTimeline(records, traffic) {
-  document.getElementById("viewMap").style.display = "none";
-  document.querySelector(".header-bar").style.display = "none";
-  document.getElementById("viewTimeline").style.display = "flex";
 
   var recItems = recordsToTimeline(records);
   var trafItems = trafficToTimeline(traffic);
