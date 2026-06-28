@@ -602,22 +602,7 @@ function thumbDrag(e) {
   document.addEventListener("touchend", onUp, { once: true });
 }
 
-rangeTrack.addEventListener("mousedown", (e) => {
-  const rect = rangeTrack.getBoundingClientRect();
-  const pct = ((e.clientX - rect.left) / rect.width) * 100;
-  const date = pctToDate(pct);
-  // snap to nearer thumb
-  const distFrom = Math.abs(dateToPct(rangeFromDate) - pct);
-  const distTo = Math.abs(dateToPct(rangeToDate) - pct);
-  if (distFrom <= distTo) {
-    rangeFromDate = date;
-  } else {
-    rangeToDate = date;
-  }
-  updateSliderUI();
-  applyTimelineFilter();
-  renderMarkers();
-});
+// (rangeTrack click-to-seek is bound in bindEvents())
 
 // ── DOM Markers ────────────────────────────────────────────────
 
@@ -1067,56 +1052,76 @@ function populateStyleOptions() {
 
 // ── events ─────────────────────────────────────────────────────
 
-styleSelect.addEventListener("change", () => {
-  changeMapStyle(styleSelect.value);
-});
+function bindEvents() {
+  styleSelect.addEventListener("change", () => {
+    changeMapStyle(styleSelect.value);
+  });
 
-resetBtn.addEventListener("click", resetView);
-closePanelBtn.addEventListener("click", closePanel);
-reopenPanelBtn.addEventListener("click", reopenPanel);
-labelModeBtns.forEach(btn => {
-  btn.addEventListener("click", () => {
-    labelMode = btn.dataset.mode;
-    localStorage.setItem(LS_LABEL_KEY, labelMode);
-    labelModeBtns.forEach(b => b.classList.toggle("active", b.dataset.mode === labelMode));
+  resetBtn.addEventListener("click", resetView);
+  closePanelBtn.addEventListener("click", closePanel);
+  reopenPanelBtn.addEventListener("click", reopenPanel);
+  labelModeBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      labelMode = btn.dataset.mode;
+      localStorage.setItem(LS_LABEL_KEY, labelMode);
+      labelModeBtns.forEach(b => b.classList.toggle("active", b.dataset.mode === labelMode));
+      renderMarkers();
+    });
+  });
+  colorConfigBtn.addEventListener("click", showColorConfig);
+  sizeModeBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      sizeMode = btn.dataset.mode === sizeMode ? "" : btn.dataset.mode;
+      localStorage.setItem(LS_SIZE_KEY, sizeMode);
+      sizeModeBtns.forEach(b => b.classList.toggle("active", b.dataset.mode === sizeMode));
+      renderMarkers();
+    });
+  });
+  showTrafficCb.addEventListener("change", () => {
+    trafficVisible = showTrafficCb.checked;
+    renderTraffic();
+  });
+  autoClusterCb.addEventListener("change", () => {
+    autoCluster = autoClusterCb.checked;
+    localStorage.setItem(LS_CLUSTER_KEY, autoCluster);
     renderMarkers();
   });
-});
-colorConfigBtn.addEventListener("click", showColorConfig);
-sizeModeBtns.forEach(btn => {
-  btn.addEventListener("click", () => {
-    sizeMode = btn.dataset.mode === sizeMode ? "" : btn.dataset.mode;
-    localStorage.setItem(LS_SIZE_KEY, sizeMode);
-    sizeModeBtns.forEach(b => b.classList.toggle("active", b.dataset.mode === sizeMode));
+
+  scenicCb.addEventListener("change", (e) => {
+    e.preventDefault();
+    scenicCb.checked = false;
+    window.showIntroSheep && window.showIntroSheep('坐等绵羊整理照片', 2500);
+  });
+
+  photoCb.addEventListener("change", (e) => {
+    e.preventDefault();
+    photoCb.checked = false;
+    window.showIntroSheep && window.showIntroSheep('坐等绵羊整理照片', 2500);
+  });
+
+  // range slider click-to-seek
+  rangeTrack.addEventListener("mousedown", (e) => {
+    const rect = rangeTrack.getBoundingClientRect();
+    const pct = ((e.clientX - rect.left) / rect.width) * 100;
+    const date = pctToDate(pct);
+    const distFrom = Math.abs(dateToPct(rangeFromDate) - pct);
+    const distTo = Math.abs(dateToPct(rangeToDate) - pct);
+    if (distFrom <= distTo) {
+      rangeFromDate = date;
+    } else {
+      rangeToDate = date;
+    }
+    updateSliderUI();
+    applyTimelineFilter();
     renderMarkers();
   });
-});
-showTrafficCb.addEventListener("change", () => {
-  trafficVisible = showTrafficCb.checked;
-  renderTraffic();
-});
-autoClusterCb.addEventListener("change", () => {
-  autoCluster = autoClusterCb.checked;
-  localStorage.setItem(LS_CLUSTER_KEY, autoCluster);
-  renderMarkers();
-});
-
-scenicCb.addEventListener("change", (e) => {
-  e.preventDefault();
-  scenicCb.checked = false;
-  window.showIntroSheep && window.showIntroSheep('坐等绵羊整理照片', 2500);
-});
-
-photoCb.addEventListener("change", (e) => {
-  e.preventDefault();
-  photoCb.checked = false;
-  window.showIntroSheep && window.showIntroSheep('坐等绵羊整理照片', 2500);
-});
+}
 
 // ── bootstrap ──────────────────────────────────────────────────
 
 export function startMap() {
   populateStyleOptions();
+  bindEvents();
   labelModeBtns.forEach(b => b.classList.toggle("active", b.dataset.mode === labelMode));
   sizeModeBtns.forEach(b => b.classList.toggle("active", b.dataset.mode === sizeMode));
   autoClusterCb.checked = autoCluster;

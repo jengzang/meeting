@@ -339,12 +339,22 @@ body {
   color: var(--muted);
   margin-left: 2px;
 }
+.wx-date {
+  font-size: 10px;
+  color: var(--muted);
+  display: inline-block;
+  margin-left: 6px;
+}
+.weather-mini .wx-date {
+  font-size: 9px;
+  margin-left: 0;
+}
 
 /* ── Traffic tab ─────────────────────────────────────────── */
 
 .traffic-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 14px;
 }
 .traffic-card {
@@ -365,6 +375,15 @@ body {
   padding: 3px 0;
   font-size: 13px;
   border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.traffic-card .traffic-dur {
+  font-size: 10px;
+  color: var(--muted);
+  margin-left: 4px;
+}
+.traffic-tag-meta {
+  font-size: 10px;
+  opacity: 0.75;
 }
 
 /* ── Mobile ──────────────────────────────────────────────── */

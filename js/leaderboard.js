@@ -17,8 +17,20 @@ function avg(arr) {
   return Math.round(arr.reduce((a, b) => a + b, 0) / arr.length * 100) / 100;
 }
 
-function min(arr) { return arr.length ? Math.min(...arr) : null; }
-function max(arr) { return arr.length ? Math.max(...arr) : null; }
+function findExtreme(entries, field, mode) {
+  let best = null;
+  let bestEntry = null;
+  for (const e of entries) {
+    const v = e[field];
+    if (v == null) continue;
+    if (best === null || (mode === 'max' ? v > best : v < best)) {
+      best = v;
+      bestEntry = e;
+    }
+  }
+  const time = bestEntry ? (bestEntry._fullTime || bestEntry.time || '') : '';
+  return { value: best, time };
+}
 
 // ── Weather condition labels ───────────────────────────────────────
 
@@ -59,25 +71,34 @@ export function buildCityStats(records, locations, weather, traffic) {
     c.placeSet.add(r.place);
     c.activityCounts[r.activity] = (c.activityCounts[r.activity] || 0) + 1;
     const wx = weather[String(r.id)];
-    if (wx) c.weatherEntries.push(...wx);
+    if (wx) {
+      const year = r.date ? r.date.slice(0, 4) : '';
+      for (const w of wx) {
+        c.weatherEntries.push({ ...w, _fullTime: year ? `${year}/${w.time}` : w.time });
+      }
+    }
   }
 
-  // Associate traffic with cities
+  // Associate traffic with cities (travel duration + per-day totals)
   const cityTraffic = new Map();
   for (const t of traffic) {
     const oLoc = t.origin_record_id ? locations[String(t.origin_record_id)] : null;
     const dLoc = t.dest_record_id ? locations[String(t.dest_record_id)] : null;
     const oCity = oLoc && oLoc.city;
     const dCity = dLoc && dLoc.city;
+    const travelHours = (t.duration_sec || 0) / 3600;
 
-    if (oCity) {
-      if (!cityTraffic.has(oCity)) cityTraffic.set(oCity, {});
-      cityTraffic.get(oCity)[t.type] = (cityTraffic.get(oCity)[t.type] || 0) + 1;
-    }
-    if (dCity && dCity !== oCity) {
-      if (!cityTraffic.has(dCity)) cityTraffic.set(dCity, {});
-      cityTraffic.get(dCity)[t.type] = (cityTraffic.get(dCity)[t.type] || 0) + 1;
-    }
+    const addTraffic = (ctMap, city) => {
+      if (!ctMap.has(city)) ctMap.set(city, {});
+      const ct = ctMap.get(city);
+      if (!ct[t.type]) ct[t.type] = { count: 0, durations: [], dates: {} };
+      ct[t.type].count++;
+      ct[t.type].durations.push(travelHours);
+      if (t.date) ct[t.type].dates[t.date] = (ct[t.type].dates[t.date] || 0) + travelHours;
+    };
+
+    if (oCity) addTraffic(cityTraffic, oCity);
+    if (dCity && dCity !== oCity) addTraffic(cityTraffic, dCity);
   }
 
   // Build final stats per city
@@ -91,13 +112,45 @@ export function buildCityStats(records, locations, weather, traffic) {
     const temps = wx.map(w => w.tempC).filter(t => t != null);
     const feelsLikes = wx.map(w => w.feelsLikeC).filter(t => t != null);
     const humidities = wx.map(w => w.humidity).filter(h => h != null);
-    const precips = wx.map(w => w.precipMm).filter(p => p > 0);
-    const winds = wx.map(w => w.windKmh).filter(w => w != null && w > 0);
+    const winds = wx.map(w => w.windKmh).filter(w => w != null);
     const visibilities = wx.map(w => w.visibilityM).filter(v => v != null);
-    const uvs = wx.map(w => w.uvIndex).filter(u => u > 0);
+    const uvs = wx.map(w => w.uvIndex).filter(u => u != null);
+    const allPrecips = wx.map(w => w.precipMm).filter(p => p != null);
+    const posPrecips = allPrecips.filter(p => p > 0);
+    const wxTimes = wx.map(w => w._fullTime || w.time).filter(Boolean).sort();
     const condCounts = {};
     for (const w of wx) {
       condCounts[w.condition] = (condCounts[w.condition] || 0) + 1;
+    }
+
+    const tMin = findExtreme(wx, 'tempC', 'min');
+    const tMax = findExtreme(wx, 'tempC', 'max');
+    const flMin = findExtreme(wx, 'feelsLikeC', 'min');
+    const flMax = findExtreme(wx, 'feelsLikeC', 'max');
+    const hMin = findExtreme(wx, 'humidity', 'min');
+    const hMax = findExtreme(wx, 'humidity', 'max');
+    const pMax = findExtreme(wx, 'precipMm', 'max');
+    const wMin = findExtreme(wx, 'windKmh', 'min');
+    const wMax = findExtreme(wx, 'windKmh', 'max');
+    const vMin = findExtreme(wx, 'visibilityM', 'min');
+    const vMax = findExtreme(wx, 'visibilityM', 'max');
+    const uMin = findExtreme(wx, 'uvIndex', 'min');
+    const uMax = findExtreme(wx, 'uvIndex', 'max');
+
+    // Summarize traffic breakdown
+    const rawTraffic = cityTraffic.get(city) || {};
+    const trafficBreakdown = {};
+    for (const [type, td] of Object.entries(rawTraffic).sort((a, b) => b[1].count - a[1].count)) {
+      const durs = td.durations;
+      const dayTotals = Object.values(td.dates);
+      trafficBreakdown[type] = {
+        count: td.count,
+        dayCount: Object.keys(td.dates).length,
+        totalHours: Math.round(durs.reduce((a, b) => a + b, 0) * 10) / 10,
+        maxHours: durs.length ? Math.round(Math.max(...durs) * 10) / 10 : 0,
+        avgHours: durs.length ? Math.round(durs.reduce((a, b) => a + b, 0) / durs.length * 10) / 10 : 0,
+        maxHoursPerDay: dayTotals.length ? Math.round(Math.max(...dayTotals) * 10) / 10 : 0,
+      };
     }
 
     result[city] = {
@@ -109,23 +162,43 @@ export function buildCityStats(records, locations, weather, traffic) {
       firstVisit: dates[0] || '',
       lastVisit: dates[dates.length - 1] || '',
       activityBreakdown: sortedEntries(data.activityCounts),
-      trafficBreakdown: sortedEntries(cityTraffic.get(city) || {}),
+      trafficBreakdown,
       weather: {
-        tempMin: min(temps),
-        tempMax: max(temps),
+        tempMin: tMin.value,
+        tempMinTime: tMin.time,
+        tempMax: tMax.value,
+        tempMaxTime: tMax.time,
         tempAvg: avg(temps),
-        feelsLikeMax: max(feelsLikes),
-        humidityMin: min(humidities),
-        humidityMax: max(humidities),
+        feelsLikeMin: flMin.value,
+        feelsLikeMinTime: flMin.time,
+        feelsLikeMax: flMax.value,
+        feelsLikeMaxTime: flMax.time,
+        humidityMin: hMin.value,
+        humidityMinTime: hMin.time,
+        humidityMax: hMax.value,
+        humidityMaxTime: hMax.time,
         humidityAvg: avg(humidities),
-        precipTotalMm: precips.length ? Math.round(precips.reduce((a, b) => a + b, 0) * 100) / 100 : 0,
-        precipMaxMm: max(precips) || 0,
-        windMaxKmh: max(winds),
+        precipTotalMm: posPrecips.length ? Math.round(posPrecips.reduce((a, b) => a + b, 0) * 100) / 100 : 0,
+        precipMaxMm: pMax.value || 0,
+        precipMaxTime: pMax.time,
+        precipAvgMm: avg(allPrecips),
+        windMinKmh: wMin.value,
+        windMinTime: wMin.time,
+        windMaxKmh: wMax.value,
+        windMaxTime: wMax.time,
         windAvgKmh: avg(winds),
-        visibilityMinM: min(visibilities),
+        visibilityMinM: vMin.value,
+        visibilityMinTime: vMin.time,
+        visibilityMaxM: vMax.value,
+        visibilityMaxTime: vMax.time,
         visibilityAvgM: avg(visibilities),
-        uvMax: max(uvs),
+        uvMin: uMin.value,
+        uvMinTime: uMin.time,
+        uvMax: uMax.value,
+        uvMaxTime: uMax.time,
         uvAvg: avg(uvs),
+        firstWxTime: wxTimes[0] || '',
+        lastWxTime: wxTimes[wxTimes.length - 1] || '',
       },
       weatherConditionCounts: sortedEntries(condCounts),
       weatherEntryCount: wx.length,
@@ -139,6 +212,8 @@ export function buildCityStats(records, locations, weather, traffic) {
 
 export function buildDistrictStats(records, locations, weather, traffic) {
   const districts = new Map();
+  const recordMap = {};
+  for (const r of records) recordMap[String(r.id)] = r;
 
   for (const r of records) {
     const loc = locations[String(r.id)];
@@ -160,7 +235,12 @@ export function buildDistrictStats(records, locations, weather, traffic) {
     d.placeSet.add(r.place);
     d.activityCounts[r.activity] = (d.activityCounts[r.activity] || 0) + 1;
     const wx = weather[String(r.id)];
-    if (wx) d.weatherEntries.push(...wx);
+    if (wx) {
+      const year = r.date ? r.date.slice(0, 4) : '';
+      for (const w of wx) {
+        d.weatherEntries.push({ ...w, _fullTime: year ? `${year}/${w.time}` : w.time });
+      }
+    }
   }
 
   // Traffic per district
@@ -170,15 +250,19 @@ export function buildDistrictStats(records, locations, weather, traffic) {
     const dLoc = t.dest_record_id ? locations[String(t.dest_record_id)] : null;
     const ok = oLoc ? (oLoc.district ? `${oLoc.city}//${oLoc.district}` : oLoc.city) : null;
     const dk = dLoc ? (dLoc.district ? `${dLoc.city}//${dLoc.district}` : dLoc.city) : null;
+    const travelHours = (t.duration_sec || 0) / 3600;
 
-    if (ok) {
-      if (!districtTraffic.has(ok)) districtTraffic.set(ok, {});
-      districtTraffic.get(ok)[t.type] = (districtTraffic.get(ok)[t.type] || 0) + 1;
-    }
-    if (dk && dk !== ok) {
-      if (!districtTraffic.has(dk)) districtTraffic.set(dk, {});
-      districtTraffic.get(dk)[t.type] = (districtTraffic.get(dk)[t.type] || 0) + 1;
-    }
+    const addTraffic = (ctMap, key) => {
+      if (!ctMap.has(key)) ctMap.set(key, {});
+      const ct = ctMap.get(key);
+      if (!ct[t.type]) ct[t.type] = { count: 0, durations: [], dates: {} };
+      ct[t.type].count++;
+      ct[t.type].durations.push(travelHours);
+      if (t.date) ct[t.type].dates[t.date] = (ct[t.type].dates[t.date] || 0) + travelHours;
+    };
+
+    if (ok) addTraffic(districtTraffic, ok);
+    if (dk && dk !== ok) addTraffic(districtTraffic, dk);
   }
 
   const result = {};
@@ -191,13 +275,44 @@ export function buildDistrictStats(records, locations, weather, traffic) {
     const temps = wx.map(w => w.tempC).filter(t => t != null);
     const feelsLikes = wx.map(w => w.feelsLikeC).filter(t => t != null);
     const humidities = wx.map(w => w.humidity).filter(h => h != null);
-    const precips = wx.map(w => w.precipMm).filter(p => p > 0);
-    const winds = wx.map(w => w.windKmh).filter(w => w != null && w > 0);
+    const winds = wx.map(w => w.windKmh).filter(w => w != null);
     const visibilities = wx.map(w => w.visibilityM).filter(v => v != null);
-    const uvs = wx.map(w => w.uvIndex).filter(u => u > 0);
+    const uvs = wx.map(w => w.uvIndex).filter(u => u != null);
+    const allPrecips = wx.map(w => w.precipMm).filter(p => p != null);
+    const posPrecips = allPrecips.filter(p => p > 0);
+    const wxTimes = wx.map(w => w._fullTime || w.time).filter(Boolean).sort();
     const condCounts = {};
     for (const w of wx) {
       condCounts[w.condition] = (condCounts[w.condition] || 0) + 1;
+    }
+
+    const tMin = findExtreme(wx, 'tempC', 'min');
+    const tMax = findExtreme(wx, 'tempC', 'max');
+    const flMin = findExtreme(wx, 'feelsLikeC', 'min');
+    const flMax = findExtreme(wx, 'feelsLikeC', 'max');
+    const hMin = findExtreme(wx, 'humidity', 'min');
+    const hMax = findExtreme(wx, 'humidity', 'max');
+    const pMax = findExtreme(wx, 'precipMm', 'max');
+    const wMin = findExtreme(wx, 'windKmh', 'min');
+    const wMax = findExtreme(wx, 'windKmh', 'max');
+    const vMin = findExtreme(wx, 'visibilityM', 'min');
+    const vMax = findExtreme(wx, 'visibilityM', 'max');
+    const uMin = findExtreme(wx, 'uvIndex', 'min');
+    const uMax = findExtreme(wx, 'uvIndex', 'max');
+
+    const rawTraffic = districtTraffic.get(key) || {};
+    const trafficBreakdown = {};
+    for (const [type, td] of Object.entries(rawTraffic).sort((a, b) => b[1].count - a[1].count)) {
+      const durs = td.durations;
+      const dayTotals = Object.values(td.dates);
+      trafficBreakdown[type] = {
+        count: td.count,
+        dayCount: Object.keys(td.dates).length,
+        totalHours: Math.round(durs.reduce((a, b) => a + b, 0) * 10) / 10,
+        maxHours: durs.length ? Math.round(Math.max(...durs) * 10) / 10 : 0,
+        avgHours: durs.length ? Math.round(durs.reduce((a, b) => a + b, 0) / durs.length * 10) / 10 : 0,
+        maxHoursPerDay: dayTotals.length ? Math.round(Math.max(...dayTotals) * 10) / 10 : 0,
+      };
     }
 
     result[key] = {
@@ -211,23 +326,43 @@ export function buildDistrictStats(records, locations, weather, traffic) {
       firstVisit: dates[0] || '',
       lastVisit: dates[dates.length - 1] || '',
       activityBreakdown: sortedEntries(data.activityCounts),
-      trafficBreakdown: sortedEntries(districtTraffic.get(key) || {}),
+      trafficBreakdown,
       weather: {
-        tempMin: min(temps),
-        tempMax: max(temps),
+        tempMin: tMin.value,
+        tempMinTime: tMin.time,
+        tempMax: tMax.value,
+        tempMaxTime: tMax.time,
         tempAvg: avg(temps),
-        feelsLikeMax: max(feelsLikes),
-        humidityMin: min(humidities),
-        humidityMax: max(humidities),
+        feelsLikeMin: flMin.value,
+        feelsLikeMinTime: flMin.time,
+        feelsLikeMax: flMax.value,
+        feelsLikeMaxTime: flMax.time,
+        humidityMin: hMin.value,
+        humidityMinTime: hMin.time,
+        humidityMax: hMax.value,
+        humidityMaxTime: hMax.time,
         humidityAvg: avg(humidities),
-        precipTotalMm: precips.length ? Math.round(precips.reduce((a, b) => a + b, 0) * 100) / 100 : 0,
-        precipMaxMm: max(precips) || 0,
-        windMaxKmh: max(winds),
+        precipTotalMm: posPrecips.length ? Math.round(posPrecips.reduce((a, b) => a + b, 0) * 100) / 100 : 0,
+        precipMaxMm: pMax.value || 0,
+        precipMaxTime: pMax.time,
+        precipAvgMm: avg(allPrecips),
+        windMinKmh: wMin.value,
+        windMinTime: wMin.time,
+        windMaxKmh: wMax.value,
+        windMaxTime: wMax.time,
         windAvgKmh: avg(winds),
-        visibilityMinM: min(visibilities),
+        visibilityMinM: vMin.value,
+        visibilityMinTime: vMin.time,
+        visibilityMaxM: vMax.value,
+        visibilityMaxTime: vMax.time,
         visibilityAvgM: avg(visibilities),
-        uvMax: max(uvs),
+        uvMin: uMin.value,
+        uvMinTime: uMin.time,
+        uvMax: uMax.value,
+        uvMaxTime: uMax.time,
         uvAvg: avg(uvs),
+        firstWxTime: wxTimes[0] || '',
+        lastWxTime: wxTimes[wxTimes.length - 1] || '',
       },
       weatherConditionCounts: sortedEntries(condCounts),
       weatherEntryCount: wx.length,
@@ -295,13 +430,13 @@ export function buildWeatherRankings(cityStats) {
 export function buildTrafficRankings(cityStats) {
   const typeMap = {};
   for (const [city, stats] of Object.entries(cityStats)) {
-    for (const [type, count] of Object.entries(stats.trafficBreakdown)) {
+    for (const [type, td] of Object.entries(stats.trafficBreakdown)) {
       if (!typeMap[type]) typeMap[type] = [];
-      typeMap[type].push([city, count]);
+      typeMap[type].push({ city, count: td.count, totalHours: td.totalHours, maxHours: td.maxHours, avgHours: td.avgHours, dayCount: td.dayCount, maxHoursPerDay: td.maxHoursPerDay });
     }
   }
   for (const type of Object.keys(typeMap)) {
-    typeMap[type].sort((a, b) => b[1] - a[1]);
+    typeMap[type].sort((a, b) => b.count - a.count);
   }
   return typeMap;
 }
