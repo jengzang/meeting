@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>全量排行榜</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
-  <link rel="stylesheet" href="../css/intro.css?v=3708980" />
-  <link rel="stylesheet" href="../css/sheep.css?v=3708980" />
-  <link rel="stylesheet" href="../css/pw-overlay.css?v=3708980" />
-  <link rel="stylesheet" href="../css/leaderboard.css?v=3708980" />
+  <link rel="stylesheet" href="../css/intro.css?v=d7bcac8" />
+  <link rel="stylesheet" href="../css/sheep.css?v=d7bcac8" />
+  <link rel="stylesheet" href="../css/pw-overlay.css?v=d7bcac8" />
+  <link rel="stylesheet" href="../css/leaderboard.css?v=d7bcac8" />
 </head>
 
 <body>
@@ -119,6 +119,8 @@
     <button class="tab-btn" data-tab="district">📍 区县</button>
     <button class="tab-btn" data-tab="weather">🌤 天气</button>
     <button class="tab-btn" data-tab="traffic">🚗 交通</button>
+    <button class="tab-btn" data-tab="geo">🌍 地理</button>
+    <button class="tab-btn" data-tab="journey">🧭 旅程</button>
   </nav>
 
   <div class="summary-bar" id="summaryBar"></div>
@@ -126,13 +128,14 @@
   <div class="main" id="mainContent"></div>
 
   <script type="module">
-    import { initAll } from "../js/init.js?v=3708980";
+    import { initAll } from "../js/init.js?v=d7bcac8";
     import { initFullData, records, traffic, recordLocations, recordWeather } from "../js/full/map-main.js";
-    import { showLoadingSheep, hideLoadingSheep } from "../js/sheep.js?v=3708980";
-    import { finishLoading } from "../js/loading.js?v=3708980";
+    import { showLoadingSheep, hideLoadingSheep } from "../js/sheep.js?v=d7bcac8";
+    import { finishLoading } from "../js/loading.js?v=d7bcac8";
     import {
       buildCityStats, buildDistrictStats,
       buildWeatherRankings, buildTrafficRankings, buildSummary,
+      buildGeoExtremes, buildJourneyStats,
       CONDITION_LABELS
     } from "../js/leaderboard.js";
 
@@ -192,6 +195,8 @@
       const weatherRankings = buildWeatherRankings(cityStats);
       const districtWeatherRankings = buildWeatherRankings(districtStats);
       const trafficRankings = buildTrafficRankings(cityStats);
+      const geoExtremes = buildGeoExtremes(records, recordLocations);
+      const journeyStats = buildJourneyStats(traffic, recordLocations, records);
       const summary = buildSummary(cityStats);
 
       const summaryBar = document.getElementById('summaryBar');
@@ -398,6 +403,79 @@
         return html;
       }
 
+      function renderGeoCard(icon, label, r) {
+        if (!r) return '';
+        const loc = [r.city, r.district].filter(Boolean).join(' ');
+        return `<div class="geo-card">
+          <div class="geo-icon">${icon}</div>
+          <div class="geo-label">${label}</div>
+          <div class="geo-place">${r.place || loc}</div>
+          <div class="geo-loc">${loc}${r.admin ? ' · '+r.admin : ''}</div>
+          <div class="geo-coord">${r.lat.toFixed(4)}°, ${r.lng.toFixed(4)}°</div>
+          <div class="geo-date">${r.date || ''}</div>
+        </div>`;
+      }
+
+      function renderGeoTab() {
+        const g = geoExtremes;
+        return `<div class="geo-grid">
+          ${renderGeoCard('⬆️', '最北点', g.north)}
+          ${renderGeoCard('⬇️', '最南点', g.south)}
+          ${renderGeoCard('➡️', '最东点', g.east)}
+          ${renderGeoCard('⬅️', '最西点', g.west)}
+          <div class="geo-card geo-span">
+            <div class="geo-icon">📏</div>
+            <div class="geo-label">经纬跨度</div>
+            <div class="geo-span-row">纬度 ${g.latSpan}° · 经度 ${g.lngSpan}°</div>
+          </div>
+        </div>`;
+      }
+
+      function fmtTime(iso) {
+        if (!iso) return '--';
+        return iso.replace('T', ' ').replace(/:\d{2}\+/, ' ').slice(0, 16);
+      }
+
+      function renderHeatmap(buckets, labels, maxVal, title) {
+        return `<div class="heatmap-block">
+          <h4>${title}</h4>
+          <div class="heatmap-bars">
+            ${buckets.map((v, i) => `
+              <div class="heatmap-col">
+                <div class="heatmap-bar" style="height:${(v/maxVal*100).toFixed(0)}%"></div>
+                <div class="heatmap-count">${v||''}</div>
+                <div class="heatmap-tick">${labels[i]}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>`;
+      }
+
+      function renderJourneyCard(stats) {
+        if (!stats) return '';
+        const items = [
+          stats.earliestDep,
+          stats.latestDep,
+          stats.earliestArr,
+          stats.latestArr,
+          stats.longestTrip,
+        ].filter(Boolean);
+        return `<div class="journey-summary">
+          <span class="journey-avg">⏱ 平均行程时长 <strong>${stats.avgDurationMin} 分钟</strong></span>
+        </div>
+        ${renderHeatmap(stats.depBuckets, stats.bucketLabels, stats.depMax, '出发时间分布（5:00 起）')}
+        ${renderHeatmap(stats.arrBuckets, stats.bucketLabels, stats.arrMax, '到达时间分布（5:00 起）')}
+        <div class="journey-list">` + items.map(j => `
+          <div class="journey-item">
+            <div class="journey-label">${j.label}</div>
+            <div class="journey-type">${j.type}</div>
+            <div class="journey-route">${j.origin}${j.originCity?' ('+j.originCity+')':''} → ${j.dest}${j.destCity?' ('+j.destCity+')':''}</div>
+            <div class="journey-time">${fmtTime(j.from)} → ${fmtTime(j.to)}</div>
+            <div class="journey-dur">⏱ ${j.durationMin} 分钟</div>
+          </div>
+        `).join('') + `</div>`;
+      }
+
       function renderCurrent() {
         if (currentTab === 'city') {
           mainContent.innerHTML = renderTable(cityStats, citySort);
@@ -409,6 +487,10 @@
           mainContent.innerHTML = renderWeatherTab();
         } else if (currentTab === 'traffic') {
           mainContent.innerHTML = renderTrafficTab();
+        } else if (currentTab === 'geo') {
+          mainContent.innerHTML = renderGeoTab();
+        } else if (currentTab === 'journey') {
+          mainContent.innerHTML = renderJourneyCard(journeyStats);
         }
       }
 

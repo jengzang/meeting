@@ -17,6 +17,62 @@ function avg(arr) {
   return Math.round(arr.reduce((a, b) => a + b, 0) / arr.length * 100) / 100;
 }
 
+// ── Traffic OD merge (same logic as map-main.js renderTraffic) ──────
+
+function mergeTrafficByOD(traffic) {
+  const odMap = new Map();
+  for (const t of traffic) {
+    const key = `${t.origin_lat},${t.origin_lng}->${t.dest_lat},${t.dest_lng}`;
+    if (!odMap.has(key)) odMap.set(key, []);
+    odMap.get(key).push(t);
+  }
+
+  const merged = [];
+  for (const items of odMap.values()) {
+    items.sort((a, b) => a.from_time.localeCompare(b.from_time));
+
+    const segments = [];
+    for (const item of items) {
+      const last = segments[segments.length - 1];
+      if (last && last.type === item.type) {
+        last.duration_sec += item.duration_sec;
+        if (item.to_time > last.to_time) last.to_time = item.to_time;
+      } else {
+        segments.push({ ...item });
+      }
+    }
+
+    merged.push(...segments);
+  }
+
+  return merged;
+}
+
+function findNearestCity(lat, lng, knownPoints) {
+  let best = null;
+  let bestDist = Infinity;
+  for (const p of knownPoints) {
+    const dlat = p.lat - lat;
+    const dlng = p.lng - lng;
+    const dist = dlat * dlat + dlng * dlng;
+    if (dist < bestDist) { bestDist = dist; best = p; }
+  }
+  return best;
+}
+
+function resolveTrafficCity(t, key, knownPoints, locations) {
+  // key: 'origin' or 'dest'
+  const ridKey = key === 'origin' ? 'origin_record_id' : 'dest_record_id';
+  const latKey = key === 'origin' ? 'origin_lat' : 'dest_lat';
+  const lngKey = key === 'origin' ? 'origin_lng' : 'dest_lng';
+
+  const loc = t[ridKey] ? locations[String(t[ridKey])] : null;
+  if (loc && loc.city) return { city: loc.city, district: loc.district };
+
+  const nearest = findNearestCity(t[latKey], t[lngKey], knownPoints);
+  return nearest ? { city: nearest.city, district: nearest.district } : null;
+}
+
 function findExtreme(entries, field, mode) {
   let best = null;
   let bestEntry = null;
@@ -80,13 +136,23 @@ export function buildCityStats(records, locations, weather, traffic) {
     }
   }
 
-  // Associate traffic with cities (travel duration + per-day totals)
+  // Build known points for fallback city lookup (records may be deleted)
+  const knownPoints = [];
+  for (const r of records) {
+    const loc = locations[String(r.id)];
+    if (loc && loc.city && r.lat != null && r.lng != null) {
+      knownPoints.push({ lat: r.lat, lng: r.lng, city: loc.city, district: loc.district });
+    }
+  }
+
+  // Associate merged traffic with cities (same OD-pair grouping as map-main.js)
+  const mergedTraffic = mergeTrafficByOD(traffic);
   const cityTraffic = new Map();
-  for (const t of traffic) {
-    const oLoc = t.origin_record_id ? locations[String(t.origin_record_id)] : null;
-    const dLoc = t.dest_record_id ? locations[String(t.dest_record_id)] : null;
-    const oCity = oLoc && oLoc.city;
-    const dCity = dLoc && dLoc.city;
+  for (const t of mergedTraffic) {
+    const o = resolveTrafficCity(t, 'origin', knownPoints, locations);
+    const d = resolveTrafficCity(t, 'dest', knownPoints, locations);
+    const oCity = o && o.city;
+    const dCity = d && d.city;
     const travelHours = (t.duration_sec || 0) / 3600;
 
     const addTraffic = (ctMap, city) => {
@@ -213,8 +279,6 @@ export function buildCityStats(records, locations, weather, traffic) {
 
 export function buildDistrictStats(records, locations, weather, traffic) {
   const districts = new Map();
-  const recordMap = {};
-  for (const r of records) recordMap[String(r.id)] = r;
 
   for (const r of records) {
     const loc = locations[String(r.id)];
@@ -244,13 +308,23 @@ export function buildDistrictStats(records, locations, weather, traffic) {
     }
   }
 
-  // Traffic per district
+  // Build known points for fallback lookup
+  const knownPoints = [];
+  for (const r of records) {
+    const loc = locations[String(r.id)];
+    if (loc && loc.city && r.lat != null && r.lng != null) {
+      knownPoints.push({ lat: r.lat, lng: r.lng, city: loc.city, district: loc.district });
+    }
+  }
+
+  // Traffic per district (merged by OD pair)
+  const mergedTraffic = mergeTrafficByOD(traffic);
   const districtTraffic = new Map();
-  for (const t of traffic) {
-    const oLoc = t.origin_record_id ? locations[String(t.origin_record_id)] : null;
-    const dLoc = t.dest_record_id ? locations[String(t.dest_record_id)] : null;
-    const ok = oLoc ? (oLoc.district ? `${oLoc.city}//${oLoc.district}` : oLoc.city) : null;
-    const dk = dLoc ? (dLoc.district ? `${dLoc.city}//${dLoc.district}` : dLoc.city) : null;
+  for (const t of mergedTraffic) {
+    const o = resolveTrafficCity(t, 'origin', knownPoints, locations);
+    const d = resolveTrafficCity(t, 'dest', knownPoints, locations);
+    const ok = o ? (o.district ? `${o.city}//${o.district}` : o.city) : null;
+    const dk = d ? (d.district ? `${d.city}//${d.district}` : d.city) : null;
     const travelHours = (t.duration_sec || 0) / 3600;
 
     const addTraffic = (ctMap, key) => {
@@ -468,5 +542,119 @@ export function buildSummary(cityStats) {
     totalPlaces,
     activityTypeCount: allActivities.size,
     trafficTypeCount: allTraffic.size,
+  };
+}
+
+// ── Geography extremes ─────────────────────────────────────────────
+
+export function buildGeoExtremes(records, locations) {
+  let north = null, south = null, east = null, west = null;
+
+  for (const r of records) {
+    if (r.lat == null || r.lng == null) continue;
+    const loc = locations[String(r.id)] || {};
+
+    if (!north || r.lat > north.lat) north = { ...r, city: loc.city, district: loc.district, admin: loc.admin };
+    if (!south || r.lat < south.lat) south = { ...r, city: loc.city, district: loc.district, admin: loc.admin };
+    if (!east || r.lng > east.lng) east = { ...r, city: loc.city, district: loc.district, admin: loc.admin };
+    if (!west || r.lng < west.lng) west = { ...r, city: loc.city, district: loc.district, admin: loc.admin };
+  }
+
+  const latSpan = north && south ? Math.round((north.lat - south.lat) * 100) / 100 : 0;
+  const lngSpan = east && west ? Math.round((east.lng - west.lng) * 100) / 100 : 0;
+
+  return { north, south, east, west, latSpan, lngSpan };
+}
+
+// ── Journey stats ──────────────────────────────────────────────────
+
+// minutes since 5am (wrap-around: 5:00→0, 4:59→1439)
+function minSince5am(iso) {
+  const d = new Date(iso);
+  let m = d.getHours() * 60 + d.getMinutes() - 300;
+  return (m + 1440) % 1440;
+}
+
+// hour bucket index 0–23 (0 = 5:00–5:59, 23 = 4:00–4:59)
+function hourBucket5(iso) {
+  return Math.floor(minSince5am(iso) / 60);
+}
+
+export function buildJourneyStats(traffic, locations, records) {
+  // Build known points for fallback city lookup
+  const knownPoints = [];
+  if (records) {
+    for (const r of records) {
+      const loc = locations[String(r.id)];
+      if (loc && loc.city && r.lat != null && r.lng != null) {
+        knownPoints.push({ lat: r.lat, lng: r.lng, city: loc.city, district: loc.district });
+      }
+    }
+  }
+
+  const mergedTraffic = mergeTrafficByOD(traffic);
+  let earliestDep = null, latestDep = null, longestTrip = null;
+  let earliestArr = null, latestArr = null;
+  const depBuckets = new Array(24).fill(0);
+  const arrBuckets = new Array(24).fill(0);
+  let totalDurSec = 0;
+  let durCount = 0;
+
+  for (const t of mergedTraffic) {
+    const mDep = minSince5am(t.from_time);
+    const mArr = minSince5am(t.to_time);
+
+    if (earliestDep === null || mDep < minSince5am(earliestDep.from_time)) earliestDep = t;
+    if (latestDep === null || mDep > minSince5am(latestDep.from_time)) latestDep = t;
+    if (earliestArr === null || mArr < minSince5am(earliestArr.to_time)) earliestArr = t;
+    if (latestArr === null || mArr > minSince5am(latestArr.to_time)) latestArr = t;
+    if (!longestTrip || (t.duration_sec || 0) > (longestTrip.duration_sec || 0)) longestTrip = t;
+
+    depBuckets[hourBucket5(t.from_time)]++;
+    arrBuckets[hourBucket5(t.to_time)]++;
+    if (t.duration_sec) { totalDurSec += t.duration_sec; durCount++; }
+  }
+
+  const locName = (t, key) => {
+    const ridKey = key === 'origin' ? 'origin_record_id' : 'dest_record_id';
+    const latKey = key === 'origin' ? 'origin_lat' : 'dest_lat';
+    const lngKey = key === 'origin' ? 'origin_lng' : 'dest_lng';
+    const loc = t[ridKey] ? locations[String(t[ridKey])] : null;
+    if (loc && loc.city) return (loc.city || '') + (loc.district ? ' ' + loc.district : '');
+    const nearest = findNearestCity(t[latKey], t[lngKey], knownPoints);
+    return nearest ? (nearest.city || '') + (nearest.district ? ' ' + nearest.district : '') : '';
+  };
+
+  const fmtTrip = (t, label) => ({
+    label,
+    type: t.type,
+    from: t.from_time,
+    to: t.to_time,
+    date: t.date,
+    durationMin: Math.round((t.duration_sec || 0) / 60 * 10) / 10,
+    origin: t.origin,
+    dest: t.dest,
+    originCity: locName(t, 'origin'),
+    destCity: locName(t, 'dest'),
+  });
+
+  const bucketLabels = [];
+  for (let i = 0; i < 24; i++) {
+    const h = (i + 5) % 24;
+    bucketLabels.push(String(h).padStart(2,'0') + ':00');
+  }
+
+  return {
+    earliestDep: earliestDep ? fmtTrip(earliestDep, '最早出发') : null,
+    latestDep: latestDep ? fmtTrip(latestDep, '最晚出发') : null,
+    earliestArr: earliestArr ? fmtTrip(earliestArr, '最早到达') : null,
+    latestArr: latestArr ? fmtTrip(latestArr, '最晚到达') : null,
+    longestTrip: longestTrip ? fmtTrip(longestTrip, '最长行程') : null,
+    avgDurationMin: durCount ? Math.round(totalDurSec / durCount / 60 * 10) / 10 : 0,
+    depBuckets,
+    arrBuckets,
+    bucketLabels,
+    depMax: Math.max(...depBuckets, 1),
+    arrMax: Math.max(...arrBuckets, 1),
   };
 }
