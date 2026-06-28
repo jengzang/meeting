@@ -1,23 +1,8 @@
-import { initFullData, startMap, records, traffic } from "./map-main.js";
+import { initFullData, startMap } from "./map-main.js";
 import { showLoadingSheep, hideLoadingSheep } from "../sheep.js";
 import { finishLoading } from "../loading.js";
-import { setupTimeline } from "./timeline.js";
 
 var AUTH_KEY = "full-map-auth";
-
-function isTimelineView() {
-  return window.location.hash === "#timeline";
-}
-
-function showMap() {
-  startMap();
-  finishLoading();
-}
-
-function showTimeline() {
-  setupTimeline(records, traffic);
-  finishLoading();
-}
 
 export function initFullAuth() {
   var pwOverlay = document.getElementById("pwOverlay");
@@ -25,11 +10,6 @@ export function initFullAuth() {
   var pwBtn = document.getElementById("pwBtn");
   var pwError = document.getElementById("pwError");
   var verifying = false;
-
-  // Hash change — reload to switch views cleanly
-  window.addEventListener("hashchange", function () {
-    window.location.reload();
-  });
 
   async function tryDecrypt(password) {
     if (verifying) return;
@@ -43,11 +23,8 @@ export function initFullAuth() {
       hideLoadingSheep();
       sessionStorage.setItem(AUTH_KEY, password);
       pwOverlay.classList.add("hidden");
-      if (isTimelineView()) {
-        showTimeline();
-      } else {
-        showMap();
-      }
+      startMap();
+      finishLoading();
     } catch (e) {
       hideLoadingSheep();
       sessionStorage.removeItem(AUTH_KEY);

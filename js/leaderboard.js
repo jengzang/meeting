@@ -42,6 +42,7 @@ export const CONDITION_LABELS = {
   mostlyCloudy: '大部多云',
   overcast: '阴',
   rain: '雨',
+  drizzle: '小雨',
   snow: '雪',
   fog: '雾',
   windy: '风',
@@ -414,16 +415,17 @@ function resolveField(obj, path) {
   return v;
 }
 
-export function buildWeatherRankings(cityStats) {
+export function buildWeatherRankings(stats) {
   return {
-    hottest: rankBy(cityStats, 'weather.tempMax', 10),
-    coldest: rankByAsc(cityStats, 'weather.tempMin', 10),
-    highestFeelsLike: rankBy(cityStats, 'weather.feelsLikeMax', 10),
-    windiest: rankBy(cityStats, 'weather.windMaxKmh', 10),
-    rainiest: rankBy(cityStats, 'weather.precipTotalMm', 10),
-    lowestVisibility: rankByAsc(cityStats, 'weather.visibilityMinM', 10),
-    highestUV: rankBy(cityStats, 'weather.uvMax', 10),
-    mostHumid: rankBy(cityStats, 'weather.humidityAvg', 10),
+    hottest: rankBy(stats, 'weather.tempMax', 10),
+    coldest: rankByAsc(stats, 'weather.tempMin', 10),
+    highestFeelsLike: rankBy(stats, 'weather.feelsLikeMax', 10),
+    windiest: rankBy(stats, 'weather.windMaxKmh', 10),
+    rainiest: rankBy(stats, 'weather.precipTotalMm', 10),
+    maxPrecip: rankBy(stats, 'weather.precipMaxMm', 10),
+    lowestVisibility: rankByAsc(stats, 'weather.visibilityMinM', 10),
+    highestUV: rankBy(stats, 'weather.uvMax', 10),
+    mostHumid: rankBy(stats, 'weather.humidityAvg', 10),
   };
 }
 

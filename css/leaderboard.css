@@ -271,13 +271,41 @@ body {
   padding: 2px 8px 2px 0;
   border: none;
   font-size: 11px;
+  color: var(--text);
+}
+.weather-mini td:first-child {
+  color: var(--muted);
+  font-weight: 400;
 }
 .weather-mini td:last-child {
   font-weight: 700;
-  color: var(--text);
 }
 
 /* ── Weather tab ─────────────────────────────────────────── */
+
+.wx-toggle-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.wx-toggle {
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.wx-toggle:hover { color: var(--text); border-color: rgba(255,255,255,0.18); }
+.wx-toggle.active {
+  background: rgba(251,191,36,0.15);
+  color: #fbbf24;
+  border-color: rgba(251,191,36,0.4);
+}
 
 .weather-grid {
   display: grid;
@@ -346,7 +374,7 @@ body {
   margin-left: 6px;
 }
 .weather-mini .wx-date {
-  font-size: 9px;
+  font-size: 8px;
   margin-left: 0;
 }
 

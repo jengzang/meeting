@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>排行榜</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
-  <link rel="stylesheet" href="css/intro.css?v=4eb6c71" />
-  <link rel="stylesheet" href="css/sheep.css?v=4eb6c71" />
-  <link rel="stylesheet" href="css/leaderboard.css?v=4eb6c71" />
+  <link rel="stylesheet" href="css/intro.css?v=3708980" />
+  <link rel="stylesheet" href="css/sheep.css?v=3708980" />
+  <link rel="stylesheet" href="css/leaderboard.css?v=3708980" />
 </head>
 
 <body>
@@ -112,7 +112,7 @@
   <div class="main" id="mainContent"></div>
 
   <script type="module">
-    import { initAll } from "./js/init.js?v=4eb6c71";
+    import { initAll } from "./js/init.js?v=3708980";
     import { records } from "./data/records.js";
     import { recordLocations } from "./data/record_locations.js";
     import { recordWeather } from "./data/record_weather.js";
@@ -128,6 +128,7 @@
     const cityStats = buildCityStats(records, recordLocations, recordWeather, traffic);
     const districtStats = buildDistrictStats(records, recordLocations, recordWeather, traffic);
     const weatherRankings = buildWeatherRankings(cityStats);
+    const districtWeatherRankings = buildWeatherRankings(districtStats);
     const trafficRankings = buildTrafficRankings(cityStats);
     const summary = buildSummary(cityStats);
 
@@ -138,6 +139,7 @@
     let currentTab = 'city';
     let citySort = { field: 'recordCount', asc: false };
     let districtSort = { field: 'recordCount', asc: false };
+    let wxMode = 'city';
 
     function rankClass(i) { if (i===0) return 'rank-1'; if (i===1) return 'rank-2'; if (i===2) return 'rank-3'; return ''; }
     function rankDotClass(i) { if (i===0) return 'gold'; if (i===1) return 'silver'; if (i===2) return 'bronze'; return ''; }
@@ -186,7 +188,7 @@
         entries.map(([type, td]) => {
           const c = td.count || td;
           const extra = td.totalHours != null
-            ? ` <span class="traffic-tag-meta">${c}次 · ⏱${fmtHours(td.totalHours)} · 均${fmtHours(td.avgHours)}/次 · 最长${fmtHours(td.maxHours)}/次${td.maxHoursPerDay!=null?' · '+fmtHours(td.maxHoursPerDay)+'/天':''} · ${td.dayCount}天</span>`
+            ? ` <span class="traffic-tag-meta">${c}次 · ⏱${fmtHours(td.totalHours)} · 均${fmtHours(td.avgHours)}/次 · 最长${fmtHours(td.maxHours)}/次${td.maxHoursPerDay!=null?' · '+'最长' + fmtHours(td.maxHoursPerDay)+'/天':''} · ${td.dayCount}天</span>`
             : ` ${c}次`;
           return `<span class="traffic-tag">${type}${extra}</span>`;
         }).join('') +
@@ -205,15 +207,15 @@
         `<tr><td>温度</td><td>${fmtValTime(w.tempMin,w.tempMinTime,fmtTemp)} ~ ${fmtValTime(w.tempMax,w.tempMaxTime,fmtTemp)}</td><td>均 ${fmtTemp(w.tempAvg)}</td></tr>` +
         `<tr><td>体感温度</td><td>${fmtValTime(w.feelsLikeMin,w.feelsLikeMinTime,fmtTemp)} ~ ${fmtValTime(w.feelsLikeMax,w.feelsLikeMaxTime,fmtTemp)}</td><td></td></tr>` +
         `<tr><td>湿度</td><td>${fmtValTime(w.humidityMin,w.humidityMinTime,fmtPct)} ~ ${fmtValTime(w.humidityMax,w.humidityMaxTime,fmtPct)}</td><td>均 ${fmtPct(w.humidityAvg)}</td></tr>` +
-        `<tr><td>降水</td><td>总计 ${fmtMm(w.precipTotalMm)}</td><td>最大 ${fmtValTime(w.precipMaxMm,w.precipMaxTime,fmtMm)}${w.precipAvgMm!=null?' · 均 '+fmtMm(w.precipAvgMm):''}</td></tr>` +
+        `<tr><td>降水</td><td>最大 ${fmtValTime(w.precipMaxMm,w.precipMaxTime,fmtMm)}</td><td>总计 ${fmtMm(w.precipTotalMm)}${w.precipAvgMm!=null?' · 均 '+fmtMm(w.precipAvgMm):''}</td></tr>` +
         `<tr><td>风速</td><td>${fmtValTime(w.windMinKmh,w.windMinTime,fmtKmh)} ~ ${fmtValTime(w.windMaxKmh,w.windMaxTime,fmtKmh)}</td><td>均 ${fmtKmh(w.windAvgKmh)}</td></tr>` +
-        `<tr><td>能见度</td><td>最高 ${fmtValTime(w.visibilityMaxM,w.visibilityMaxTime,fmtM)}</td><td>最低 ${fmtValTime(w.visibilityMinM,w.visibilityMinTime,fmtM)} · 均 ${fmtM(w.visibilityAvgM)}</td></tr>` +
+        `<tr><td>能见度</td><td>最低 ${fmtValTime(w.visibilityMinM,w.visibilityMinTime,fmtM)} · 最高 ${fmtValTime(w.visibilityMaxM,w.visibilityMaxTime,fmtM)}</td><td>均 ${fmtM(w.visibilityAvgM)}</td></tr>` +
         `<tr><td>紫外线</td><td>${w.uvMin!=null?w.uvMin.toFixed(1):'--'}${w.uvMinTime?`<span class="wx-date">${w.uvMinTime}</span>`:''} ~ ${w.uvMax!=null?Math.round(w.uvMax):'--'}${w.uvMaxTime?`<span class="wx-date">${w.uvMaxTime}</span>`:''}</td><td>均 ${w.uvAvg!=null?w.uvAvg.toFixed(1):'--'}</td></tr>` +
-        `<tr><td>天气类型</td><td colspan="2">${Object.entries(s.weatherConditionCounts||{}).slice(0,5).map(([c,n])=>(CONDITION_LABELS[c]||c)+' '+n).join(' · ')}</td></tr>` +
+        `<tr><td>天气类型</td><td colspan="2">${Object.entries(s.weatherConditionCounts||{}).map(([c,n])=>(CONDITION_LABELS[c]||c)+' '+n).join(' · ')}</td></tr>` +
         dr +
         `</table>`;
     }
-    }
+
 
     function renderDetail(s) {
       return `<div class="detail-inner">` +
@@ -294,23 +296,28 @@
     }
 
     function renderWeatherTab() {
+      const rankings = wxMode === 'district' ? districtWeatherRankings : weatherRankings;
+      const label = wxMode === 'district' ? '' : '城市';
       const panels = [
-        { key:'hottest', title:'🔥 最热城市', fmt:v=>fmtTemp(v), get:s=>s.weather.tempMax, getTime:s=>s.weather.tempMaxTime },
-        { key:'coldest', title:'❄ 最冷城市', fmt:v=>fmtTemp(v), get:s=>s.weather.tempMin, getTime:s=>s.weather.tempMinTime },
-        { key:'highestFeelsLike', title:'🥵 最高体感温度', fmt:v=>fmtTemp(v), get:s=>s.weather.feelsLikeMax, getTime:s=>s.weather.feelsLikeMaxTime },
-        { key:'windiest', title:'💨 最大风速', fmt:v=>fmtKmh(v), get:s=>s.weather.windMaxKmh, getTime:s=>s.weather.windMaxTime },
-        { key:'rainiest', title:'🌧 最多降雨', fmt:v=>fmtMm(v), get:s=>s.weather.precipTotalMm, getTime:null },
-        { key:'lowestVisibility', title:'🌫 最低能见度', fmt:v=>fmtM(v), get:s=>s.weather.visibilityMinM, getTime:s=>s.weather.visibilityMinTime },
-        { key:'highestUV', title:'☀ 最高紫外线', fmt:v=>v!=null?Math.round(v):'--', get:s=>s.weather.uvMax, getTime:s=>s.weather.uvMaxTime },
-        { key:'mostHumid', title:'💧 最潮湿', fmt:v=>fmtPct(v), get:s=>s.weather.humidityAvg, getTime:null },
+        { key:'hottest', title:`🔥 最热${label}`, fmt:v=>fmtTemp(v), get:s=>s.weather.tempMax, getTime:s=>s.weather.tempMaxTime },
+        { key:'coldest', title:`❄ 最冷${label}`, fmt:v=>fmtTemp(v), get:s=>s.weather.tempMin, getTime:s=>s.weather.tempMinTime },
+        { key:'highestFeelsLike', title:`🥵 最高体感温度`, fmt:v=>fmtTemp(v), get:s=>s.weather.feelsLikeMax, getTime:s=>s.weather.feelsLikeMaxTime },
+        { key:'windiest', title:`💨 最大风速`, fmt:v=>fmtKmh(v), get:s=>s.weather.windMaxKmh, getTime:s=>s.weather.windMaxTime },
+        { key:'rainiest', title:`🌧 累计最多降雨`, fmt:v=>fmtMm(v), get:s=>s.weather.precipTotalMm, getTime:null },
+        { key:'maxPrecip', title:`🌧 单次最大降雨`, fmt:v=>fmtMm(v), get:s=>s.weather.precipMaxMm, getTime:s=>s.weather.precipMaxTime },
+        { key:'lowestVisibility', title:`🌫 最低能见度`, fmt:v=>fmtM(v), get:s=>s.weather.visibilityMinM, getTime:s=>s.weather.visibilityMinTime },
+        { key:'highestUV', title:`☀ 最高紫外线`, fmt:v=>v!=null?Math.round(v):'--', get:s=>s.weather.uvMax, getTime:s=>s.weather.uvMaxTime },
+        { key:'mostHumid', title:`💧 最潮湿`, fmt:v=>fmtPct(v), get:s=>s.weather.humidityAvg, getTime:null },
       ];
-      let html = '<div class="weather-grid">';
+      let html = `<div class="wx-toggle-bar"><button class="wx-toggle ${wxMode==='city'?'active':''}" data-wx="city">🏙 城市</button><button class="wx-toggle ${wxMode==='district'?'active':''}" data-wx="district">📍 区县</button></div>`;
+      html += '<div class="weather-grid">';
       for (const p of panels) {
-        const list = weatherRankings[p.key] || [];
+        const list = rankings[p.key] || [];
         html += `<div class="wx-card"><h3>${p.title}</h3><ol>`;
-        list.forEach(([city, s], i) => {
+        list.forEach(([key, s], i) => {
           const t = p.getTime ? p.getTime(s) : '';
-          html += `<li><span class="rank-dot ${rankDotClass(i)}">${i+1}</span><span class="city-label">${city}</span><span class="city-val">${p.fmt(p.get(s))}</span>${t?`<span class="wx-date">${t}</span>`:''}</li>`;
+          const name = wxMode === 'district' ? (s.district ? `${s.district} · ${s.city}` : key) : key;
+          html += `<li><span class="rank-dot ${rankDotClass(i)}">${i+1}</span><span class="city-label">${name}</span><span class="city-val">${p.fmt(p.get(s))}</span>${t?`<span class="wx-date">${t}</span>`:''}</li>`;
         });
         html += '</ol></div>';
       }
@@ -333,7 +340,7 @@
             `<span class="rank-dot ${rankDotClass(i)}">${i+1}</span>` +
             `<span class="city-label">${e.city}</span>` +
             `<span class="city-val">${e.count}<span class="city-unit">次</span></span>` +
-            `${e.totalHours ? `<span class="traffic-dur">⏱${fmtHours(e.totalHours)} · 均${fmtHours(e.avgHours)}/次 · 最长${fmtHours(e.maxHours)}/次${e.maxHoursPerDay ? ' · '+fmtHours(e.maxHoursPerDay)+'/天' : ''} · ${e.dayCount||0}天</span>` : ''}` +
+            `${e.totalHours ? `<span class="traffic-dur">⏱${fmtHours(e.totalHours)} · 均${fmtHours(e.avgHours)}/次 · 最长${fmtHours(e.maxHours)}/次${e.maxHoursPerDay ? ' · '+'最长' + fmtHours(e.maxHoursPerDay)+'/天' : ''} · ${e.dayCount||0}天</span>` : ''}` +
             `</li>`;
         });
         html += '</ol></div>';
@@ -362,6 +369,13 @@
       currentTab = btn.dataset.tab;
       tabBar.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+      renderCurrent();
+    });
+
+    mainContent.addEventListener('click', (e) => {
+      const btn = e.target.closest('.wx-toggle');
+      if (!btn) return;
+      wxMode = btn.dataset.wx;
       renderCurrent();
     });
 
