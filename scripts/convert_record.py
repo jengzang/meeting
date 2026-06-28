@@ -1,8 +1,8 @@
 """
 Convert 记录_together.xlsx → data/records.js as an ES module.
 
-Filters records to dates present in SHAPE_INPUT (mirrors config.js logic).
-Re-run this whenever the xlsx file or config.js SHAPE_INPUT changes.
+Filters records to dates present in SHAPE_INPUT (mirrors heatconfig.js logic).
+Re-run this whenever the xlsx file or heatconfig.js SHAPE_INPUT changes.
 
 Usage:
   python3 -m venv /tmp/xlsxenv
@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 SRC = os.path.join(os.path.dirname(__file__), "..", "raw_data/记录_together.xlsx")
 DST = os.path.join(os.path.dirname(__file__), "..", "data", "records.js")
 
-# ── config mirror (keep in sync with config.js) ──────────────────
+# ── config mirror (keep in sync with heatconfig.js) ──────────────────
 
 YEAR = 2026
 

@@ -1,20 +1,6 @@
 import { Timeline, recordsToTimeline, trafficToTimeline } from "../timeline.js";
 import { recordLocations, recordWeather } from "./map-main.js";
-
-function weatherIcon(condition) {
-  var map = {
-    "clear": "☀️", "mostlyClear": "🌤️", "partlyCloudy": "⛅",
-    "cloudy": "☁️", "mostlyCloudy": "☁️", "overcast": "☁️",
-    "rain": "🌧️", "snow": "❄️", "fog": "🌫️", "windy": "💨",
-  };
-  return map[condition] || "🌡️";
-}
-
-function countryFlag(code) {
-  if (!code || code.length !== 2) return "";
-  var A = "A".charCodeAt(0);
-  return String.fromCodePoint(0x1F1E6 + code.charCodeAt(0) - A, 0x1F1E6 + code.charCodeAt(1) - A);
-}
+import { RECORD_COLORS, TRAFFIC_COLORS, weatherIcon, countryFlag } from "./mappings.js";
 
 function showBadgePop(el) {
   var exist = document.getElementById("badgePop");
@@ -100,8 +86,8 @@ function hideDetail() {
 
 export function setupTimeline(records, traffic) {
 
-  var recItems = recordsToTimeline(records);
-  var trafItems = trafficToTimeline(traffic);
+  var recItems = recordsToTimeline(records, RECORD_COLORS);
+  var trafItems = trafficToTimeline(traffic, TRAFFIC_COLORS);
   var allItems = recItems.concat(trafItems);
 
   var badge = document.getElementById("tlBadge");
@@ -118,14 +104,89 @@ export function setupTimeline(records, traffic) {
 
   var container = document.getElementById("tlContainer");
   var compact = false;
+
+  // Load saved dimensions
+  var tlColWidth = parseInt(localStorage.getItem("tl_colWidth")) || 70;
+  var tlHourHeight = parseInt(localStorage.getItem("tl_hourHeight")) || 64;
+
   var timeline = new Timeline(container, {
     data: allItems,
-    hourHeight: 64,
-    colWidth: 70,
+    hourHeight: tlHourHeight,
+    colWidth: tlColWidth,
     onBlockClick: showDetail,
   });
 
-  // Mode toggle
+  // ── Settings button ───────────────────────────────────────────
+
+  var settingsBtn = document.createElement("button");
+  settingsBtn.className = "tl-settings-btn";
+  settingsBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+  settingsBtn.title = "时间线设置";
+  document.querySelector(".header-bar").appendChild(settingsBtn);
+
+  // ── Settings popup ────────────────────────────────────────────
+
+  var settingsPopup = document.createElement("div");
+  settingsPopup.className = "tl-settings-popup";
+  settingsPopup.style.display = "none";
+  settingsPopup.innerHTML =
+    '<div class="tl-settings-overlay"></div>' +
+    '<div class="tl-settings-card">' +
+      '<button class="dt-close tl-settings-close">✕</button>' +
+      '<div class="tl-settings-title">时间线设置</div>' +
+      '<div class="tl-settings-row">' +
+        '<span>列宽</span>' +
+        '<input type="range" id="tlColWSlider" min="30" max="200" step="5" value="' + tlColWidth + '" />' +
+        '<span class="tl-settings-val" id="tlColWVal">' + tlColWidth + 'px</span>' +
+      '</div>' +
+      '<div class="tl-settings-row">' +
+        '<span>行高</span>' +
+        '<input type="range" id="tlHourHSlider" min="30" max="150" step="2" value="' + tlHourHeight + '" />' +
+        '<span class="tl-settings-val" id="tlHourHVal">' + tlHourHeight + 'px</span>' +
+      '</div>' +
+      '<button class="tl-settings-reset">恢复默认</button>' +
+    '</div>';
+  document.body.appendChild(settingsPopup);
+
+  var colWSlider = document.getElementById("tlColWSlider");
+  var colWVal = document.getElementById("tlColWVal");
+  var hourHSlider = document.getElementById("tlHourHSlider");
+  var hourHVal = document.getElementById("tlHourHVal");
+
+  function openSettings() { settingsPopup.style.display = "flex"; }
+  function closeSettings() { settingsPopup.style.display = "none"; }
+
+  settingsBtn.addEventListener("click", openSettings);
+  settingsPopup.querySelector(".tl-settings-overlay").addEventListener("click", closeSettings);
+  settingsPopup.querySelector(".tl-settings-close").addEventListener("click", closeSettings);
+
+  colWSlider.addEventListener("input", function () {
+    tlColWidth = parseInt(colWSlider.value);
+    colWVal.textContent = tlColWidth + "px";
+    localStorage.setItem("tl_colWidth", tlColWidth);
+    timeline.setDimensions(tlColWidth, tlHourHeight);
+  });
+
+  hourHSlider.addEventListener("input", function () {
+    tlHourHeight = parseInt(hourHSlider.value);
+    hourHVal.textContent = tlHourHeight + "px";
+    localStorage.setItem("tl_hourHeight", tlHourHeight);
+    timeline.setDimensions(tlColWidth, tlHourHeight);
+  });
+
+  settingsPopup.querySelector(".tl-settings-reset").addEventListener("click", function () {
+    tlColWidth = 70;
+    tlHourHeight = 64;
+    colWSlider.value = 70;
+    colWVal.textContent = "70px";
+    hourHSlider.value = 64;
+    hourHVal.textContent = "64px";
+    localStorage.removeItem("tl_colWidth");
+    localStorage.removeItem("tl_hourHeight");
+    timeline.setDimensions(70, 64);
+  });
+
+  // ── Mode toggle ───────────────────────────────────────────────
   var modeToggle = document.getElementById("tlModeToggle");
   modeToggle.addEventListener("change", function () {
     compact = modeToggle.checked;

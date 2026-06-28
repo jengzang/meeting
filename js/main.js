@@ -1,6 +1,6 @@
-import { THEMES } from "./config.js";
+import { THEMES } from "./heatconfig.js";
 import { parseDate } from "./utils.js";
-import { START_DATE, END_DATE } from "./config.js";
+import { START_DATE, END_DATE } from "./heatconfig.js";
 import { shapeData, depthData, getMonthStats, renderCalendar, renderLegend, renderMonthRatio, renderTotalPie, renderMonthlyPies } from "./heatmap.js";
 
 // ── state ──────────────────────────────────────────────────────

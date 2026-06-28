@@ -1,5 +1,5 @@
 import { records } from "../data/records.js";
-import { SHAPE_INPUT, YEAR } from "./config.js";
+import { SHAPE_INPUT, YEAR } from "./heatconfig.js";
 import { mdToDateStr } from "./utils.js";
 
 // ── unique types ───────────────────────────────────────────────

@@ -1,54 +1,4 @@
-// ── Color maps ─────────────────────────────────────────────────
-
-export const RECORD_COLORS = {
-  "学校": "#19c6c6",
-  "活动聚会": "#13a113",
-  "汽车相关": "#3b82f6",
-  "办事": "#012F7B",
-  "地标": "#ef4444",
-  "飞机相关": "#3b82f6",
-  "宿舍": "#4B0082",
-  "旅行": "#ef4444",
-  "商场": "#C3D117",
-  "住宿": "#9e109e",
-  "火车": "#6366f1",
-  "就餐": "#ca8a04",
-  "运动": "#f97316",
-  "东莞家": "#FF6A00",
-  "中山家": "#FF6A00",
-  "探亲祭祖": "#FF8648",
-  "医院": "#831100",
-  "理发按摩": "#8D8602",
-  "约会": "#FFC0CB",
-  "地铁": "#6366f1",
-  "老家": "#DA5100",
-  "工作": "#3EB489",
-};
-
-export const TRAFFIC_COLORS = {
-  "步行": "#00FF88",
-  "机动车": "#3b82f6",
-  "地铁": "#9a2bb3",
-  "骑行": "#0f6025",
-  "火车": "#ce2a2a",
-  "大巴": "#248dd3",
-  "船": "#002ad1",
-  "飞行": "#2fc4e2",
-  "缆车": "#A0522D",
-};
-
-const FALLBACK_PALETTE = [
-  "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231",
-  "#911eb4", "#42d4f4", "#f032e6", "#bfe745", "#fabed4",
-  "#469990", "#dcbaff", "#9a6324", "#fffac8", "#800000",
-  "#aaffc3", "#808000", "#ffd8b1", "#000075", "#a9a9a9"
-];
-
-function fallbackColor(key) {
-  let hash = 0;
-  for (let i = 0; i < key.length; i++) hash = ((hash << 5) - hash) + key.charCodeAt(i);
-  return FALLBACK_PALETTE[Math.abs(hash) % FALLBACK_PALETTE.length];
-}
+import { RECORD_COLORS, TRAFFIC_COLORS, FALLBACK_PALETTE, fallbackColor } from "./mappings.js";
 
 // ── Adapters ───────────────────────────────────────────────────
 
@@ -58,17 +8,26 @@ export function recordsToTimeline(records, colorMap) {
     const start = new Date(r.arrival);
     const end = new Date(r.departure);
     const pad = n => String(n).padStart(2, '0');
+    const startTime = pad(start.getHours()) + ':' + pad(start.getMinutes());
+    let endTime = pad(end.getHours()) + ':' + pad(end.getMinutes());
+    let origEndTime = null;
+    if (startTime === endTime) {
+      origEndTime = endTime;
+      end.setMinutes(end.getMinutes() + 1);
+      endTime = pad(end.getHours()) + ':' + pad(end.getMinutes());
+    }
     return {
       id: 'r-' + r.id,
       date: r.date,
-      startTime: pad(start.getHours()) + ':' + pad(start.getMinutes()),
-      endTime: pad(end.getHours()) + ':' + pad(end.getMinutes()),
+      startTime,
+      endTime,
       title: r.activity,
       subtitle: r.place || '',
       category: r.activity,
       color: cm[r.activity] || fallbackColor(r.activity),
       source: 'record',
       _raw: r,
+      _origEndTime: origEndTime,
     };
   });
 }
@@ -79,17 +38,26 @@ export function trafficToTimeline(traffic, colorMap) {
     const start = new Date(t.from_time);
     const end = new Date(t.to_time);
     const pad = n => String(n).padStart(2, '0');
+    const startTime = pad(start.getHours()) + ':' + pad(start.getMinutes());
+    let endTime = pad(end.getHours()) + ':' + pad(end.getMinutes());
+    let origEndTime = null;
+    if (startTime === endTime) {
+      origEndTime = endTime;
+      end.setMinutes(end.getMinutes() + 1);
+      endTime = pad(end.getHours()) + ':' + pad(end.getMinutes());
+    }
     return {
       id: 't-' + (t.id || i),
       date: t.date,
-      startTime: pad(start.getHours()) + ':' + pad(start.getMinutes()),
-      endTime: pad(end.getHours()) + ':' + pad(end.getMinutes()),
+      startTime,
+      endTime,
       title: t.type,
       subtitle: (t.origin || '') + ' -> ' + (t.dest || ''),
       category: t.type,
       color: cm[t.type] || fallbackColor(t.type),
       source: 'traffic',
       _raw: t,
+      _origEndTime: origEndTime,
     };
   });
 }
@@ -155,6 +123,12 @@ export class Timeline {
   setCompact(on) {
     if (this.compact === on) return;
     this.compact = on;
+    this.render();
+  }
+
+  setDimensions(colWidth, hourHeight) {
+    this.colWidth = colWidth;
+    this.hourHeight = hourHeight;
     this.render();
   }
 

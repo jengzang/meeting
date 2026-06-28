@@ -1,5 +1,5 @@
 import { parseDate, formatDate, addDays, buildWeeks, getMonthText, mdToDateStr } from "./utils.js";
-import { YEAR, START_DATE, END_DATE, SHAPE_INPUT, DEPTH_INPUT } from "./config.js";
+import { YEAR, START_DATE, END_DATE, SHAPE_INPUT, DEPTH_INPUT } from "./heatconfig.js";
 
 // ── data builders ──────────────────────────────────────────────
 

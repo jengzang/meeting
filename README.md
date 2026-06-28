@@ -36,7 +36,8 @@ meeting/
 │   ├── leaderboard.js      # 排行榜聚合逻辑（城市/天气/交通/地理/旅程统计）
 │   ├── sheep.js            # 绵羊 SVG 库（变体、吉祥物、粒子）
 │   ├── loading.js          # 页面过渡加载动画
-│   ├── config.js           # 热力图配置
+│   ├── heatconfig.js        # 热力图配置
+│   ├── mappings.js           # 共享映射（颜色/图标/国旗）
 │   ├── utils.js            # 日期工具
 │   └── full/               # 全量版专属
 │       ├── map-main.js     # 加密数据解密 + 地图渲染
@@ -76,7 +77,7 @@ raw_data/交通.csv
 data/records.js              ←── js_xlsx.py ─────────→ raw_data/回忆碎片.xlsx
 ```
 
-**convert_record.py**：读取 Excel，筛选出与 `config.js` 日期范围匹配的记录，输出 ES 模块。
+**convert_record.py**：读取 Excel，筛选出与 `heatconfig.js` 日期范围匹配的记录，输出 ES 模块。
 
 **convert_traffic.py**：读取交通 Excel + `records.js`，将每条交通匹配到记录间隙（时间差 < 24h），填充起止坐标。
 
@@ -90,7 +91,7 @@ data/records.js              ←── js_xlsx.py ─────────→
 
 ## 热力图 (`heat.html`)
 
-### 配置层 (`js/config.js`)
+### 配置层 (`js/heatconfig.js`)
 
 定义热力图的核心数据模型，所有渲染和管线脚本共享此配置：
 
