@@ -586,20 +586,35 @@ function renderMarkers({ fit = false } = {}) {
 
   if (currentRecords.length === 0) return;
 
-  // group by coordinate: autoCluster uses continuous grid, else exact
+  // group by coordinate (+ activity in activity mode so same-place activities separate)
   const gridDeg = autoCluster ? clusterGridDeg() : 0;
   const groups = new Map();
   for (const r of currentRecords) {
     const gLng = gridDeg ? Math.round(r.lng / gridDeg) * gridDeg : r.lng;
     const gLat = gridDeg ? Math.round(r.lat / gridDeg) * gridDeg : r.lat;
-    const key = `${gLng.toFixed(7)},${gLat.toFixed(7)}`;
+    const key = labelMode === "activity"
+      ? `${gLng.toFixed(7)},${gLat.toFixed(7)},${r.activity}`
+      : `${gLng.toFixed(7)},${gLat.toFixed(7)}`;
     if (!groups.has(key)) {
       groups.set(key, { recs: [], lng: gLng, lat: gLat });
     }
     groups.get(key).recs.push(r);
   }
 
+  // Offset overlapping markers at the same coordinate (activity-mode only)
+  const coordSeen = new Map();
   const groupList = [...groups.values()];
+  for (const g of groupList) {
+    const ck = `${g.lng.toFixed(7)},${g.lat.toFixed(7)}`;
+    const n = coordSeen.get(ck) || 0;
+    coordSeen.set(ck, n + 1);
+    if (n > 0) {
+      const angle = (n * 2.4); // radians, golden-angle-ish spread
+      const r = 0.00008 * (1 + Math.floor(n / 6));
+      g.lng += Math.cos(angle) * r;
+      g.lat += Math.sin(angle) * r;
+    }
+  }
   recordCountEl.textContent = autoCluster
     ? `${currentRecords.length} 条 → ${groupList.length} 标记`
     : `${currentRecords.length} 条记录`;
