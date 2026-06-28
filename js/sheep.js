@@ -24,7 +24,7 @@ function sheepSVG(viewBox, bodyCX, bodyCY, bodyR, headCX, headCY, headRX, headRY
   const hid = `h${uid()}`;
   const eid = `e${uid()}`;
 
-  const [vw, vh] = viewBox.split(' ').slice(2).map(Number);
+  const [vw, dvh] = viewBox.split(' ').slice(2).map(Number);
 
   // Body fluff
   const fluff = [];
