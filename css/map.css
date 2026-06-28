@@ -537,6 +537,13 @@ body {
   line-height: 1.5;
 }
 
+.detail-stats {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+}
+
 .detail-location {
   margin-top: 8px;
   padding-top: 8px;

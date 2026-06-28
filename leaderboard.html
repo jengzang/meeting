@@ -5,110 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>排行榜</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><ellipse cx='16' cy='18' rx='11' ry='10' fill='%235a4a3a'/><circle cx='13' cy='13' r='4' fill='%235a4a3a'/><circle cx='16' cy='11.5' r='4.5' fill='%23665544'/><circle cx='19' cy='13' r='4' fill='%235a4a3a'/><ellipse cx='13' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><ellipse cx='19' cy='10' rx='3' ry='2' fill='%23f7c5c5'/><circle cx='14' cy='18' r='3' fill='white'/><circle cx='18' cy='18' r='3' fill='white'/><circle cx='14.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='18.5' cy='17.5' r='1.5' fill='%231a1410'/><circle cx='15.2' cy='16.5' r='0.6' fill='white'/><circle cx='19.2' cy='16.5' r='0.6' fill='white'/><ellipse cx='12.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='19.5' cy='20.5' rx='1.5' ry='1' fill='%23e8a0a0' opacity='0.5'/><ellipse cx='16' cy='19.5' rx='1.2' ry='0.8' fill='%232a2018'/></svg>" />
-  <link rel="stylesheet" href="css/intro.css?v=7761f4b" />
-  <link rel="stylesheet" href="css/sheep.css?v=7761f4b" />
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #0f172a;
-      --panel: rgba(15, 23, 42, 0.88);
-      --text: #e5e7eb;
-      --muted: #94a3b8;
-      --border: rgba(255, 255, 255, 0.08);
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ── Header ─────────────────────────────── */
-    .header-bar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 16px;
-      background: var(--panel);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-      z-index: 10;
-    }
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 1;
-    }
-    .page-title {
-      font-size: 17px;
-      font-weight: 800;
-    }
-    .nav-link {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 600;
-      white-space: nowrap;
-      transition: color 0.2s;
-    }
-    .nav-link:hover { color: var(--text); }
-
-    /* ── Main content ────────────────────────── */
-    .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      padding: 32px 24px;
-      text-align: center;
-    }
-    .placeholder-icon {
-      font-size: 64px;
-      animation: floatTrophy 3s ease-in-out infinite;
-    }
-    @keyframes floatTrophy {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-12px); }
-    }
-    .placeholder-title {
-      font-size: 28px;
-      font-weight: 900;
-      letter-spacing: 0.06em;
-    }
-    .placeholder-sub {
-      font-size: 14px;
-      color: var(--muted);
-      max-width: 320px;
-      line-height: 1.6;
-    }
-
-    /* ── Loading overlay ─────────────────────── */
-    .page-loading-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#0f172a;opacity:1;transition:opacity .35s ease-out}
-    .page-loading-overlay.hidden{opacity:0;pointer-events:none}
-    .page-loading-overlay.removed{display:none}
-    .page-loading-sheep{width:100px;height:110px;animation:ld-bounce .55s ease-in-out infinite alternate}
-    .page-loading-text{color:#94a3b8;font-size:13px;font-weight:600;letter-spacing:.05em}
-    .page-loading-dots{display:inline-block;width:20px;text-align:left}
-    @keyframes ld-bounce{0%{transform:translateY(0) scaleY(1)}80%{transform:translateY(-18px) scaleY(.92)}100%{transform:translateY(-22px) scaleY(1.06)}}
-
-    @media (max-width: 768px) {
-      .header-bar { gap: 8px; padding: 6px 10px; }
-      .header-left { gap: 8px; }
-      .nav-link { font-size: 11px; }
-      .page-title { font-size: 15px; }
-      .placeholder-icon { font-size: 48px; }
-      .placeholder-title { font-size: 22px; }
-    }
-  </style>
+  <link rel="stylesheet" href="css/intro.css?v=ff3cb93" />
+  <link rel="stylesheet" href="css/sheep.css?v=ff3cb93" />
+  <link rel="stylesheet" href="css/leaderboard.css?v=ff3cb93" />
 </head>
 
 <body>
@@ -128,23 +27,10 @@
       <div class="intro-message" id="introMessage"></div>
       <svg class="intro-sheep" viewBox="0 0 200 220" width="200" height="220" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id="bodyGrad" cx="45%" cy="35%">
-            <stop offset="0%" stop-color="#fffefb"/>
-            <stop offset="70%" stop-color="#f5f0e8"/>
-            <stop offset="100%" stop-color="#e8e0d4"/>
-          </radialGradient>
-          <radialGradient id="fluffGrad" cx="40%" cy="30%">
-            <stop offset="0%" stop-color="#ffffff"/>
-            <stop offset="100%" stop-color="#f2ede5"/>
-          </radialGradient>
-          <radialGradient id="headGrad" cx="40%" cy="35%">
-            <stop offset="0%" stop-color="#5a4a3a"/>
-            <stop offset="100%" stop-color="#3d3026"/>
-          </radialGradient>
-          <radialGradient id="earInnerGrad" cx="50%" cy="50%">
-            <stop offset="0%" stop-color="#f7c5c5"/>
-            <stop offset="100%" stop-color="#e8a0a0"/>
-          </radialGradient>
+          <radialGradient id="bodyGrad" cx="45%" cy="35%"><stop offset="0%" stop-color="#fffefb"/><stop offset="70%" stop-color="#f5f0e8"/><stop offset="100%" stop-color="#e8e0d4"/></radialGradient>
+          <radialGradient id="fluffGrad" cx="40%" cy="30%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#f2ede5"/></radialGradient>
+          <radialGradient id="headGrad" cx="40%" cy="35%"><stop offset="0%" stop-color="#5a4a3a"/><stop offset="100%" stop-color="#3d3026"/></radialGradient>
+          <radialGradient id="earInnerGrad" cx="50%" cy="50%"><stop offset="0%" stop-color="#f7c5c5"/><stop offset="100%" stop-color="#e8a0a0"/></radialGradient>
         </defs>
         <g class="sheep-body-cloud">
           <circle cx="100" cy="130" r="42" fill="url(#bodyGrad)"/>
@@ -214,15 +100,261 @@
     </div>
   </header>
 
-  <div class="main">
-    <div class="placeholder-icon">🏆</div>
-    <div class="placeholder-title">排行榜即将上线</div>
-    <div class="placeholder-sub">数据统计中，敬请期待…</div>
-  </div>
+  <nav class="tab-bar" id="tabBar">
+    <button class="tab-btn active" data-tab="city">🏙 城市</button>
+    <button class="tab-btn" data-tab="district">📍 区县</button>
+    <button class="tab-btn" data-tab="weather">🌤 天气</button>
+    <button class="tab-btn" data-tab="traffic">🚗 交通</button>
+  </nav>
+
+  <div class="summary-bar" id="summaryBar"></div>
+
+  <div class="main" id="mainContent"></div>
 
   <script type="module">
-    import { initAll } from "./js/init.js?v=7761f4b";
+    import { initAll } from "./js/init.js?v=ff3cb93";
+    import { records } from "./data/records.js";
+    import { recordLocations } from "./data/record_locations.js";
+    import { recordWeather } from "./data/record_weather.js";
+    import { traffic } from "./data/traffic.js";
+    import {
+      buildCityStats, buildDistrictStats,
+      buildWeatherRankings, buildTrafficRankings, buildSummary,
+      CONDITION_LABELS
+    } from "./js/leaderboard.js";
+
     initAll({ introTimeout: 2000 });
+
+    const cityStats = buildCityStats(records, recordLocations, recordWeather, traffic);
+    const districtStats = buildDistrictStats(records, recordLocations, recordWeather, traffic);
+    const weatherRankings = buildWeatherRankings(cityStats);
+    const trafficRankings = buildTrafficRankings(cityStats);
+    const summary = buildSummary(cityStats);
+
+    const summaryBar = document.getElementById('summaryBar');
+    const mainContent = document.getElementById('mainContent');
+    const tabBar = document.getElementById('tabBar');
+
+    let currentTab = 'city';
+    let citySort = { field: 'recordCount', asc: false };
+    let districtSort = { field: 'recordCount', asc: false };
+
+    function rankClass(i) { if (i===0) return 'rank-1'; if (i===1) return 'rank-2'; if (i===2) return 'rank-3'; return ''; }
+    function rankDotClass(i) { if (i===0) return 'gold'; if (i===1) return 'silver'; if (i===2) return 'bronze'; return ''; }
+    function fmtHours(h) { if (h>=24) return (Math.round(h/2.4)/10)+'天'; return h.toFixed(1)+'h'; }
+    function fmtTemp(c) { return c!=null ? c.toFixed(1)+'°C' : '--'; }
+    function fmtKmh(v) { return v!=null ? v.toFixed(1)+' km/h' : '--'; }
+    function fmtMm(v) { return v!=null ? v.toFixed(1)+' mm' : '--'; }
+    function fmtM(v) { if (v==null) return '--'; if (v>=1000) return (v/1000).toFixed(1)+' km'; return Math.round(v)+' m'; }
+    function fmtPct(v) { return v!=null ? Math.round(v*100)+'%' : '--'; }
+
+    function renderSummary() {
+      summaryBar.innerHTML =
+        `<span class="summary-item">🏙 <strong>${summary.cityCount}</strong> 城市</span>` +
+        `<span class="summary-item">📋 <strong>${summary.totalRecords}</strong> 到访</span>` +
+        `<span class="summary-item">⏱ <strong>${fmtHours(summary.totalDurationHours)}</strong></span>` +
+        `<span class="summary-item">📍 <strong>${summary.totalPlaces}</strong> 地点</span>`;
+    }
+
+    function sortedEntries(stats, sort) {
+      return Object.entries(stats).sort((a, b) => {
+        let va = a[1][sort.field], vb = b[1][sort.field];
+        if (va == null) va = 0;
+        if (vb == null) vb = 0;
+        if (typeof va === 'string') return sort.asc ? va.localeCompare(vb) : vb.localeCompare(va);
+        return sort.asc ? va - vb : vb - va;
+      });
+    }
+
+    function renderActivityBars(breakdown) {
+      const entries = Object.entries(breakdown);
+      if (!entries.length) return '<span style="color:var(--muted)">无数据</span>';
+      const maxVal = entries[0][1];
+      return entries.map(([act, count]) =>
+        `<div class="activity-bar-row">` +
+          `<span class="activity-bar-label">${act}</span>` +
+          `<div class="activity-bar-track"><div class="activity-bar-fill" style="width:${(count/maxVal*100).toFixed(0)}%"></div></div>` +
+          `<span class="activity-bar-count">${count}</span>` +
+        `</div>`
+      ).join('');
+    }
+
+    function renderTrafficTags(breakdown) {
+      const entries = Object.entries(breakdown);
+      if (!entries.length) return '<span style="color:var(--muted)">无数据</span>';
+      return `<div class="traffic-tags">` +
+        entries.map(([type, count]) => `<span class="traffic-tag">${type} ${count}</span>`).join('') +
+        `</div>`;
+    }
+
+    function renderWeatherMini(s) {
+      const w = s.weather;
+      return `<table class="weather-mini">` +
+        `<tr><td>温度</td><td>${fmtTemp(w.tempMin)} ~ ${fmtTemp(w.tempMax)}</td><td>均 ${fmtTemp(w.tempAvg)}</td></tr>` +
+        `<tr><td>体感最高</td><td colspan="2">${fmtTemp(w.feelsLikeMax)}</td></tr>` +
+        `<tr><td>湿度</td><td>${fmtPct(w.humidityMin)} ~ ${fmtPct(w.humidityMax)}</td><td>均 ${fmtPct(w.humidityAvg)}</td></tr>` +
+        `<tr><td>降水</td><td>总计 ${fmtMm(w.precipTotalMm)}</td><td>最大 ${fmtMm(w.precipMaxMm)}</td></tr>` +
+        `<tr><td>风速</td><td>均 ${fmtKmh(w.windAvgKmh)}</td><td>最大 ${fmtKmh(w.windMaxKmh)}</td></tr>` +
+        `<tr><td>能见度</td><td>均 ${fmtM(w.visibilityAvgM)}</td><td>最低 ${fmtM(w.visibilityMinM)}</td></tr>` +
+        `<tr><td>紫外线</td><td>均 ${w.uvAvg!=null?w.uvAvg.toFixed(1):'--'}</td><td>最高 ${w.uvMax??'--'}</td></tr>` +
+        `<tr><td>天气类型</td><td colspan="2">${Object.entries(s.weatherConditionCounts||{}).slice(0,5).map(([c,n])=>(CONDITION_LABELS[c]||c)+' '+n).join(' · ')}</td></tr>` +
+        `</table>`;
+    }
+
+    function renderDetail(s) {
+      return `<div class="detail-inner">` +
+        `<div class="detail-block"><h4>活动分布</h4>${renderActivityBars(s.activityBreakdown)}</div>` +
+        `<div class="detail-block"><h4>交通方式</h4>${renderTrafficTags(s.trafficBreakdown)}</div>` +
+        `<div class="detail-block"><h4>天气概况${s.weatherEntryCount?' ('+s.weatherEntryCount+'条)':''}</h4>${s.weatherEntryCount?renderWeatherMini(s):'<span style="color:var(--muted)">无天气数据</span>'}</div>` +
+        `</div>`;
+    }
+
+    function renderTable(stats, sort) {
+      const entries = sortedEntries(stats, sort);
+      const isDistrict = currentTab === 'district';
+      const cols = isDistrict
+        ? ['排名','区县','城市','到访次数','总时长','地点数','活动类型']
+        : ['排名','城市','省份','到访次数','总时长','地点数','活动类型'];
+      const fields = isDistrict
+        ? [null,'district','city','recordCount','totalDurationHours','placeCount','activityCount']
+        : [null,null,'admin','recordCount','totalDurationHours','placeCount','activityCount'];
+
+      let html = '<table class="rank-table"><thead><tr>';
+      html += cols.map((col, i) => {
+        const f = fields[i];
+        if (!f) return `<th>${col}</th>`;
+        const arrow = sort.field === f ? (sort.asc ? ' ↑' : ' ↓') : '';
+        return `<th data-sort="${f}">${col}<span class="sort-arrow">${arrow}</span></th>`;
+      }).join('');
+      html += '<th></th></tr></thead><tbody>';
+
+      let rank = 0;
+      for (const [key, s] of entries) {
+        rank++;
+        const rowId = 'row-' + key.replace(/[\/]/g, '_');
+        html += `<tr class="rank-row" data-key="${key}" id="${rowId}">`;
+        html += `<td class="rank-num ${rankClass(rank-1)}">#${rank}</td>`;
+        if (isDistrict) {
+          html += `<td><span class="city-name">${s.district||s.city}</span></td>`;
+          html += `<td style="font-size:12px;color:var(--muted)">${s.city}</td>`;
+        } else {
+          html += `<td><span class="city-name">${key}</span></td>`;
+          html += `<td style="font-size:12px;color:var(--muted)">${s.admin}</td>`;
+        }
+        html += `<td><span class="stat-val">${s.recordCount}</span><span class="stat-unit">次</span></td>`;
+        html += `<td><span class="stat-val">${fmtHours(s.totalDurationHours)}</span></td>`;
+        html += `<td><span class="stat-val">${s.placeCount}</span><span class="stat-unit">处</span></td>`;
+        html += `<td><span class="stat-val">${s.activityCount}</span><span class="stat-unit">类</span></td>`;
+        html += `<td style="text-align:right"><span class="expand-arrow">▼</span></td>`;
+        html += `</tr>`;
+
+        html += `<tr class="detail-row" id="detail-${rowId}">`;
+        html += `<td colspan="${cols.length+1}" class="detail-cell">${renderDetail(s)}</td>`;
+        html += `</tr>`;
+      }
+      html += '</tbody></table>';
+      return html;
+    }
+
+    function bindTableEvents() {
+      mainContent.querySelectorAll('th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+          const f = th.dataset.sort;
+          const sortObj = currentTab === 'district' ? districtSort : citySort;
+          if (sortObj.field === f) sortObj.asc = !sortObj.asc;
+          else { sortObj.field = f; sortObj.asc = false; }
+          renderCurrent();
+        });
+      });
+      mainContent.querySelectorAll('.rank-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const detailRow = document.getElementById('detail-' + row.id);
+          if (!detailRow) return;
+          const isOpen = detailRow.classList.contains('open');
+          mainContent.querySelectorAll('.detail-row.open').forEach(r => r.classList.remove('open'));
+          mainContent.querySelectorAll('.rank-row.expanded').forEach(r => r.classList.remove('expanded'));
+          detailRow.classList.toggle('open', !isOpen);
+          row.classList.toggle('expanded', !isOpen);
+        });
+      });
+    }
+
+    function renderWeatherTab() {
+      const panels = [
+        { key:'hottest', title:'🔥 最热城市', fmt:v=>fmtTemp(v), get:s=>s.weather.tempMax },
+        { key:'coldest', title:'❄ 最冷城市', fmt:v=>fmtTemp(v), get:s=>s.weather.tempMin },
+        { key:'highestFeelsLike', title:'🥵 最高体感温度', fmt:v=>fmtTemp(v), get:s=>s.weather.feelsLikeMax },
+        { key:'windiest', title:'💨 最大风速', fmt:v=>fmtKmh(v), get:s=>s.weather.windMaxKmh },
+        { key:'rainiest', title:'🌧 最多降雨', fmt:v=>fmtMm(v), get:s=>s.weather.precipTotalMm },
+        { key:'lowestVisibility', title:'🌫 最低能见度', fmt:v=>fmtM(v), get:s=>s.weather.visibilityMinM },
+        { key:'highestUV', title:'☀ 最高紫外线', fmt:v=>v!=null?Math.round(v):'--', get:s=>s.weather.uvMax },
+        { key:'mostHumid', title:'💧 最潮湿', fmt:v=>fmtPct(v), get:s=>s.weather.humidityAvg },
+      ];
+      let html = '<div class="weather-grid">';
+      for (const p of panels) {
+        const list = weatherRankings[p.key] || [];
+        html += `<div class="wx-card"><h3>${p.title}</h3><ol>`;
+        list.forEach(([city, s], i) => {
+          html += `<li>` +
+            `<span class="rank-dot ${rankDotClass(i)}">${i+1}</span>` +
+            `<span class="city-label">${city}</span>` +
+            `<span class="city-val">${p.fmt(p.get(s))}</span>` +
+            `</li>`;
+        });
+        html += '</ol></div>';
+      }
+      html += '</div>';
+      return html;
+    }
+
+    function renderTrafficTab() {
+      const types = Object.keys(trafficRankings).sort((a, b) => {
+        const tA = trafficRankings[a].reduce((s,[,c]) => s+c, 0);
+        const tB = trafficRankings[b].reduce((s,[,c]) => s+c, 0);
+        return tB - tA;
+      });
+      let html = '<div class="traffic-grid">';
+      for (const type of types) {
+        const list = trafficRankings[type];
+        html += `<div class="traffic-card"><h3>${type}</h3><ol>`;
+        list.slice(0, 8).forEach(([city, count], i) => {
+          html += `<li>` +
+            `<span class="rank-dot ${rankDotClass(i)}">${i+1}</span>` +
+            `<span class="city-label">${city}</span>` +
+            `<span class="city-val">${count}<span class="city-unit">次</span></span>` +
+            `</li>`;
+        });
+        html += '</ol></div>';
+      }
+      html += '</div>';
+      return html;
+    }
+
+    function renderCurrent() {
+      if (currentTab === 'city') {
+        mainContent.innerHTML = renderTable(cityStats, citySort);
+        bindTableEvents();
+      } else if (currentTab === 'district') {
+        mainContent.innerHTML = renderTable(districtStats, districtSort);
+        bindTableEvents();
+      } else if (currentTab === 'weather') {
+        mainContent.innerHTML = renderWeatherTab();
+      } else if (currentTab === 'traffic') {
+        mainContent.innerHTML = renderTrafficTab();
+      }
+    }
+
+    tabBar.addEventListener('click', (e) => {
+      const btn = e.target.closest('.tab-btn');
+      if (!btn) return;
+      currentTab = btn.dataset.tab;
+      tabBar.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderCurrent();
+    });
+
+    renderSummary();
+    renderCurrent();
   </script>
 </body>
 </html>

@@ -194,6 +194,9 @@ function ensureDetail() {
     const recordsEl = document.createElement("div");
     recordsEl.className = "detail-records";
 
+    const statsEl = document.createElement("div");
+    statsEl.className = "detail-stats";
+
     const noteEl = document.createElement("div");
     noteEl.className = "detail-note";
 
@@ -207,6 +210,7 @@ function ensureDetail() {
     card.appendChild(placeEl);
     card.appendChild(singleWrap);
     card.appendChild(recordsEl);
+    card.appendChild(statsEl);
     card.appendChild(noteEl);
     card.appendChild(locationEl);
     card.appendChild(weatherEl);
@@ -224,6 +228,7 @@ function showDetail(records, color) {
 
   const singleWrap = el.querySelector(".detail-single");
   const recordsEl = el.querySelector(".detail-records");
+  const statsEl = el.querySelector(".detail-stats");
   const noteEl = el.querySelector(".detail-note");
   const locationEl = el.querySelector(".detail-location");
   const weatherEl = el.querySelector(".detail-weather");
@@ -244,6 +249,10 @@ function showDetail(records, color) {
       noteEl.style.display = "none";
     }
 
+    const dur = r.arrival && r.departure ? (new Date(r.departure) - new Date(r.arrival)) / 60000 : 0;
+    statsEl.textContent = `1次 · ${fmtDuration(dur)}`;
+    statsEl.style.display = "";
+
     const loc = recordLocations[r.id];
     if (loc) {
       locationEl.textContent = [countryFlag(loc.country), loc.admin, loc.city, loc.district, loc.street, loc.houseNumber].filter(Boolean).join(" ");
@@ -262,12 +271,26 @@ function showDetail(records, color) {
   } else {
     singleWrap.style.display = "none";
     recordsEl.style.display = "";
+    const clusterSameDay = records.every(r => r.date === records[0].date);
     recordsEl.innerHTML = records.map(r => {
       const arr = fmtTime(r.arrival);
       const dep = fmtTime(r.departure);
+      const arrDate = r.arrival ? r.arrival.slice(0, 10).replace(/-/g, "/") : r.date;
+      const depDate = r.departure ? r.departure.slice(0, 10).replace(/-/g, "/") : "";
+      const arrMD = arrDate.slice(5);
+      const depMD = depDate.slice(5);
+      const recSameDay = arrDate === depDate;
+      let timeStr;
+      if (clusterSameDay && recSameDay) {
+        timeStr = `${arr} — ${dep}`;
+      } else if (recSameDay) {
+        timeStr = `${arrDate} ${arr} — ${dep}`;
+      } else {
+        timeStr = `${arrDate} ${arr} — ${depMD} ${dep}`;
+      }
       return `<div class="detail-record-row">
         <span class="detail-type-badge" style="background:${color}">${r.activity}</span>
-        <span class="detail-record-time">${r.date} ${arr} — ${dep}</span>
+        <span class="detail-record-time">${timeStr}</span>
       </div>`;
     }).join("");
     const notes = records.map(r => r.note).filter(Boolean);
@@ -277,6 +300,13 @@ function showDetail(records, color) {
     } else {
       noteEl.style.display = "none";
     }
+    let totalMin = 0;
+    for (const rec of records) {
+      if (rec.arrival && rec.departure) totalMin += (new Date(rec.departure) - new Date(rec.arrival)) / 60000;
+    }
+    statsEl.textContent = `${records.length}次 · 累计${fmtDuration(totalMin)}`;
+    statsEl.style.display = "";
+
     // Multiple records: show each unique location
     const locSet = new Set();
     for (const rec of records) {
@@ -887,6 +917,13 @@ function fmtTime(iso) {
   if (!iso) return "?";
   const m = iso.match(/T(\d{2}:\d{2})/);
   return m ? m[1] : "?";
+}
+
+function fmtDuration(minutes) {
+  if (!minutes || minutes <= 0) return "";
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  return h > 0 ? `${h}h${m}m` : `${m}m`;
 }
 
 function weatherIcon(condition) {
