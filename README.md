@@ -523,8 +523,8 @@ python3 scripts/js_xlsx.py xlsx2js raw_data/回忆碎片.xlsx data/records.js
 # 更新缓存版本号
 ./hash-bust.sh
 
-# 本地预览
-python3 -m http.server 3000
-# 或
+# 本地预览（推荐 gzip 版本，数据文件 425KB → ~60KB）
+python3 server.py
+# 或直接用 npx serve（内置 brotli 压缩）
 npx serve .
 ```

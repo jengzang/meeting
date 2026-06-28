@@ -1,9 +1,5 @@
 import { mapStyleConfig, mapStyle, calculateDenseMapCenterAndZoom } from "../map-source.js";
 import { getUniqueTypes, getDateExtent, filterByDateRange } from "../map-data.js";
-import { recordsEnc } from "../../data/full/records.enc.js";
-import { trafficEnc } from "../../data/full/traffic.enc.js";
-import { recordLocationsEnc } from "../../data/full/record_locations.enc.js";
-import { recordWeatherEnc } from "../../data/full/record_weather.enc.js";
 
 // ── mutable data (populated after decryption) ───────────────────
 
@@ -30,6 +26,20 @@ export async function initFullData(password) {
   const keyMaterial = await crypto.subtle.importKey(
     "raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]
   );
+
+  // Dynamic imports — download starts AFTER loading sheep is shown
+  const [
+    { recordsEnc },
+    { trafficEnc },
+    { recordLocationsEnc },
+    { recordWeatherEnc }
+  ] = await Promise.all([
+    import("../../data/full/records.enc.js"),
+    import("../../data/full/traffic.enc.js"),
+    import("../../data/full/record_locations.enc.js"),
+    import("../../data/full/record_weather.enc.js")
+  ]);
+
   const salt = base64ToBuf(recordsEnc.salt);
   const key = await crypto.subtle.deriveKey(
     { name: "PBKDF2", salt, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" },
@@ -43,7 +53,11 @@ export async function initFullData(password) {
       { name: "AES-GCM", iv: base64ToBuf(encData.iv) },
       key,
       base64ToBuf(encData.ciphertext)
-    ).then(buf => JSON.parse(new TextDecoder().decode(buf)));
+    ).then(buf => {
+      const blob = new Blob([new Uint8Array(buf)]);
+      const stream = blob.stream().pipeThrough(new DecompressionStream("gzip"));
+      return new Response(stream).arrayBuffer();
+    }).then(buf => JSON.parse(new TextDecoder().decode(buf)));
 
   const [recs, traf, locs, wxs] = await Promise.all([
     decrypt(recordsEnc),
