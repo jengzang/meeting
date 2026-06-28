@@ -20,9 +20,9 @@ if not PASSWORD:
     exit(1)
 PBKDF2_ITERATIONS = 1_200_000
 
-SRC_RECORDS = os.path.join(os.path.dirname(__file__), "..", "到访记录.csv")
-SRC_TRAFFIC = os.path.join(os.path.dirname(__file__), "..", "交通.csv")
-DST_DIR = os.path.join(os.path.dirname(__file__), "..", "js", "data", "full")
+SRC_RECORDS = os.path.join(os.path.dirname(__file__), "..", "raw_data/到访记录.csv")
+SRC_TRAFFIC = os.path.join(os.path.dirname(__file__), "..", "raw_data/交通.csv")
+DST_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "full")
 DST_RECORDS = os.path.join(DST_DIR, "records.enc.js")
 DST_TRAFFIC = os.path.join(DST_DIR, "traffic.enc.js")
 

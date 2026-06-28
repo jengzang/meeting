@@ -1,4 +1,4 @@
-import { records } from "./data/records.js";
+import { records } from "../data/records.js";
 import { SHAPE_INPUT, YEAR } from "./config.js";
 import { mdToDateStr } from "./utils.js";
 

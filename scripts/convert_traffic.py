@@ -1,5 +1,5 @@
 """
-Convert 交通_together.xlsx → js/data/traffic.js.
+Convert 交通_together.xlsx → data/traffic.js.
 
 Matches traffic to gaps between consecutive records (sorted by time).
   origin = the record before the gap
@@ -15,9 +15,9 @@ import json, os, re
 from datetime import datetime, timedelta
 import openpyxl
 
-SRC_RECORDS_JS = os.path.join(os.path.dirname(__file__), "..", "js", "data", "records.js")
-SRC_TRAFFIC = os.path.join(os.path.dirname(__file__), "..", "交通_together.xlsx")
-DST = os.path.join(os.path.dirname(__file__), "..", "js", "data", "traffic.js")
+SRC_RECORDS_JS = os.path.join(os.path.dirname(__file__), "..", "data", "records.js")
+SRC_TRAFFIC = os.path.join(os.path.dirname(__file__), "..", "raw_data/交通_together.xlsx")
+DST = os.path.join(os.path.dirname(__file__), "..", "data", "traffic.js")
 
 TOLERANCE = timedelta(minutes=2)
 MAX_GAP = timedelta(hours=24)  # skip gaps larger than this — data is not continuous

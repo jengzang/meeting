@@ -1,7 +1,7 @@
 import { mapStyleConfig, mapStyle, calculateDenseMapCenterAndZoom } from "./map-source.js";
 import { getUniqueTypes, getDateExtent, filterByDateRange } from "./map-data.js";
-import { records } from "./data/records.js";
-import { traffic } from "./data/traffic.js";
+import { records } from "../data/records.js";
+import { traffic } from "../data/traffic.js";
 
 // ── localStorage key ────────────────────────────────────────────
 

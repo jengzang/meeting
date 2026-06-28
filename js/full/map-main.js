@@ -1,7 +1,7 @@
-import { mapStyleConfig, mapStyle, calculateDenseMapCenterAndZoom } from "./map-source.js";
-import { getUniqueTypes, getDateExtent, filterByDateRange } from "./map-data.js";
-import { recordsEnc } from "./data/full/records.enc.js";
-import { trafficEnc } from "./data/full/traffic.enc.js";
+import { mapStyleConfig, mapStyle, calculateDenseMapCenterAndZoom } from "../map-source.js";
+import { getUniqueTypes, getDateExtent, filterByDateRange } from "../map-data.js";
+import { recordsEnc } from "../../data/full/records.enc.js";
+import { trafficEnc } from "../../data/full/traffic.enc.js";
 
 // ── mutable data (populated after decryption) ───────────────────
 

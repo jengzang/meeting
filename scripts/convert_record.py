@@ -1,5 +1,5 @@
 """
-Convert 记录_together.xlsx → js/data/records.js as an ES module.
+Convert 记录_together.xlsx → data/records.js as an ES module.
 
 Filters records to dates present in SHAPE_INPUT (mirrors config.js logic).
 Re-run this whenever the xlsx file or config.js SHAPE_INPUT changes.
@@ -8,13 +8,13 @@ Usage:
   python3 -m venv /tmp/xlsxenv
   source /tmp/xlsxenv/bin/activate
   pip install openpyxl
-  python3 scripts/convert_xlsx.py
+  python3 scripts/convert_record.py
 """
 import openpyxl, json, os
 from datetime import datetime, timedelta
 
-SRC = os.path.join(os.path.dirname(__file__), "..", "记录_together.xlsx")
-DST = os.path.join(os.path.dirname(__file__), "..", "js", "data", "records.js")
+SRC = os.path.join(os.path.dirname(__file__), "..", "raw_data/记录_together.xlsx")
+DST = os.path.join(os.path.dirname(__file__), "..", "data", "records.js")
 
 # ── config mirror (keep in sync with config.js) ──────────────────
 
