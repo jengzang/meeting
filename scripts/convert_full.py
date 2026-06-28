@@ -132,7 +132,7 @@ def build_enriched(records, places, weather_by_place):
             for wdt, wentry in entries:
                 if arrival_dt <= wdt <= departure_dt:
                     compact_entry = dict(wentry)
-                    compact_entry["time"] = wdt.strftime("%H:%M")
+                    compact_entry["time"] = wdt.strftime("%m/%d %H:%M")
                     matched.append(compact_entry)
             if matched:
                 record_weather[rid] = matched

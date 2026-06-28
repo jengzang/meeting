@@ -147,7 +147,7 @@ def build_enriched(records, places, weather_by_place):
             for wdt, wentry in entries:
                 if arr_dt <= wdt <= dep_dt:
                     entry = dict(wentry)
-                    entry["time"] = wdt.strftime("%H:%M")
+                    entry["time"] = wdt.strftime("%m/%d %H:%M")
                     matched.append(entry)
             if matched:
                 record_weather[rid] = matched
@@ -158,7 +158,7 @@ def build_enriched(records, places, weather_by_place):
 def write_js_module(path, var_name, data):
     js = (
         "/* auto-generated — do not edit */\n"
-        f"export const {var_name} = {json.dumps(data, ensure_ascii=False, separators=(',', ':'))};\n"
+        f"export const {var_name} = {json.dumps(data, ensure_ascii=False, indent=2)};\n"
     )
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:

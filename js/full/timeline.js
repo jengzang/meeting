@@ -58,7 +58,7 @@ function showDetail(item, popup) {
       var wxHtml = '<div class="tl-popup-wx-list">';
       for (var i = 0; i < wx.length; i++) {
         var w = wx[i];
-        wxHtml += '<span class="tl-popup-wx-chip">' + weatherIcon(w.condition) + ' ' + w.time + ' ' + w.tempC + '°C ' + w.condition + '</span>';
+        wxHtml += '<span class="tl-popup-wx-chip">' + weatherIcon(w.condition) + ' ' + w.time + ' ' + w.tempC + '°C ' + ' 风' + w.windKmh + 'km/h 见' + (w.visibilityM/1000).toFixed(1) + 'km 湿' + Math.round(w.humidity*100) + '%</span>';
       }
       wxHtml += '</div>';
       rows += '<div class="tl-popup-row tl-popup-row-wx"><span class="tl-popup-lbl">天气</span>' + wxHtml + "</div>";

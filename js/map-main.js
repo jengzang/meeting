@@ -201,10 +201,7 @@ function showDetail(records, color) {
     // Weather
     const wx = recordWeather[r.id];
     if (wx && wx.length) {
-      weatherEl.innerHTML = wx.map(w => {
-        const icon = weatherIcon(w.condition);
-        return `<span class="detail-wx-chip">${icon} ${w.time} ${w.tempC}°C ${w.condition}</span>`;
-      }).join("");
+      weatherEl.innerHTML = wx.map(w => formatWxChip(w)).join("");
       weatherEl.style.display = "";
     } else {
       weatherEl.style.display = "none";
@@ -235,7 +232,25 @@ function showDetail(records, color) {
     } else {
       locationEl.style.display = "none";
     }
-    weatherEl.style.display = "none";
+    // Multi-record: collect weather from all records
+    const allWx = [];
+    const seen = new Set();
+    for (const rec of records) {
+      const wxList = recordWeather[rec.id];
+      if (wxList) {
+        for (const w of wxList) {
+          const key = w.time + w.condition;
+          if (!seen.has(key)) { seen.add(key); allWx.push(w); }
+        }
+      }
+    }
+    if (allWx.length) {
+      allWx.sort((a, b) => a.time.localeCompare(b.time));
+      weatherEl.innerHTML = allWx.map(w => formatWxChip(w)).join("");
+      weatherEl.style.display = "";
+    } else {
+      weatherEl.style.display = "none";
+    }
   }
   el.style.display = "";
 }
@@ -822,6 +837,13 @@ function weatherIcon(condition) {
     "rain": "🌧️", "snow": "❄️", "fog": "🌫️", "windy": "💨",
   };
   return map[condition] || "🌡️";
+}
+
+function formatWxChip(w) {
+  const icon = weatherIcon(w.condition);
+  const visKm = (w.visibilityM / 1000).toFixed(1);
+  const humPct = Math.round(w.humidity * 100);
+  return `<span class="detail-wx-chip">${icon} ${w.time} ${w.tempC}°C 风${w.windKmh}km/h 见${visKm}km 湿${humPct}%</span>`;
 }
 
 function dominantActivity(recs) {
