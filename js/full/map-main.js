@@ -69,6 +69,8 @@ const LS_LABEL_KEY = "map-label-mode";
 const LS_COLOR_KEY = "map-colors";
 const LS_SIZE_KEY = "map-size-mode";
 const LS_CLUSTER_KEY = "map-auto-cluster";
+const LS_HM_INTENSITY_KEY = "map-hm-intensity";
+const LS_HM_RADIUS_KEY = "map-hm-radius";
 
 let currentStyle = localStorage.getItem(LS_STYLE_KEY) || "tianditu";
 let labelMode = localStorage.getItem(LS_LABEL_KEY) || "activity";
@@ -81,6 +83,8 @@ let markers = [];
 let zoomDebounce = null;
 let trafficVisible = false;
 let heatmapVisible = false;
+let hmIntensityMul = parseFloat(localStorage.getItem(LS_HM_INTENSITY_KEY)) || 1.0;
+let hmRadiusMul = parseFloat(localStorage.getItem(LS_HM_RADIUS_KEY)) || 1.0;
 
 // range slider state
 let rangeMinDate = "";
@@ -398,7 +402,7 @@ function ensureColorConfig() {
 
     const header = document.createElement("div");
     header.className = "color-config-header";
-    header.innerHTML = '<span>配色方案</span>';
+    header.innerHTML = '<span>配置</span>';
 
     const closeBtn = document.createElement("button");
     closeBtn.className = "detail-close";
@@ -406,12 +410,64 @@ function ensureColorConfig() {
     closeBtn.addEventListener("click", hideColorConfig);
     header.appendChild(closeBtn);
 
+    // ── heatmap section ──
+    const hmSection = document.createElement("div");
+    hmSection.className = "config-section";
+    hmSection.innerHTML = '<div class="config-section-title">热力图</div>';
+
+    const hmIntensityRow = document.createElement("div");
+    hmIntensityRow.className = "config-slider-row";
+    hmIntensityRow.innerHTML = '<span>密度</span>';
+    const hmIntensitySlider = document.createElement("input");
+    hmIntensitySlider.type = "range";
+    hmIntensitySlider.min = "0.1"; hmIntensitySlider.max = "3"; hmIntensitySlider.step = "0.05";
+    hmIntensitySlider.value = hmIntensityMul;
+    const hmIntensityVal = document.createElement("span");
+    hmIntensityVal.className = "config-slider-val";
+    hmIntensityVal.textContent = hmIntensityMul.toFixed(2);
+    hmIntensitySlider.addEventListener("input", () => {
+      hmIntensityMul = parseFloat(hmIntensitySlider.value);
+      hmIntensityVal.textContent = hmIntensityMul.toFixed(2);
+      localStorage.setItem(LS_HM_INTENSITY_KEY, hmIntensityMul);
+      initHeatmapLayer();
+      if (heatmapVisible) renderHeatmap();
+    });
+    hmIntensityRow.appendChild(hmIntensitySlider);
+    hmIntensityRow.appendChild(hmIntensityVal);
+    hmSection.appendChild(hmIntensityRow);
+
+    const hmRadiusRow = document.createElement("div");
+    hmRadiusRow.className = "config-slider-row";
+    hmRadiusRow.innerHTML = '<span>半径</span>';
+    const hmRadiusSlider = document.createElement("input");
+    hmRadiusSlider.type = "range";
+    hmRadiusSlider.min = "0.2"; hmRadiusSlider.max = "2"; hmRadiusSlider.step = "0.05";
+    hmRadiusSlider.value = hmRadiusMul;
+    const hmRadiusVal = document.createElement("span");
+    hmRadiusVal.className = "config-slider-val";
+    hmRadiusVal.textContent = hmRadiusMul.toFixed(2);
+    hmRadiusSlider.addEventListener("input", () => {
+      hmRadiusMul = parseFloat(hmRadiusSlider.value);
+      hmRadiusVal.textContent = hmRadiusMul.toFixed(2);
+      localStorage.setItem(LS_HM_RADIUS_KEY, hmRadiusMul);
+      initHeatmapLayer();
+      if (heatmapVisible) renderHeatmap();
+    });
+    hmRadiusRow.appendChild(hmRadiusSlider);
+    hmRadiusRow.appendChild(hmRadiusVal);
+    hmSection.appendChild(hmRadiusRow);
+
+    // ── marker color section ──
+    const colorSection = document.createElement("div");
+    colorSection.className = "config-section";
+    colorSection.innerHTML = '<div class="config-section-title">标记配色</div>';
     const list = document.createElement("div");
     list.className = "color-config-list";
+    colorSection.appendChild(list);
 
     const resetBtn = document.createElement("button");
     resetBtn.className = "color-config-reset";
-    resetBtn.textContent = "重置默认";
+    resetBtn.textContent = "重置配色";
     resetBtn.addEventListener("click", () => {
       localStorage.removeItem(LS_COLOR_KEY);
       populateColorList();
@@ -419,7 +475,8 @@ function ensureColorConfig() {
     });
 
     card.appendChild(header);
-    card.appendChild(list);
+    card.appendChild(hmSection);
+    card.appendChild(colorSection);
     card.appendChild(resetBtn);
     colorConfigEl.appendChild(overlay);
     colorConfigEl.appendChild(card);
@@ -814,27 +871,32 @@ function initHeatmapLayer() {
       "heatmap-weight": ["get", "weight"],
       "heatmap-intensity": [
         "interpolate", ["linear"], ["zoom"],
-        3, 0.08,
-        7, 0.07,
-        12, 0.06,
-        16, 0.05
+        3, 0.016 * hmIntensityMul,
+        7, 0.014 * hmIntensityMul,
+        12, 0.012 * hmIntensityMul,
+        16, 0.010 * hmIntensityMul
       ],
       "heatmap-radius": [
         "interpolate", ["linear"], ["zoom"],
-        3, 70,
-        7, 110,
-        12, 150,
-        16, 200
+        3, 110 * hmRadiusMul,
+        7, 170 * hmRadiusMul,
+        12, 240 * hmRadiusMul,
+        16, 340 * hmRadiusMul
       ],
       "heatmap-color": [
         "interpolate", ["linear"], ["heatmap-density"],
         0.00, "rgba(0, 0, 128, 0)",
-        0.10, "rgba(0, 0, 255, 0.30)",
-        0.25, "rgba(0, 255, 255, 0.50)",
-        0.50, "rgba(0, 255, 0, 0.65)",
-        0.70, "rgba(255, 255, 0, 0.80)",
-        0.90, "rgba(255, 0, 0, 0.90)",
-        1.00, "rgba(128, 0, 0, 0.95)"
+        0.08, "rgba(0, 0, 200, 0.18)",
+        0.16, "rgba(0, 50, 255, 0.30)",
+        0.25, "rgba(0, 150, 255, 0.42)",
+        0.35, "rgba(0, 220, 220, 0.52)",
+        0.45, "rgba(0, 240, 150, 0.60)",
+        0.55, "rgba(80, 255, 80, 0.67)",
+        0.65, "rgba(200, 255, 0, 0.74)",
+        0.75, "rgba(255, 220, 0, 0.80)",
+        0.85, "rgba(255, 140, 0, 0.86)",
+        0.93, "rgba(255, 40, 0, 0.91)",
+        1.00, "rgba(160, 0, 0, 0.95)"
       ],
       "heatmap-opacity": 0.80
     }
@@ -874,17 +936,15 @@ function renderHeatmap() {
     }
 
     const groupList = [...groups.values()];
-    const raw = groupList.map(g =>
-      Math.log1p(sizeMode === "duration" ? totalDurationHours(g.recs) : g.recs.length)
-    );
-    const weightScale = sqrtScale(raw, 19); // 1-20
-
-    features = groupList.map((g, i) => ({
-      type: "Feature",
-      properties: { weight: (weightScale.get(i) || 0) + 1 },
+    features = groupList.map(g => {
+      const raw = sizeMode === "duration" ? totalDurationHours(g.recs) : g.recs.length;
+      const weight = Math.max(1, Math.log1p(raw) * 10);
+      return {
+        type: "Feature",
+        properties: { weight },
       geometry: { type: "Point", coordinates: [g.lng, g.lat] }
-    }));
-  }
+    };
+  })};
 
   src.setData({ type: "FeatureCollection", features });
 }
