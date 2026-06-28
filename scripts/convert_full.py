@@ -10,7 +10,7 @@ Usage:
   source /tmp/xlsxenv/bin/activate
   FULL_MAP_PASSWORD=your-secret python3 scripts/convert_full.py
 """
-import base64, csv, json, os
+import base64, csv, gzip, json, os
 from datetime import datetime, timedelta
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -208,7 +208,8 @@ def encrypt_json(data, password, salt):
     key = kdf.derive(password.encode())
     aesgcm = AESGCM(key)
     plaintext = json.dumps(data, ensure_ascii=False).encode()
-    ciphertext = aesgcm.encrypt(iv, plaintext, None)
+    compressed = gzip.compress(plaintext, compresslevel=9)
+    ciphertext = aesgcm.encrypt(iv, compressed, None)
     return {
         "salt": base64.b64encode(salt).decode(),
         "iv": base64.b64encode(iv).decode(),
